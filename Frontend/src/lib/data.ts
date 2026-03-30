@@ -55,7 +55,7 @@ export const courses: Course[] = [
     lessonsCount: 5,
     slug: "fl-studio-undes",
     curriculum: [
-      { id: "1-1", title: "FL Studio танилцуулга, суулгалт", youtubeId: "l5rQ9e1O5kE", durationMinutes: 12, free: true },
+      { id: "1-1", title: "FL Studio танилцуулга, суулгалт", youtubeId: "6YwWKn6k0Mg", durationMinutes: 12, free: true },
       { id: "1-2", title: "Playlist, Pattern-тай ажиллах", youtubeId: "8gJ5-Y7jbkU", durationMinutes: 15, free: true },
       { id: "1-3", title: "Piano Roll-ийн үндэс", youtubeId: "4VnQFGyZmwI", durationMinutes: 18, free: false },
       { id: "1-4", title: "Миди контроллер холбох", youtubeId: "pK1W6j9xQw", durationMinutes: 10, free: false },
