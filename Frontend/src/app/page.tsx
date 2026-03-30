@@ -1,19 +1,16 @@
 'use client';
 
-import { useEffect } from 'react';
-import Nav from '@/components/layout/Nav';
-import Footer from '@/components/layout/Footer';
-import Hero from '@/components/sections/Hero';
-import Features from '@/components/sections/Features';
-import Teachers from '@/components/sections/Teachers';
-import Pricing from '@/components/sections/Pricing';
-import CTA from '@/components/sections/CTA';
+import dynamic from 'next/dynamic';
+
+const Hero = dynamic(() => import('@/components/sections/Hero'), { ssr: false });
+const Features = dynamic(() => import('@/components/sections/Features'), { ssr: false });
+const Teachers = dynamic(() => import('@/components/sections/Teachers'), { ssr: false });
+const Pricing = dynamic(() => import('@/components/sections/Pricing'), { ssr: false });
+const CTA = dynamic(() => import('@/components/sections/CTA'), { ssr: false });
+const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
+const Footer = dynamic(() => import('@/components/layout/Footer'), { ssr: false });
 
 export default function HomePage() {
-  useEffect(() => {
-    console.log('🏠 Home page loaded');
-  }, []);
-
   return (
     <>
       <Nav />
