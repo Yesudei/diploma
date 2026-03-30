@@ -1,14 +1,16 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { courses, Lesson } from '@/lib/data';
 import { teachers } from '@/lib/data';
 import { useAuth } from '@/hooks/useAuth';
 import { usePurchases } from '@/hooks/usePurchases';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import Nav from '@/components/layout/Nav';
-import Footer from '@/components/layout/Footer';
-import VideoPlayer from '@/components/VideoPlayer';
+import dynamic from 'next/dynamic';
+
+const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
+const Footer = dynamic(() => import('@/components/layout/Footer'), { ssr: false });
+const VideoPlayer = dynamic(() => import('@/components/VideoPlayer'), { ssr: false });
 
 const categoryLabel: Record<string, string> = {
   basics: 'Үндэс',
@@ -19,7 +21,9 @@ const categoryLabel: Record<string, string> = {
 };
 
 export default function CourseDetailPage({ params }: { params: { slug: string } }) {
-  const course = courses.find((c) => c.slug === params.slug);
+  const [slug, setSlug] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const course = courses.find((c) => c.slug === slug);
   const teacher = course ? teachers.find((t) => t.id === course.teacherId) : null;
   const { user } = useAuth();
   const { canWatch } = usePurchases();
@@ -27,12 +31,28 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   const [buying, setBuying] = useState(false);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
 
-  if (!course)
+  useEffect(() => {
+    if (params?.slug) {
+      setSlug(params.slug);
+      setLoading(false);
+    }
+  }, [params]);
+
+  if (loading || !slug) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
+        <div className="text-[#7A7570]">Ачаалж байна...</div>
+      </div>
+    );
+  }
+
+  if (!course) {
     return (
       <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center text-[#7A7570]">
         Хичээл олдсонгүй
       </div>
     );
+  }
 
   const alreadyOwned = canWatch(course.id, course.price);
 
@@ -59,7 +79,6 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
     } else if (!user) {
       router.push('/auth/login');
     } else {
-      // Prompt to buy - scroll to buy button
       document.getElementById('buy-section')?.scrollIntoView({ behavior: 'smooth' });
     }
   };
