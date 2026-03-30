@@ -12,7 +12,7 @@ export default function Footer() {
                 <path d="M10 18V10l10 4-10 4z" fill="#C9A84C" />
               </svg>
               <span className="font-display font-bold text-[#C9A84C] text-[17px] tracking-wide">
-                Nomad Sounds
+                melodex
               </span>
             </Link>
             <p className="text-[#7A7570] text-[13px] leading-relaxed max-w-[220px]">
@@ -77,7 +77,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-7 border-t border-[rgba(245,240,232,0.06)] flex items-center justify-between">
-          <p className="text-[#4A4540] text-xs">© 2025 Nomad Sounds. Бүх эрх хамгаалагдсан.</p>
+          <p className="text-[#4A4540] text-xs">© 2025 melodex. Бүх эрх хамгаалагдсан.</p>
           <div className="flex items-center gap-4">
             {['Үйлчилгээний нөхцөл', 'Нууцлалын бодлого'].map((item) => (
               <button

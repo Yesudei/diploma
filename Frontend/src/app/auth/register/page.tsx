@@ -16,70 +16,50 @@ export default function RegisterPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error('Нууц үг таарахгүй байна');
       return;
     }
 
-    if (formData.password.length < 8) {
-      toast.error('Password must be at least 8 characters');
+    if (formData.password.length < 6) {
+      toast.error('Нууц үг хамгийн багадаа 6 тэмдэгт');
       return;
     }
 
     setIsLoading(true);
 
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-          },
-        },
-      });
+    const { error } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+      options: {
+        data: { full_name: formData.fullName },
+      },
+    });
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data.user) {
-        toast.success('Account created! Please check your email to verify.');
-      } else {
-        toast.success('Account created successfully!');
-      }
-      
-      setTimeout(() => {
-        router.push('/auth/login');
-      }, 500);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Registration failed';
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Бүртгэл амжилттай! Нэвтрэх хуудас руу шилжих болно.');
+      setTimeout(() => router.push('/auth/login'), 1500);
     }
+    setIsLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4 py-20">
+    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-[#FFD700] rounded-lg mb-4">
+          <Link href="/" className="inline-flex items-center justify-center w-12 h-12 bg-[#C9A84C] rounded-lg mb-4">
             <span className="font-bold text-black text-lg">M</span>
-          </div>
+          </Link>
           <h1 className="text-3xl font-bold text-white mb-2">Бүртгүүлэх</h1>
-          <p className="text-[#B3B3B3]">Хөгжмийн нийгэмлэгт нэгдэх</p>
+          <p className="text-[#7A7570]">melodex руу бүртгүүлэх</p>
         </div>
 
-        <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
+        <div className="bg-[#111118] border border-[rgba(245,240,232,0.06)] rounded-xl p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-white mb-2">Email</label>
@@ -87,46 +67,46 @@ export default function RegisterPage() {
                 type="email"
                 name="email"
                 value={formData.email}
-                onChange={handleChange}
-                className="w-full bg-[#0A0A0A] border border-[#333333] rounded-lg px-4 py-2 text-white placeholder-[#666666] focus:border-[#FFD700] focus:outline-none"
-                placeholder="you@example.com"
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full bg-[#0A0A0A] border border-[rgba(245,240,232,0.1)] rounded-lg px-4 py-2 text-white placeholder-[#7A7570] focus:border-[#C9A84C] focus:outline-none"
+                placeholder="email@domain.com"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Full Name (Optional)</label>
+              <label className="block text-sm font-medium text-white mb-2">Нэр</label>
               <input
                 type="text"
                 name="fullName"
                 value={formData.fullName}
-                onChange={handleChange}
-                className="w-full bg-[#0A0A0A] border border-[#333333] rounded-lg px-4 py-2 text-white placeholder-[#666666] focus:border-[#FFD700] focus:outline-none"
-                placeholder="John Doe"
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                className="w-full bg-[#0A0A0A] border border-[rgba(245,240,232,0.1)] rounded-lg px-4 py-2 text-white placeholder-[#7A7570] focus:border-[#C9A84C] focus:outline-none"
+                placeholder="Таны нэр"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Password</label>
+              <label className="block text-sm font-medium text-white mb-2">Нууц үг</label>
               <input
                 type="password"
                 name="password"
                 value={formData.password}
-                onChange={handleChange}
-                className="w-full bg-[#0A0A0A] border border-[#333333] rounded-lg px-4 py-2 text-white placeholder-[#666666] focus:border-[#FFD700] focus:outline-none"
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className="w-full bg-[#0A0A0A] border border-[rgba(245,240,232,0.1)] rounded-lg px-4 py-2 text-white placeholder-[#7A7570] focus:border-[#C9A84C] focus:outline-none"
                 placeholder="••••••••"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Confirm Password</label>
+              <label className="block text-sm font-medium text-white mb-2">Нууц үг давтах</label>
               <input
                 type="password"
                 name="confirmPassword"
                 value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full bg-[#0A0A0A] border border-[#333333] rounded-lg px-4 py-2 text-white placeholder-[#666666] focus:border-[#FFD700] focus:outline-none"
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                className="w-full bg-[#0A0A0A] border border-[rgba(245,240,232,0.1)] rounded-lg px-4 py-2 text-white placeholder-[#7A7570] focus:border-[#C9A84C] focus:outline-none"
                 placeholder="••••••••"
                 required
               />
@@ -135,15 +115,15 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#FFD700] text-black py-2 rounded-lg font-semibold hover:bg-[#FFC700] transition disabled:opacity-50"
+              className="w-full bg-[#C9A84C] text-black py-2 rounded-lg font-semibold hover:bg-[#E8C96D] transition disabled:opacity-50"
             >
-              {isLoading ? 'Creating account...' : 'Create Account'}
+              {isLoading ? 'Бүртгэж байна...' : 'Бүртгүүлэх'}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-[#B3B3B3]">
+          <div className="mt-6 text-center text-[#7A7570]">
             Бүртгэлтэй аль хэдийн?{' '}
-            <Link href="/auth/login" className="text-[#FFD700] hover:text-[#FFE033] font-semibold transition">
+            <Link href="/auth/login" className="text-[#C9A84C] hover:text-[#E8C96D] font-semibold transition">
               Нэвтрэх
             </Link>
           </div>

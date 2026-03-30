@@ -13,7 +13,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata = {
-  title: 'Nomad Sounds — Хөгжмийн платформ',
+  title: 'melodex — Хөгжмийн платформ',
   description: 'Монгол хэл дээрх хөгжмийн хичээлийн платформ',
 };
 

@@ -25,7 +25,7 @@ export default function Nav() {
           <path d="M10 18V10l10 4-10 4z" fill="#C9A84C" />
         </svg>
         <span className="font-display font-bold text-gold text-[19px] tracking-wide">
-          Nomad Sounds
+          melodex
         </span>
       </Link>
 
