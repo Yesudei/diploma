@@ -58,9 +58,9 @@ export default function CourseCard({ course }: { course: Course }) {
         </p>
 
         <div className="flex gap-3 text-[11.5px] text-[#7A7570] pt-3 border-t border-[rgba(245,240,232,0.05)] mb-3">
-          <span>⏱ {course.durationMinutes} мин</span>
+          <span>⏱ {course.duration}</span>
           {teacher && <span>👨‍🏫 {teacher.name}</span>}
-          <span>⭐ {course.rating}</span>
+          <span>📚 {course.lessonsCount} хичээл</span>
         </div>
 
         <div className="flex items-center justify-between">
