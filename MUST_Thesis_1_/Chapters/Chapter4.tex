@@ -1,0 +1,521 @@
+% Бүлэг 4: Хэрэгжүүлэлтийн төлөвлөгөө ба арга зүйн шинжилгээ
+
+\chapter{Хөгжил ба хэрэгжүүлэлтийн төлөвлөгөө}
+\label{Chapter4}
+
+%-------------------------------------------------------------------------------
+\section{Системийн хэрэгжүүлэлтийн ерөнхий стратеги}
+
+Энэхүү систем нь өндөр функциональ шаардлагатай олон давхаргат архитектур (Multi-layer Architecture) болгон хөгжүүлэгдэхээр төлөвлөгдсөн. Хэрэгжүүлэлтийн явцад аль болох түргэн үр дүнд хүрэх (Agile Development), чанарын баталгаа (Quality Assurance), болон уялдаа холбоотой үйл ажиллагааг эхлүүлэх (Continuous Integration) зарчмуудыг баримтална.
+
+%-------------------------------------------------------------------------------
+\section{Технологийн сонголт ба үндэслэл}
+
+\subsection{Backend технологи}
+
+Системийн үндсэн сервер талын хэрэгжүүлэлтэд дараах технологиуд ашигладаг:
+
+\begin{itemize}
+    \item \textbf{Python (Flask/FastAPI):} AI загвар болон аудио сигналын боловсруулалтыг Python-д хэрэгжүүлэх нь стандарт байдаг. TensorFlow, PyTorch зэрэг машин сурах сангууд Python-д үндэслэгдсэн бүтэцтэй байдаг. FastAPI нь асинхрон хүсэлтийг (async requests) сайн дэмждэг тул нэгэн зэрэг олон хэрэглэгчтэй үйлчлэхэд тохиромжтой.
+    
+    \item \textbf{PostgreSQL:} Реляционал өгөгдлийн сан болгон сонгосон. Өгөгдлийн нөхцөл бүрхэлт (ACID compliance), индексжүүлэлт, болон JSONB өгөгдлийн төрлийг дэмждэг учраас вектор өгөгдлийн сангийн шаардлагатай нийцэж байна.
+    
+    \item \textbf{AWS S3:} Аудио файл, загварын жинс, болон сургалтын өгөгдлийн сан (vector database)-ийг хадгалахдаа AWS S3-ыг ашигладаг. S3 нь өндөр найдвартай байдал (99.99\% availability), масштабшилт (scalability), болон доогуур төлбөр (cost-effective pricing) үзүүлэлтээр сайн үнэлэгдэж байна.
+\end{itemize}
+
+\subsection{Frontend технологи}
+
+Хэрэглэгчийн интерфейсийн хэрэгжүүлэлтэд:
+
+\begin{itemize}
+    \item \textbf{Next.js:} React фреймворкт дүрмэлэгдэлтэй (server-side rendering), статик үүсгэлт (static generation), болон API route-уудыг дэмждэг. Next.js-ийн SEO дэмжлэг, өндөр гүйцэтгэл, болон хялбар deployment нь бидний хэрэгцээтэй нийцэж байна.
+    
+    \item \textbf{TypeScript:} Төрлийн аюулгүй байдал (type safety) болон код нотолгоо (code documentation) үзүүлэлтээр давуу. Том төслүүдэд заль сохлоо бууруулдаг.
+    
+    \item \textbf{TailwindCSS:} Хурдан UI хөгжүүлэлт, нийцтэй загвар (consistent design), болон draft нь нүүлгэн шилжүүлэх (responsive design) үзүүлэлтээр дотроо байдаг.
+    
+    \item \textbf{Web Audio API:} Браузер дотор аудио боловсруулалт (real-time waveform visualization, playback control) хийхэд ашигладаг.
+\end{itemize}
+
+\subsection{AI/ML технологи}
+
+\begin{itemize}
+    \item \textbf{TensorFlow/Keras:} CNN загвар сургалт болон инференс.
+    
+    \item \textbf{Google Magenta:} MusicVAE загварын сургалт. Эсхүл pytorch-d суурилсан Music Transformer.
+    
+    \item \textbf{LangChain + OpenAI/Ollama:} RAG системийн шойлго хүсэлтийн хэрэгжүүлэлт. Сээр (locally) туршилт хийхдээ Ollama (open-source LLM)-ийг, үйлдвэрт үгэй жалган мэдээллийг сайлахдаа OpenAI API эсхүл зөөнхөн туршилтын өгөгдөл дээр хязгаарлан хэрэглэж болно.
+    
+    \item \textbf{Librosa + Scipy:} Аудио сигналын боловсруулалт, спектрограмм үүсгэлт.
+    
+    \item \textbf{Chroma / FAISS:} Вектор өгөгдлийн сан RAG системийн нэмэлт мэдлэгийг хадгалахдаа.
+\end{itemize}
+
+%-------------------------------------------------------------------------------
+\section{Системийн архитектурын нарийвчилсан загвар}
+
+\subsection{Микросервис архитектур}
+
+Системийг масштабшилтыг сайтар хийхийн тулд микросервис архитектур дагуулан хөгжүүлнэ:
+
+\begin{enumerate}
+    \item \textbf{API Gateway:} Бүх хүсэлтийг дүр сэтгэл, rate limiting, болон баталгаажуулалтын (authentication) үүргүүлэлт.
+    
+    \item \textbf{Auth Service:} Хэрэглэгчийн бүртгэл, нэвтрэлт, токен удирдалт.
+    
+    \item \textbf{Audio Processing Service:} Аудио файлын сургалт, спектрограмм үүсгэлт, CNN загварын инференс.
+    
+    \item \textbf{Melody Generation Service:} MusicVAE загварын инференс, MIDI үүсгэлт.
+    
+    \item \textbf{Chatbot Service:} RAG системийн хэрэгжүүлэлт, вектор өгөгдлийн сантай холбоо.
+    
+    \item \textbf{Marketplace Service:} VST плагин, Sample Pack-ийн борлуулалт, сэтгэгдэл удирдалт.
+    
+    \item \textbf{Database Service:} PostgreSQL с хэвлэл.
+\end{enumerate}
+
+%-------------------------------------------------------------------------------
+\section{Хэрэгжүүлэлтийн үе шатны төлөвлөгөө}
+
+Төслийг дараах 6 үе шатаар хэрэгжүүлнэ. Нийт хугацаа: 25-35 ажлын өдөр.
+
+\subsection{Үе шат 0: Төслийн суурь ба инфраструктур (1-2 өдөр)}
+
+\textbf{Зорилго:} Хөгжүүлэлтийн орчин, хувилбарын удирдалт, ба суут сайрүүлэлтийн хэрэгслүүдийг бэлдэх.
+
+\begin{itemize}
+    \item Git репозитор үүсгэлт (\texttt{GitHub/GitLab})
+    \item \texttt{.gitignore}, \texttt{.env} файл заташ
+    \item Python virtual environment (\texttt{venv}) ба Node.js ажлын орчин суулгалт
+    \item Төслийн каталог бүтэц үүсгэлт:
+    \begin{lstlisting}[language=bash]
+    Diploma/
+    ├── Backend/
+    │   ├── app/
+    │   │   ├── __init__.py
+    │   │   ├── routes/
+    │   │   ├── models/
+    │   │   ├── services/
+    │   │   └── utils/
+    │   ├── ml_models/
+    │   │   ├── cnn_mixer.py
+    │   │   ├── musicvae.py
+    │   │   └── rag_chatbot.py
+    │   ├── config/
+    │   ├── requirements.txt
+    │   └── main.py
+    ├── Frontend/
+    │   ├── src/
+    │   │   ├── components/
+    │   │   ├── pages/
+    │   │   ├── services/
+    │   │   ├── hooks/
+    │   │   ├── types/
+    │   │   └── styles/
+    │   ├── public/
+    │   ├── next.config.js
+    │   ├── tsconfig.json
+    │   └── package.json
+    ├── Database/
+    │   ├── schema.sql
+    │   ├── migrations/
+    │   └── seeds/
+    └── README.md
+    \end{lstlisting}
+    
+    \item Docker-ийн файл (\texttt{Dockerfile}) болон композит (\texttt{docker-compose.yml}) суулгалт
+    \item CI/CD пайпланы анхан бүрхүүлэлт (GitHub Actions)
+\end{itemize}
+
+\subsection{Үе шат 1: Backend суурь болон өгөгдлийн сан (3-5 өдөр)}
+
+\textbf{Зорилго:} FastAPI сервер ба PostgreSQL өгөгдлийн сан суулгалт, API endpoint-уудын бүтэц үүсгэлт.
+
+\subsubsection{Үе шатын даалгавар:}
+
+\begin{enumerate}
+    \item \textbf{PostgreSQL өгөгдлийн сан үүсгэлт:}
+    \begin{itemize}
+        \item Хэрэглэгчийн хүснэгт (\texttt{users}): id, email, password\_hash, full\_name, profile\_data
+        \item Аудио файлын хүснэгт (\texttt{audio\_files}): id, user\_id, filename, duration, file\_path, upload\_date
+        \item Миксинг анализын хүснэгт (\texttt{mixing\_analysis}): id, audio\_id, eq\_recommendations, compression\_settings, quality\_score, analyzed\_date
+        \item Мелодийн өөрчлөлт (\texttt{melody\_variations}): id, midi\_file\_id, variation\_index, midi\_data, created\_date
+        \item Мэдлэгийн суурь (\texttt{knowledge\_base}): id, category, content, embedding\_vector, source, verified\_by
+        \item Дэлгүүрийн зүйл (\texttt{marketplace\_items}): id, seller\_id, title, description, price, category, file\_path
+        \item Сэтгэгдэлүүд (\texttt{user\_feedback}): id, user\_id, content, rating, created\_date
+    \end{itemize}
+    
+    \item \textbf{FastAPI ба CORS суулгалт:}
+    \begin{lstlisting}[language=Python]
+    pip install fastapi uvicorn sqlalchemy psycopg2-binary python-dotenv pydantic
+    \end{lstlisting}
+    
+    \item \textbf{Core API endpoint-ууд:}
+    \begin{itemize}
+        \item \texttt{POST /auth/register} - Хэрэглэгчийн бүртгэл
+        \item \texttt{POST /auth/login} - Нэвтрэлт (JWT token)
+        \item \texttt{GET /auth/profile} - Хэрэглэгчийн профайл авах
+        \item \texttt{POST /audio/upload} - Аудио файл байршуулах (multipart/form-data)
+        \item \texttt{GET /audio/\{id\}} - Аудио файлын мета мэдээлэл авах
+        \item \texttt{DELETE /audio/\{id\}} - Аудио файл устгах
+        \item \texttt{GET /marketplace} - Дэлгүүрийн зүйлсийн жагсаалт авах (pagination)
+        \item \texttt{POST /marketplace/create} - Дэлгүүрт шинэ зүйл нэмэх
+    \end{itemize}
+    
+    \item \textbf{ORM загвар ба схем үүсгэлт} (SQLAlchemy):
+    \begin{lstlisting}[language=Python]
+    from sqlalchemy import Column, Integer, String, Text, DateTime
+    from sqlalchemy.ext.declarative import declarative_base
+    from datetime import datetime
+    
+    Base = declarative_base()
+    
+    class User(Base):
+        __tablename__ = "users"
+        id = Column(Integer, primary_key=True)
+        email = Column(String, unique=True, index=True)
+        password_hash = Column(String)
+        full_name = Column(String)
+        created_at = Column(DateTime, default=datetime.utcnow)
+    \end{lstlisting}
+    
+    \item \textbf{Баталгаажуулалт ба нэвтрэх (Authentication):}
+    \begin{itemize}
+        \item bcrypt-ийн үед нууц үгийн хеш хийх
+        \item JWT token-ийн үүсгэлт ба шалгалт
+        \item Refresh token механизм
+    \end{itemize}
+    
+    \item \textbf{Файлын сано ба AWS S3 холбоо:}
+    \begin{lstlisting}[language=Python]
+    import boto3
+    s3_client = boto3.client('s3', region_name='us-east-1')
+    s3_client.upload_file('local_file', 'bucket_name', 'object_key')
+    \end{lstlisting}
+\end{enumerate}
+
+\subsection{Үе шат 2: AI загвар хаяглалт (5-7 өдөр)}
+
+\textbf{Зорилго:} CNN, MusicVAE, RAG загварыг сервертэй холбоно.
+
+\subsubsection{Үе шатын даалгавар:}
+
+\begin{enumerate}
+    \item \textbf{CNN Audio Mixer загвар:}
+    \begin{itemize}
+        \item Librosa ашиглан аудио спектрограмм үүсгэлт:
+        \begin{lstlisting}[language=Python]
+        import librosa
+        import numpy as np
+        
+        y, sr = librosa.load(audio_path)
+        S = librosa.feature.melspectrogram(y=y, sr=sr)
+        S_db = librosa.power_to_db(S, ref=np.max)
+        \end{lstlisting}
+        
+        \item Урьдчилан сургалтан CNN загварыг ачаалж эсхүл сургалт хийх
+        \item Спектрограммын нарвачилсан анализ (feature extraction)
+        \item EQ ба компрессорын тохиргооны саналыг буцаах
+        \item REST API endpoint: \texttt{POST /analyze/mixing}
+    \end{itemize}
+    
+    \item \textbf{MusicVAE мелодийн үүсгэлт:}
+    \begin{itemize}
+        \item Google Magenta MusicVAE загварыг ачаалж сургалт хийх
+        \item MIDI файлын оролт авах ба спектроскопит дүрслэлд хөрвүүлэх
+        \item VAE латент орон зайд кодлох (encoding)
+        \item 3-5 өөрчлөлт үүсгэх (interpolation, variation)
+        \item MIDI файл үүсгэж буцаах
+        \item REST API endpoint: \texttt{POST /generate/melody}
+    \end{itemize}
+    
+    \item \textbf{RAG Chatbot систем:}
+    \begin{itemize}
+        \item LangChain ба ChromaDB суулгалт:
+        \begin{lstlisting}[language=Python]
+        pip install langchain chromadb openai python-dotenv
+        \end{lstlisting}
+        
+        \item Мэдлэгийн суурь (knowledge base)-ийг embedding болгон хувиргалт
+        \item Vector database-д сүүлчүүлэх
+        \item Хэрэглэгчийн асуултад хайлт ба RAG санала үүсгэлт
+        \item Hallucination угаасны механизм (confidence threshold)
+        \item REST API endpoint: \texttt{POST /chat/ask}
+        \item Вектор өгөгдлийн сан анхлан сургалт
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Үе шат 3: Frontend хөгжүүлэлт (4-6 өдөр)}
+
+\textbf{Зорилго:} Next.js-ийг ашиглан сүүтэй интерфэйсийг хөгжүүлэх.
+
+\subsubsection{Үе шатын даалгавар:}
+
+\begin{enumerate}
+    \item \textbf{Next.js төслийг үүсгэлт:}
+    \begin{lstlisting}[language=bash]
+    npx create-next-app@latest frontend --typescript --tailwind
+    \end{lstlisting}
+    
+    \item \textbf{Баталгаажуулалт (Authentication) хуудас:}
+    \begin{itemize}
+        \item RegisterPage: нэр, имэйл, нууц үгийн маягтаа
+        \item LoginPage: имэйл ба нууц үгийн баталгаажуулалт
+        \item JWT token-ийг localStorage-д хадгалах
+        \item Protected routes ба middleware
+    \end{itemize}
+    
+    \item \textbf{Dashboard хуудас:}
+    \begin{itemize}
+        \item Хэрэглэгчийн профайлын товчоо
+        \item Сүүлийн аудио анализуудын түүх
+        \item Хүрэх мэдээлэл
+    \end{itemize}
+    
+    \item \textbf{Аудио Анализ хуудас:}
+    \begin{itemize}
+        \item Drag-and-drop файл байршуулсан виджет
+        \item Спектрограмм дүрслэлт (Plotly эсхүл Chart.js)
+        \item EQ ба компрессорын сөөлөмжийг харуулах
+        \item Дүн хүргүүлэх 0-100 үзүүлэлт
+        \item Урьдчилан сургалтан анализын явцыг харуулах (progress bar)
+    \end{itemize}
+    
+    \item \textbf{Мелодийн үүсгэлт хуудас:}
+    \begin{itemize}
+        \item MIDI файл байршуулах
+        \item 3-5 өөрчлөлт сонголтуудыг харуулах
+        \item MIDI дуу таталцаа (playback)
+        \item MIDI файл татан авах (download)
+    \end{itemize}
+    
+    \item \textbf{AI Chatbot интерфэйс:}
+    \begin{itemize}
+        \item Уголдсон чатын хэлэлцээ
+        \item Категорийн сонголт (техник, сургалт, онол)
+        \item Сөөлөмжийн үнэлгээ (feedback rating)
+    \end{itemize}
+    
+    \item \textbf{Дэлгүүр (Marketplace) хуудас:}
+    \begin{itemize}
+        \item VST плагин болон Sample Pack-ийн жагсаалт
+        \item Хайлт ба сүлүүлэлт
+        \item Борлуулалтын түүх
+    \end{itemize}
+    
+    \item \textbf{Өнгөний өөрчлөлт (Dark Mode):}
+    \begin{itemize}
+        \item TailwindCSS-ийн dark mode дэмжлэг
+        \item Хэрэглэгчийн сонголтыг localStorage-д хадгалах
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Үе шат 4: Интеграци ба туршилт (3-4 өдөр)}
+
+\textbf{Зорилго:} Frontend ба Backend-ийн холбоо, чанарын баталгаа.
+
+\begin{enumerate}
+    \item \textbf{API интеграци туршилт:}
+    \begin{itemize}
+        \item Postman эсхүл Insomnia ашиглан API endpoint-уудыг туршилт хийх
+        \item Frontend сүлүүлэлт, лоадинг, алдаа удирдалт
+        \item Backend алдааны сэтгэгдлийн сөлбөрт
+    \end{itemize}
+    
+    \item \textbf{Unit testing:}
+    \begin{itemize}
+        \item Backend: pytest ашиглан функцийн туршилт
+        \item Frontend: Jest ба React Testing Library
+    \end{itemize}
+    
+    \item \textbf{Load testing:}
+    \begin{itemize}
+        \item Apache JMeter эсхүл Locust ашиглан нэгэн зэрэл 100-1000 хэрэглэгч симуляци
+        \item CNN инференс хугацаа 10 сек-ийн дор байгаа эсэх шалгалт
+    \end{itemize}
+    
+    \item \textbf{Аюулгүй байдлын шалгалт:}
+    \begin{itemize}
+        \item SQL injection эргүүлэх
+        \item XSS (Cross-Site Scripting) хөндөлтийн сөлбөр
+        \item CSRF (Cross-Site Request Forgery) дэмжлэг
+        \item Rate limiting (нэг IP хаяг дээр минут тутамд 60 хүсэлт)
+    \end{itemize}
+    
+    \item \textbf{Performance optimization:}
+    \begin{itemize}
+        \item Database query optimize хийх (indexing, query planning)
+        \item Frontend bundle size багасгалт (code splitting, lazy loading)
+        \item CDN суулгалт (CSS, JS файлын хагалалтыг хурдасгалт)
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Үе шат 5: Deployment ба документ (2-3 өдөр)}
+
+\textbf{Зорилго:} Үйлдвэрт байршуулах болон сэргэх документ.
+
+\begin{enumerate}
+    \item \textbf{AWS дээр Deploy хийх:}
+    \begin{itemize}
+        \item RDS-д PostgreSQL үүсгэлт
+        \item EC2 эсхүл ECS-д Backend суулгалт
+        \item S3 дээр аудио файлын сано
+        \item CloudFront CDN суулгалт
+        \item Route53 DNS тохиргоо
+    \end{itemize}
+    
+    \item \textbf{Frontend deployment:}
+    \begin{itemize}
+        \item Vercel эсхүл Netlify дээр Next.js deploy хийх
+        \item Environment variables тохиргоо
+        \item Custom domain суулгалт
+    \end{itemize}
+    
+    \item \textbf{Docker контейнеризация:}
+    \begin{lstlisting}[language=Dockerfile]
+    FROM python:3.11-slim
+    WORKDIR /app
+    COPY requirements.txt .
+    RUN pip install -r requirements.txt
+    COPY . .
+    CMD ["uvicorn", "main:app", "--host", "0.0.0.0"]
+    \end{lstlisting}
+    
+    \item \textbf{CI/CD Pipeline (GitHub Actions):}
+    \begin{itemize}
+        \item Testing, building, deploying автомат хийлэх
+        \item Хүлээх шалгалт (linting), type checking
+    \end{itemize}
+    
+    \item \textbf{Документ бичих:}
+    \begin{itemize}
+        \item API документ (Swagger/OpenAPI)
+        \item Хэрэглэгчийн гарын авлага
+        \item Админ удирдаларыг
+        \item Сүүлийн ажлын тайлан ба фотограф
+    \end{itemize}
+\end{enumerate}
+
+%-------------------------------------------------------------------------------
+\section{Өгөгдлийн сан (Database) дизайн}
+
+\subsection{Схемийн нарийвчилсан загвар}
+
+\begin{table}[!htbp]
+\caption{Хэрэглэгч хүснэгтийн схем}
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Баганын нэр} & \textbf{Өгөгдлийн төрөл} & \textbf{Хязгаарлалт} & \textbf{Тайлбар} \\
+\hline
+id & SERIAL & PRIMARY KEY & Уникум таних тэмдэг \\
+\hline
+email & VARCHAR(255) & UNIQUE, NOT NULL & Хэрэглэгчийн имэйл хаяг \\
+\hline
+password\_hash & VARCHAR(255) & NOT NULL & bcrypt хешийн нууц үг \\
+\hline
+full\_name & VARCHAR(255) & NOT NULL & Бүтэн нэр \\
+\hline
+profile\_pic & TEXT & NULL & S3 дээрх зураг холбоос \\
+\hline
+created\_at & TIMESTAMP & DEFAULT NOW() & Үүсгэлтийн цаг \\
+\hline
+updated\_at & TIMESTAMP & DEFAULT NOW() & Сүүлийн өөрчлөлтийн цаг \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[!htbp]
+\caption{Аудио файл хүснэгтийн схем}
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Баганын нэр} & \textbf{Өгөгдлийн төрөл} & \textbf{Хязгаарлалт} & \textbf{Тайлбар} \\
+\hline
+id & SERIAL & PRIMARY KEY & Уникум таних тэмдэг \\
+\hline
+user\_id & INTEGER & FOREIGN KEY & Хэрэглэгчийн ID \\
+\hline
+filename & VARCHAR(255) & NOT NULL & Файлын нэр \\
+\hline
+duration & FLOAT & & Аудиогийн хугацаа (сек) \\
+\hline
+file\_path & TEXT & NOT NULL & S3 дээрх холбоос \\
+\hline
+upload\_date & TIMESTAMP & DEFAULT NOW() & Байршуулсан цаг \\
+\hline
+\end{tabular}
+\end{table}
+
+%-------------------------------------------------------------------------------
+\section{Хэрэгжүүлэлтийн цаг хуваарь}
+
+\begin{table}[!htbp]
+\caption{Системийн хөгжүүлэлтийн үе шатын цаг хуваарь}
+\centering
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Үе шат} & \textbf{Хугацаа} & \textbf{Байцаалтын эхлэлийн дүүнээр} & \textbf{Статус} \\
+\hline
+Үе шат 0: Суурь & 1-2 өдөр & 1-2 өдөр & ⏳ Чухал \\
+\hline
+Үе шат 1: Backend & 3-5 өдөр & 3-7 өдөр & Бэлтгэл \\
+\hline
+Үе шат 2: AI загвар & 5-7 өдөр & 8-14 өдөр & Бэлтгэл \\
+\hline
+Үе шат 3: Frontend & 4-6 өдөр & 12-20 өдөр & Бэлтгэл \\
+\hline
+Үе шат 4: Туршилт & 3-4 өдөр & 15-24 өдөр & Бэлтгэл \\
+\hline
+Үе шат 5: Deploy & 2-3 өдөр & 17-27 өдөр & Бэлтгэл \\
+\hline
+\textbf{Нийт} & \textbf{18-27 өдөр} & - & \textbf{~1 сар} \\
+\hline
+\end{tabular}
+\end{table}
+
+%-------------------------------------------------------------------------------
+\section{Ирээдүйн сайжруулалтын боломжууд}
+
+Энэхүү системийг үндэс болгон дараах сайжруулалт болон өргөтгөлүүдийг хийж болно:
+
+\begin{itemize}
+    \item \textbf{Mobile Application:} React Native эсхүл Flutter ашиглан гар утас дээрх худалдан авалтын програм
+    
+    \item \textbf{Real-time Collaboration:} WebSocket ашиглан хэрэглэгчид нэгэн зэрэл ажилла
+    
+    \item \textbf{Advanced Analytics:} Хэрэглэгчийн ашиглалтын дүн шинжилгээ, сурчилгаа
+    
+    \item \textbf{Community Features:} Хэрэглэгчийн бүтээлүүдийн хувьцаа, дүгнэлт, лайк систем
+    
+    \item \textbf{Music Recommendation:} Хэрэглэгчийн сонирхлын дагуу хөгжим сөглөлгөлтийн систем
+\end{itemize}
+
+%-------------------------------------------------------------------------------
+\section{Эрсдлийн үнэлгээ ба шийдвэрлэх аргууд}
+
+\begin{table}[!htbp]
+\caption{Төслийн эрсдэлүүд ба хөрвүүлэлтийн стратеги}
+\centering
+\begin{tabular}{|p{3cm}|p{3cm}|p{2cm}|p{4cm}|}
+\hline
+\textbf{Эрсдэл} & \textbf{Шалтгаан} & \textbf{Магадлал} & \textbf{Хөрвүүлэлтийн арга} \\
+\hline
+CNN загварын Нарвачилсан байдал Бага & Сургалтын өгөгдлийн сан дутагдалтай & Өндөр & Өмнө сургалтын загвар (transfer learning) ашиглах \\
+\hline
+API гүйцэтгэл удаан & Олон хэрэглэгч нэгэн зэрэл & Дээд & Asynchronous processing, task queue (Celery) ашиглах \\
+\hline
+AWS S3 зардлын өндөр & Олон аудио файл & Дээд & Файл сөлбөр, автоматаар хуучин файлүүдийг устгалт \\
+\hline
+Өгөгдлийн аюулгүй байдлын эрсдэл & Сансан нэвтрэлт & Дээд & HTTPS, двалын баталгаажуулалт (2FA), rate limiting \\
+\hline
+\end{tabular}
+\end{table}
+
+%-------------------------------------------------------------------------------
+\section{Бүлгийн дүгнэлт}
+
+Энэ бүлгээр системийн хэрэгжүүлэлтийн ерөнхий стратеги, технологийн сонголтын үндэслэл, болон 5 үе шатаас бүрдсэн нарийвчилсан хөгжүүлэлтийн төлөвлөгөөг үзүүлэв. Next.js, FastAPI, PostgreSQL, болон AWS S3-ыг сонгосон нь сургалтын экосистемийн хэрэгцээтэй нийцэж, масштабшилт, чанарын баталгаа, болон ирээдүйн өргөтгөл хийхэд боломжтой архитектур биелүүлэхийг зорисон болно. 
+
+Системийн хөгжүүлэлтийн явцад агил аргачлалыг баримтлан, эхлүүлэлт хийх, туршилт хийхэд үгүйцэлбэлж, итеративаар сайжруулна. Өгөгдлийн аюулгүй байдал, гүйцэтгэлийн үзүүлэлт, болон хэрэглэгчийн туршлагыг чүн төвөтэй хөгжүүлнэ.
+
