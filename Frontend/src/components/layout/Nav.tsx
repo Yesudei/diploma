@@ -35,6 +35,11 @@ export default function Nav() {
             Хичээлүүд
           </Link>
         </li>
+        <li>
+          <Link href="/dashboard" className="text-[#7A7570] text-sm font-medium hover:text-cream transition-colors">
+            Миний самбар
+          </Link>
+        </li>
       </ul>
 
       <div className="flex items-center gap-3.5">
