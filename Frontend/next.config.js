@@ -79,13 +79,7 @@ const nextConfig = {
 
   /* Redirects */
   async redirects() {
-    return [
-      {
-        source: '/dashboard',
-        destination: '/dashboard',
-        permanent: false,
-      },
-    ];
+    return [];
   },
 
   /* Rewrites for API proxy (optional) */

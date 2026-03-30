@@ -2,10 +2,12 @@
 
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: '',
     fullName: '',
@@ -56,7 +58,7 @@ export default function RegisterPage() {
       }
       
       setTimeout(() => {
-        window.location.href = '/auth/login';
+        router.push('/auth/login');
       }, 500);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Registration failed';

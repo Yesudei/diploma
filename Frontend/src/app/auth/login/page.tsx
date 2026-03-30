@@ -2,17 +2,17 @@
 
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-
-  // No auto-redirect - let user click
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -38,8 +38,7 @@ export default function LoginPage() {
     } else {
       console.log('✅ Login success, user:', data.user);
       toast.success('Login successful!');
-      // Direct page navigation
-      window.location.href = '/dashboard';
+      router.push('/dashboard');
     }
 
     setIsLoading(false);

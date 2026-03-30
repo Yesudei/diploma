@@ -1,26 +1,36 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { courses } from '@/lib/data';
 import Link from 'next/link';
+import Nav from '@/components/layout/Nav';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setUser(session.user);
+      } else {
+        router.push('/auth/login');
+      }
+      setLoading(false);
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'INITIAL_SESSION') {
-        if (session) {
-          setUser(session.user);
-        } else {
-          window.location.href = '/auth/login';
-        }
-        setLoading(false);
+      if (event === 'SIGNED_IN' && session) {
+        setUser(session.user);
+      }
+      if (event === 'SIGNED_OUT') {
+        router.push('/auth/login');
       }
     });
     return () => subscription.unsubscribe();
-  }, []);
+  }, [router]);
 
   const [purchases, setPurchases] = useState<{ course_id: string }[]>([]);
   const [progress, setProgress] = useState<{ course_id: string; progress_percent: number }[]>([]);
