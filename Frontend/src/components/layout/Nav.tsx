@@ -30,21 +30,11 @@ export default function Nav() {
       </Link>
 
       <ul className="flex gap-9 list-none">
-        {[
-          { href: '/courses', label: 'Хичээлүүд' },
-          { href: '/pricing', label: 'Үнэ' },
-          { href: '/teachers', label: 'Багш нар' },
-          { href: '/contact', label: 'Холбоо барих' },
-        ].map(({ href, label }) => (
-          <li key={href}>
-            <Link
-              href={href}
-              className="text-[#7A7570] text-sm font-medium hover:text-cream transition-colors"
-            >
-              {label}
-            </Link>
-          </li>
-        ))}
+        <li>
+          <Link href="/courses" className="text-[#7A7570] text-sm font-medium hover:text-cream transition-colors">
+            Хичээлүүд
+          </Link>
+        </li>
       </ul>
 
       <div className="flex items-center gap-3.5">
