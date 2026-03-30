@@ -15,7 +15,10 @@ export function usePurchases() {
       return;
     }
     getPurchasedCourses(user.id).then(({ data }) => {
-      setPurchasedIds(data?.map((p: { course_id: string }) => p.course_id) ?? []);
+      setPurchasedIds(data?.map((p: any) => p.course_id) ?? []);
+      setLoading(false);
+    }).catch(() => {
+      setPurchasedIds([]);
       setLoading(false);
     });
   }, [user]);
