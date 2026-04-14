@@ -10,14 +10,6 @@ const thumbColors: Record<string, string> = {
   mastering: 'from-[#1a1208] to-[#0d0d06]',
 };
 
-const thumbEmoji: Record<string, string> = {
-  basics: '🎛️',
-  beats: '🥁',
-  mixing: '🎚️',
-  'sound-design': '🎹',
-  mastering: '🏆',
-};
-
 const levelLabel: Record<string, string> = {
   beginner: 'Анхан шат',
   intermediate: 'Дунд',
@@ -33,9 +25,9 @@ export default function CourseCard({ course }: { course: Course }) {
       className="group block bg-[#111118] border border-[rgba(245,240,232,0.06)] rounded-[17px] overflow-hidden hover:-translate-y-1.5 hover:border-[rgba(201,168,76,0.20)] hover:shadow-[0_20px_56px_rgba(0,0,0,0.5)] transition-all duration-300"
     >
       <div
-        className={`aspect-video flex items-center justify-center text-5xl relative bg-gradient-to-br ${thumbColors[course.category]}`}
+        className={`aspect-video flex items-center justify-center relative bg-gradient-to-br ${thumbColors[course.category]}`}
       >
-        <span>{thumbEmoji[course.category]}</span>
+        <span className="text-2xl font-bold text-[rgba(255,255,255,0.3)] uppercase">{course.category.slice(0, 3)}</span>
         <span className="absolute top-2.5 left-2.5 bg-[rgba(10,10,15,0.85)] backdrop-blur-sm border border-[rgba(201,168,76,0.20)] text-[#C9A84C] text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full">
           {levelLabel[course.level]}
         </span>
@@ -58,9 +50,9 @@ export default function CourseCard({ course }: { course: Course }) {
         </p>
 
         <div className="flex gap-3 text-[11.5px] text-[#7A7570] pt-3 border-t border-[rgba(245,240,232,0.05)] mb-3">
-          <span>⏱ {course.duration}</span>
-          {teacher && <span>👨‍🏫 {teacher.name}</span>}
-          <span>📚 {course.lessonsCount} хичээл</span>
+          <span>{course.duration}</span>
+          {teacher && <span>{teacher.name}</span>}
+          <span>{course.lessonsCount} lessons</span>
         </div>
 
         <div className="flex items-center justify-between">

@@ -90,37 +90,37 @@
     \item Төслийн каталог бүтэц үүсгэлт:
     \begin{lstlisting}[language=bash]
     Diploma/
-    ├── Backend/
-    │   ├── app/
-    │   │   ├── __init__.py
-    │   │   ├── routes/
-    │   │   ├── models/
-    │   │   ├── services/
-    │   │   └── utils/
-    │   ├── ml_models/
-    │   │   ├── cnn_mixer.py
-    │   │   ├── musicvae.py
-    │   │   └── rag_chatbot.py
-    │   ├── config/
-    │   ├── requirements.txt
-    │   └── main.py
-    ├── Frontend/
-    │   ├── src/
-    │   │   ├── components/
-    │   │   ├── pages/
-    │   │   ├── services/
-    │   │   ├── hooks/
-    │   │   ├── types/
-    │   │   └── styles/
-    │   ├── public/
-    │   ├── next.config.js
-    │   ├── tsconfig.json
-    │   └── package.json
-    ├── Database/
-    │   ├── schema.sql
-    │   ├── migrations/
-    │   └── seeds/
-    └── README.md
+    +-- Backend/
+    |   +-- app/
+    |   |   +-- __init__.py
+    |   |   +-- routes/
+    |   |   +-- models/
+    |   |   +-- services/
+    |   |   +- utils/
+    |   +-- ml_models/
+    |   |   +-- cnn_mixer.py
+    |   |   +-- musicvae.py
+    |   |   +- rag_chatbot.py
+    |   +-- config/
+    |   +-- requirements.txt
+    |   +- main.py
+    +-- Frontend/
+    |   +-- src/
+    |   |   +-- components/
+    |   |   +-- pages/
+    |   |   +-- services/
+    |   |   +-- hooks/
+    |   |   +-- types/
+    |   |   +- styles/
+    |   +-- public/
+    |   +-- next.config.js
+    |   +-- tsconfig.json
+    |   +- package.json
+    +-- Database/
+    |   +-- schema.sql
+    |   +-- migrations/
+    |   +- seeds/
+    +- README.md
     \end{lstlisting}
     
     \item Docker-ийн файл (\texttt{Dockerfile}) болон композит (\texttt{docker-compose.yml}) суулгалт
@@ -457,7 +457,7 @@ upload\_date & TIMESTAMP & DEFAULT NOW() & Байршуулсан цаг \\
 \hline
 \textbf{Үе шат} & \textbf{Хугацаа} & \textbf{Байцаалтын эхлэлийн дүүнээр} & \textbf{Статус} \\
 \hline
-Үе шат 0: Суурь & 1-2 өдөр & 1-2 өдөр & ⏳ Чухал \\
+Үе шат 0: Суурь & 1-2 өдөр & 1-2 өдөр & * Чухал \\
 \hline
 Үе шат 1: Backend & 3-5 өдөр & 3-7 өдөр & Бэлтгэл \\
 \hline

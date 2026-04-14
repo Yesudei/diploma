@@ -7,6 +7,39 @@ body {
   color: #f5f0e8;
 }
 
+body.landing-snap-enabled {
+  overflow: hidden;
+}
+
+body.landing-snap-enabled .landing-scroll-container {
+  height: 100svh;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+  scroll-padding-top: 80px;
+}
+
+.landing-snap-section {
+  min-height: 100svh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+}
+
+.landing-snap-section > * {
+  width: 100%;
+  flex: 1 1 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.landing-snap-enabled .landing-scroll-container {
+    scroll-behavior: auto;
+    scroll-snap-type: y proximity;
+  }
+}
+
 @keyframes wave {
   0%,
   100% {

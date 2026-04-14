@@ -10,8 +10,19 @@ export default function Nav() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handler);
+    const scrollContainer = document.getElementById('landing-scroll-container');
+    const readScrollTop = () =>
+      scrollContainer instanceof HTMLElement ? scrollContainer.scrollTop : window.scrollY;
+    const handler = () => setScrolled(readScrollTop() > 20);
+
+    handler();
+
+    if (scrollContainer instanceof HTMLElement) {
+      scrollContainer.addEventListener('scroll', handler, { passive: true });
+      return () => scrollContainer.removeEventListener('scroll', handler);
+    }
+
+    window.addEventListener('scroll', handler, { passive: true });
     return () => window.removeEventListener('scroll', handler);
   }, []);
 
@@ -42,8 +53,8 @@ export default function Nav() {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-[60px] h-20 transition-all ${
         scrolled
-          ? 'bg-[rgba(10,10,15,0.88)] backdrop-blur-[20px] border-b border-[rgba(201,168,76,0.10)]'
-          : 'bg-transparent'
+          ? 'bg-[rgba(255,255,255,0)] rounded-2xl mx-3 mt-2 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[1.8px] [-webkit-backdrop-filter:blur(1.8px)] border border-[rgba(255,255,255,0.07)]'
+          : 'bg-transparent border border-transparent'
       }`}
     >
       <Link href="/" className="flex items-center gap-2.5">

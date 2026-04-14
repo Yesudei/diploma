@@ -189,8 +189,8 @@
 \pagecolor{Chapter}
 	\normalfont
 	\Large
-	\filcenter
-	\bffamily
+	\centering
+	\bfseries
 } % формат
 {%
 	\vspace*{\fill}

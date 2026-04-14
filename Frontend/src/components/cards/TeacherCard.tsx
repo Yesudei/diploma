@@ -22,7 +22,7 @@ export default function TeacherCard({ teacher }: { teacher: Teacher }) {
       <p className="text-[#7A7570] text-[13px] leading-relaxed mb-5 line-clamp-3">{teacher.bio}</p>
 
       <div className="flex flex-wrap justify-center gap-2 mb-6">
-        {teacher.instruments.map((inst) => (
+        {teacher.instruments?.map((inst) => (
           <span
             key={inst}
             className="bg-[rgba(201,168,76,0.10)] border border-[rgba(201,168,76,0.20)] text-[#C9A84C] text-[11px] font-semibold px-2.5 py-1 rounded-full"
@@ -35,15 +35,15 @@ export default function TeacherCard({ teacher }: { teacher: Teacher }) {
       <div className="grid grid-cols-2 gap-3 pt-5 border-t border-[rgba(245,240,232,0.06)]">
         <div>
           <div className="text-[#C9A84C] font-display font-bold text-[20px] leading-none">
-            {teacher.stats.studentCount}+
+            {teacher.stats?.studentCount ?? 0}+
           </div>
           <div className="text-[#7A7570] text-[11px] mt-1">Сурагчид</div>
         </div>
         <div>
           <div className="text-[#C9A84C] font-display font-bold text-[20px] leading-none">
-            {teacher.stats.rating}
+            {teacher.stats?.rating ?? 0}
           </div>
-          <div className="text-[#7A7570] text-[11px] mt-1">⭐ Үнэлгээ</div>
+          <div className="text-[#7A7570] text-[11px] mt-1">Rating</div>
         </div>
       </div>
     </div>

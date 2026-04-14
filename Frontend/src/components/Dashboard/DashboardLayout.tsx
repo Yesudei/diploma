@@ -25,13 +25,13 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
   };
 
   const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: '📊' },
-    { href: '/dashboard/audio', label: 'My Audio', icon: '🎵' },
-    { href: '/dashboard/analysis', label: 'Analysis', icon: '📈' },
-    { href: '/dashboard/melody', label: 'Melody', icon: '🎹' },
-    { href: '/chat', label: 'AI Chat', icon: '💬' },
-    { href: '/marketplace', label: 'Marketplace', icon: '🏪' },
-    { href: '/profile', label: 'Profile', icon: '👤' },
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/dashboard/audio', label: 'My Audio' },
+    { href: '/dashboard/analysis', label: 'Analysis' },
+    { href: '/dashboard/melody', label: 'Melody' },
+    { href: '/chat', label: 'AI Chat' },
+    { href: '/marketplace', label: 'Marketplace' },
+    { href: '/profile', label: 'Profile' },
   ];
 
   return (
@@ -82,7 +82,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                 onClick={() => setSidebarOpen(false)}
                 className="flex items-center gap-3 w-full text-left px-4 py-3 rounded-lg hover:bg-[rgba(245,240,232,0.06)] transition-colors text-[#7A7570] hover:text-[#C9A84C]"
               >
-                <span className="text-lg">{item.icon}</span>
+                <span className="w-5 h-5 rounded bg-[rgba(201,168,76,0.1)]" />
                 <span className="font-medium">{item.label}</span>
               </Link>
             ))}

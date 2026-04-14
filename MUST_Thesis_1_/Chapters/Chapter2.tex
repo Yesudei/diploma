@@ -33,9 +33,29 @@
 \end{enumerate}
 
 \section{Функционал бус шаардлага}
+
+\begin{table}[htbp]
+\centering
+\caption{Чанарын шаардлагууд}
+\label{tab:QualityRequirements}
+\begin{tabular}{|l|p{3cm}|p{7cm}|}
+\hline
+\textbf{Шаардлага} & \textbf{Хэмжээс} & \textbf{Тайлбар} \\
+\hline
+Хурд & < 10 сек & AI инференс хийх хугацаа \\
+\hline
+Сscalability & 1000+ & Зэрэгцээ хэрэглэгч \\
+\hline
+Найдвартай байдал & 99.5\% & RAG системийн ажиллагаа \\
+\hline
+Аюулгүй байдал & GDPR & Өгөгдлийн хамгаалал \\
+\hline
+\end{tabular}
+\end{table}
+
 \begin{enumerate}
     \item \textbf{Хурд:} AI инференс хийх хугацаа (жишээ нь, аудио анализ) 10 секундээс хэтрэхгүй байх.
-    \item \textbf{Сервер:} Нэгэн зэрэг 1000-аас дээш хэрэглэгч хандахад систем тогтвортой ажиллах (Scalability).
+    \item \textbf{Скалабилит (Scalability):} Нэгэн зэрэг 1000-аас дээш хэрэглэгч хандахад систем тогтвортой ажиллах.
     \item \textbf{Найдвартай байдал:} RAG систем нь зөвхөн баталгаажсан эх сурвалжаас мэдээлэл хайж, Hallucination-ийг хамгийн бага түвшинд байлгах.
     \item \textbf{Стандарт:} Кодчилол нь Python PEP8 болон React стандартын дагуу хийгдэнэ.
 \end{enumerate}
@@ -81,7 +101,7 @@
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[scale=0.6]{Diagrams/Sequence_Analysis}
+    \includegraphics[scale=0.6]{Diagrams/03_sequence_audio_analysis.png}
     \caption[Аудио анализын дарааллын диаграм]{Аудио анализын дарааллын диаграм}
     \label{fig:SeqAnalysis}
 \end{figure}

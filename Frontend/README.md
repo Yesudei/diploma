@@ -1,6 +1,6 @@
-# AI Music Production System - Frontend
+# AI Music Training Website
 
-Complete Next.js 14 frontend for the AI-Based Music Production System with TypeScript support.
+Design and Development of AI шийдэл бүхий хөгжим сургалтын вэбсайтын дизайн ба хөгжүүлэлт
 
 ## 🚀 Quick Start
 
@@ -287,7 +287,7 @@ npm run build
 
 ## 👤 Author
 
-Created for AI Music Production System Diploma Project
+Design and Development of AI шийдэл бүхий хөгжим сургалтын вэбсайтын дизайн ба хөгжүүлэлт Diploma Project
 - Institution: MUST (Mongolian University of Science and Technology)
 - Author: Erdenesuukh Yesudei
 

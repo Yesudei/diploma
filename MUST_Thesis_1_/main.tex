@@ -68,7 +68,29 @@ breakatwhitespace=false,                % Automatic breaks only at whitespace?
 showspaces=false,                       % Dont make spaces visible
 showtabs=false,                         % Dont make tabls visible
 columns=flexible,                       % Column format
-morekeywords={__global__, __device__},  % CUDA specific keywords
+extendedchars=false,                     % UTF-8 support
+inputencoding=utf8,                      % UTF-8 input encoding
+texcl=true,                              % Treat comments as LaTeX
+morekeywords={__global__, __device__, function, const, let, var, return, export, default, class, import, from},  % CUDA specific keywords and JavaScript
+}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={function, const, let, var, return, export, default, class, import, from, null, true, false, if, else, for, while, do, switch, case, break, continue, new, this, try, catch, throw, async, await},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={define, require, module, exports},
+  ndkeywordstyle=\color{OliveGreen},
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  stringstyle=\color{red},
+  morestring=[b]',
+  morestring=[b]"
+}
+
+\lstdefinelanguage{Dockerfile}{
+  keywords={FROM, RUN, CMD, ENTRYPOINT, ENV, COPY, ADD, EXPOSE, WORKDIR, USER, VOLUME, LABEL, MAINTAINER, ONBUILD, STOPSIGNAL, ARG},
+  keywordstyle=\color{blue}\bfseries,
+  comment=[l]{\#},
+  stringstyle=\color{red},
 }
 
 \usepackage[autostyle=false]{csquotes} % Ном зүйд хэлнээс хамаарсан хашилт оруулахад хэрэгтэй
@@ -81,6 +103,18 @@ morekeywords={__global__, __device__},  % CUDA specific keywords
 \newcommand{\abbrevname}{Товчилсон үгс}
 \newcommand{\constantsname}{Физик тогтмолууд}
 \newcommand{\symbolsname}{Таних тэмдэгтүүд}
+
+\renewenvironment{constants}[1]{%
+  \chapter*{\constantsname}%
+  \addcontentsline{toc}{chapter}{\constantsname}%
+  \begin{longtable}{#1}%
+}{\end{longtable}}
+
+\renewenvironment{symbols}[1]{%
+  \chapter*{\symbolsname}%
+  \addcontentsline{toc}{chapter}{\symbolsname}%
+  \begin{longtable}{#1}%
+}{\end{longtable}}
 \newcommand{\acknowledgementname}{Талархал}
 \newcommand{\abstractname}{Хураангуй}
  
@@ -88,10 +122,11 @@ morekeywords={__global__, __device__},  % CUDA specific keywords
 %	THESIS INFORMATION
 %-------------------------------------------------------------------------------
 
-\thesistitle{ХИЙМЭЛ ОЮУН УХААН НЭВТЭРСЭН ДИЖИТАЛ ХӨГЖИМ БОЛОВСРУУЛАХ НЭГДСЭН СИСТЕМ} % Таны ажлын нэр, нүүр болон хураангуй хуудсанд ашигласан. Өөр газарт бол \ttitle командыг хэрэглэнэ
+\thesistitle{AI шийдэл бүхий хөгжим сургалтын вэбсайтын дизайн ба хөгжүүлэлт} % Таны ажлын нэр, нүүр болон хураангуй хуудсанд ашигласан. Өөр газарт бол \ttitle командыг хэрэглэнэ
 \thesistype{Бакалаврын төгсөлтийн ажил} % Удирдагчийн нэр, нүүр хуудсанд ашиглана. Дурын газарт бол \thesisname командыг хэрэглэнэ
 \supervisor{Проф. PhD. Б.Туяацэцэг} % Удирдагчийн нэр, нүүр хуудсанд ашиглана. Дурын газарт бол \supname командыг хэрэглэнэ
 \advisor{Доктор(PhD) Ж.Оргил, Магистр Э.Батцэцэг} % Зөвлөгчийн нэр, Дурын газарт бол \advicename командыг хэрэглэнэ
+\reader{Шүүгч}
 \degreeind{061301000000002306} % Мэргэжлийн индекс, нүүр болон хураангуй хуудсанд ашигласан. Өөр газарт бол \degreeid командыг хэрэглэнэ
 \degree{Компьютерийн ухаан} % Боловсролын зэрэг, нүүр болон хураангуй хуудсанд ашигласан. Өөр газарт бол \degreename командыг хэрэглэнэ
 \authorshort{Э.Есүдэй} % Таны товч нэр, нүүр болон хураангуй хуудсанд ашигласан. Дурын газарт бол \shortname командыг хэрэглэнэ 

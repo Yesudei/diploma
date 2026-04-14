@@ -27,11 +27,8 @@ export default function LessonPlayer({
   const handleComplete = async () => {
     if (!user || completed) return;
     setCompleted(true);
-    await markLessonComplete(user.id, currentLesson.id, course.id);
-    const doneCount = completedLessonIds.length + 1;
-    const totalCount = course.curriculum.length;
-    const pct = Math.round((doneCount / totalCount) * 100);
-    await updateCourseProgress(user.id, course.id, pct, currentLesson.id);
+    await markLessonComplete(user.id, currentLesson.id);
+    await updateCourseProgress(user.id, course.id);
   };
 
   const isLocked = !currentLesson.free && !canWatch(course.id, course.price);
@@ -41,7 +38,9 @@ export default function LessonPlayer({
       <div>
         {isLocked ? (
           <div className="aspect-video bg-[#111118] rounded-xl flex flex-col items-center justify-center gap-4 border border-[rgba(201,168,76,0.15)]">
-            <div className="text-4xl">🔒</div>
+            <div className="w-16 h-16 rounded-full bg-[rgba(201,168,76,0.1)] flex items-center justify-center">
+              <div className="w-6 h-8 border-2 border-[#C9A84C] rounded" />
+            </div>
             <p className="text-[#F5F0E8] font-semibold">
               Энэ хичээлийг үзэхийн тулд худалдаж авна уу
             </p>
@@ -55,7 +54,7 @@ export default function LessonPlayer({
         ) : (
           <>
             <VideoPlayer
-              videoId={currentLesson.youtubeVideoId || course.youtubeVideoId}
+              videoId={currentLesson.youtubeId}
               onComplete={handleComplete}
             />
             <div className="mt-4 flex items-center justify-between">
@@ -105,7 +104,7 @@ export default function LessonPlayer({
                 >
                   {lesson.title}
                 </span>
-                {locked && <span className="text-[#7A7570] text-xs">🔒</span>}
+                {locked && <span className="text-[#7A7570] text-xs">Locked</span>}
                 <span className="text-[#7A7570] text-xs">{lesson.durationMinutes}мін</span>
               </button>
             );

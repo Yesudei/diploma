@@ -28,7 +28,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   const course = courses.find((c) => c.slug === slug);
   const teacher = course ? teachers.find((t) => t.id === course.teacherId) : null;
   const { user } = useAuth();
-  const { canWatch, loading: purchasesLoading } = usePurchases();
+  const { canWatch } = usePurchases();
   const router = useRouter();
   const [buying, setBuying] = useState(false);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
