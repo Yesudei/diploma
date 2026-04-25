@@ -12,20 +12,24 @@ body.landing-snap-enabled {
 }
 
 body.landing-snap-enabled .landing-scroll-container {
-  height: 100svh;
+  height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   scroll-snap-type: y mandatory;
-  scroll-padding-top: 80px;
 }
 
 .landing-snap-section {
-  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
-  display: flex;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .landing-snap-section > * {

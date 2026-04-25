@@ -43,7 +43,7 @@ export default function TeacherCard({ teacher }: { teacher: Teacher }) {
           <div className="text-[#C9A84C] font-display font-bold text-[20px] leading-none">
             {teacher.stats?.rating ?? 0}
           </div>
-          <div className="text-[#7A7570] text-[11px] mt-1">Rating</div>
+          <div className="text-[#7A7570] text-[11px] mt-1">Үнэлгээ</div>
         </div>
       </div>
     </div>

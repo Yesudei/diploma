@@ -28,7 +28,6 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/dashboard/audio', label: 'My Audio' },
     { href: '/dashboard/analysis', label: 'Analysis' },
-    { href: '/dashboard/melody', label: 'Melody' },
     { href: '/chat', label: 'AI Chat' },
     { href: '/marketplace', label: 'Marketplace' },
     { href: '/profile', label: 'Profile' },
@@ -60,7 +59,10 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
               </div>
               <span className="text-sm text-[#F5F0E8]">{user.email}</span>
             </div>
-            <button onClick={handleLogout} className="px-4 py-2 bg-[#18181F] text-[#F5F0E8] rounded-lg border border-[rgba(245,240,232,0.1)] hover:bg-[#22222D] transition text-sm">
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-[#18181F] text-[#F5F0E8] rounded-lg border border-[rgba(245,240,232,0.1)] hover:bg-[#22222D] transition text-sm"
+            >
               Logout
             </button>
           </div>
@@ -89,7 +91,10 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
           </nav>
 
           <div className="absolute bottom-4 left-4 right-4 md:hidden">
-            <button onClick={handleLogout} className="w-full py-2 bg-[#18181F] text-[#F5F0E8] rounded-lg border border-[rgba(245,240,232,0.1)] text-sm">
+            <button
+              onClick={handleLogout}
+              className="w-full py-2 bg-[#18181F] text-[#F5F0E8] rounded-lg border border-[rgba(245,240,232,0.1)] text-sm"
+            >
               Logout
             </button>
           </div>

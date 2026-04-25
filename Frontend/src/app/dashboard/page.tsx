@@ -6,34 +6,46 @@ import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabase';
 import apiService from '@/services/api';
 import { toast } from 'sonner';
-import type { AudioFile, MelodyGeneration, MixingAnalysisResult } from '@/types';
-import { courses } from '@/lib/data';
+import type { AudioFile, ChatMessage, MixingAnalysisResult } from '@/types';
+import { courses, teachers } from '@/lib/data';
 import Link from 'next/link';
 
 const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
+
+const tabs: Array<{ id: 'courses' | 'upload' | 'files' | 'analysis' | 'mentor'; label: string }> = [
+  { id: 'courses', label: 'Миний хичээл' },
+  { id: 'upload', label: 'Файл нэмэх' },
+  { id: 'files', label: 'Миний файлууд' },
+  { id: 'analysis', label: 'AI анализ' },
+  { id: 'mentor', label: 'Ментортой чат' },
+];
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'courses' | 'upload' | 'files' | 'melody' | 'analysis'>('courses');
-  
+  const [activeTab, setActiveTab] = useState<
+    'courses' | 'upload' | 'files' | 'analysis' | 'mentor'
+  >('courses');
+
   const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
-  const [melodyResults, setMelodyResults] = useState<MelodyGeneration[]>([]);
   const [analysisResults, setAnalysisResults] = useState<MixingAnalysisResult[]>([]);
-  
+
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const [melodyRequest, setMelodyRequest] = useState({
-    genre: 'pop',
-    mood: 'happy',
-    tempo: 120,
-    bars: 8
-  });
-  const [selectedFileForMelody, setSelectedFileForMelody] = useState<string>('');
-  const [isGenerating, setIsGenerating] = useState(false);
+
+  const [selectedAnalysisFileId, setSelectedAnalysisFileId] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [selectedMentorId, setSelectedMentorId] = useState(teachers[0]?.id || '');
+  const [mentorInput, setMentorInput] = useState('');
+  const [previewMentorId, setPreviewMentorId] = useState<string | null>(null);
+  const [mentorConversations, setMentorConversations] = useState<Record<string, ChatMessage[]>>({});
+  const [isSendingMentorMessage, setIsSendingMentorMessage] = useState(false);
+  const mentorEndRef = useRef<HTMLDivElement>(null);
+  const selectedMentor = teachers.find((t) => t.id === selectedMentorId);
+  const previewMentor = teachers.find((t) => t.id === previewMentorId);
+  const currentMentorMessages = mentorConversations[selectedMentorId] || [];
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -51,10 +63,7 @@ export default function DashboardPage() {
     try {
       const files = await apiService.listAudioFiles({ page: 1, limit: 20 });
       setAudioFiles(files.data);
-      
-      const melodies = await apiService.listMelodyGenerations({ page: 1, limit: 10 });
-      setMelodyResults(melodies.data);
-      
+
       const analyses = await apiService.listAnalysisResults({ page: 1, limit: 10 });
       setAnalysisResults(analyses.data);
     } catch (error) {
@@ -67,6 +76,18 @@ export default function DashboardPage() {
       loadData();
     }
   }, [user?.id, loadData]);
+
+  useEffect(() => {
+    mentorEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [mentorConversations, selectedMentorId]);
+
+  const openMentorPreview = (mentorId: string) => {
+    setPreviewMentorId(mentorId);
+  };
+
+  const closeMentorPreview = () => {
+    setPreviewMentorId(null);
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -90,13 +111,14 @@ export default function DashboardPage() {
       toast.error('Please select a file');
       return;
     }
+
     setIsUploading(true);
     try {
       await apiService.uploadAudio(selectedFile);
       toast.success('Audio uploaded successfully!');
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      loadData();
+      await loadData();
       setActiveTab('files');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Upload failed';
@@ -106,44 +128,85 @@ export default function DashboardPage() {
     }
   };
 
-  const handleAnalyze = async (fileId: string) => {
+  const handleAnalyze = async () => {
+    if (!selectedAnalysisFileId) {
+      toast.error('Анализ хийх файлаа сонгоно уу');
+      return;
+    }
+
+    setIsAnalyzing(true);
     try {
       toast.info('Analyzing audio...');
-      await apiService.analyzeAudio(fileId);
+      await apiService.analyzeAudio(selectedAnalysisFileId);
       toast.success('Analysis complete!');
-      loadData();
-      setActiveTab('analysis');
+      await loadData();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Analysis failed';
       toast.error(message);
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
-  const handleGenerateMelody = async () => {
-    if (!selectedFileForMelody) {
-      toast.error('Please select a file first');
+  const handleSendMentorMessage = async () => {
+    const text = mentorInput.trim();
+    const mentor = selectedMentor;
+
+    if (!text) {
       return;
     }
-    setIsGenerating(true);
+
+    if (!mentor) {
+      toast.error('Ментор сонгоно уу');
+      return;
+    }
+
+    const userMessage: ChatMessage = {
+      id: `local-user-${Date.now()}`,
+      user_id: user?.id || '',
+      role: 'user',
+      content: text,
+      created_at: new Date().toISOString(),
+    };
+
+    const nextHistory = [...currentMentorMessages, userMessage];
+    setMentorConversations((prev) => ({
+      ...prev,
+      [selectedMentorId]: nextHistory,
+    }));
+    setMentorInput('');
+    setIsSendingMentorMessage(true);
+
     try {
-      await apiService.generateMelody({
-        audio_file_id: selectedFileForMelody,
-        ...melodyRequest
+      const response = await apiService.sendChatMessage({
+        message: `[mentor:${mentor.id}:${mentor.name}] ${text}`,
+        conversation_history: nextHistory,
       });
-      toast.success('Melody generated!');
-      loadData();
-      setActiveTab('melody');
+
+      const assistantMessage: ChatMessage = {
+        id: response.id,
+        user_id: user?.id || '',
+        role: 'assistant',
+        content: response.message,
+        created_at: response.timestamp,
+        sources: response.sources,
+      };
+
+      setMentorConversations((prev) => ({
+        ...prev,
+        [selectedMentorId]: [...(prev[selectedMentorId] || []), assistantMessage],
+      }));
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Generation failed';
+      const message = error instanceof Error ? error.message : 'Message failed';
       toast.error(message);
     } finally {
-      setIsGenerating(false);
+      setIsSendingMentorMessage(false);
     }
   };
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-[#0A0A0F]">
         <div className="text-[#7A7570]">Ачаалж байна...</div>
       </div>
     );
@@ -152,309 +215,417 @@ export default function DashboardPage() {
   return (
     <>
       <Nav />
-      <div className="min-h-screen bg-[#0A0A0F] pt-24 px-[60px] pb-16">
-        <div className="mb-8">
-          <h1 className="font-display text-[clamp(32px,4vw,52px)] font-bold mb-2">
-            Тавтай морил, {user.email?.split('@')[0]}
-          </h1>
-          <p className="text-[#7A7570]">AI туслах </p>
-        </div>
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(201,168,76,0.08),transparent_35%),#0A0A0F] pb-16 pt-24 sm:pt-28">
+        <div className="mx-auto w-full max-w-[1320px] px-4 sm:px-8 lg:px-14">
+          <section className="grid items-start gap-7 lg:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#a49368]">
+                Таны самбар
+              </p>
+              <h1 className="mt-3 font-display text-[clamp(30px,4vw,48px)] font-black leading-[1.05] text-[#F5F0E8]">
+                Тавтай морил, {user.email?.split('@')[0]}
+              </h1>
+              <p className="mt-3 max-w-[620px] text-sm leading-7 text-[#b8ad93] sm:text-base">
+                Хичээлээ үргэлжлүүлж, аудио файлуудаа удирдаж, AI анализ болон ментортой чатаа нэг
+                дороос хянаарай.
+              </p>
+            </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8 border-b border-[rgba(245,240,232,0.1)] pb-4">
-          {[
-            { id: 'courses', label: 'My Courses' },
-            { id: 'upload', label: 'Upload' },
-            { id: 'files', label: 'My Files' },
-            { id: 'melody', label: 'Generate Melody' },
-            { id: 'analysis', label: 'AI Analysis' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                activeTab === tab.id
-                  ? 'bg-[#C9A84C] text-black'
-                  : 'text-[#7A7570] hover:text-white hover:bg-[rgba(245,240,232,0.05)]'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+              <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-4">
+                <p className="font-display text-2xl font-black text-[#F5F0E8]">{courses.length}</p>
+                <p className="mt-1 text-xs text-[#8f8779]">Нийт курс</p>
+              </div>
+              <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-4">
+                <p className="font-display text-2xl font-black text-[#F5F0E8]">
+                  {audioFiles.length}
+                </p>
+                <p className="mt-1 text-xs text-[#8f8779]">Аудио файл</p>
+              </div>
+              <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-4">
+                <p className="font-display text-2xl font-black text-[#F5F0E8]">
+                  {analysisResults.length}
+                </p>
+                <p className="mt-1 text-xs text-[#8f8779]">AI анализ</p>
+              </div>
+            </div>
+          </section>
 
-        {/* Courses Tab */}
-        {activeTab === 'courses' && (
-          <div>
-            <h2 className="font-display text-2xl font-bold mb-6">My Courses</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {courses.map((course) => (
-                <Link 
-                  key={course.id} 
-                  href={`/courses/${course.slug}`}
-                  className="bg-[#111118] border border-[rgba(245,240,232,0.06)] rounded-xl p-5 hover:border-[rgba(201,168,76,0.20)] hover:-translate-y-1 transition-all"
+          <section className="mt-8 border-b border-[rgba(245,240,232,0.08)] pb-3">
+            <div className="sm:hidden">
+              <select
+                value={activeTab}
+                onChange={(e) => setActiveTab(e.target.value as typeof activeTab)}
+                className="w-full rounded-lg border border-[rgba(245,240,232,0.12)] bg-[#111118] px-3 py-2 text-sm text-[#F5F0E8]"
+              >
+                {tabs.map((tab) => (
+                  <option key={tab.id} value={tab.id}>
+                    {tab.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="hidden gap-5 sm:flex">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`border-b-2 pb-2 text-sm font-medium transition ${
+                    activeTab === tab.id
+                      ? 'border-[#C9A84C] text-[#E8C96D]'
+                      : 'border-transparent text-[#8a857e] hover:text-[#F5F0E8]'
+                  }`}
                 >
-                  <div className="text-[#C9A84C] text-xs font-bold uppercase tracking-wider mb-2">
-                    {course.category}
-                  </div>
-                  <h3 className="font-display font-bold mb-3 text-[#F5F0E8]">{course.title}</h3>
-                  <div className="flex items-center justify-between text-xs text-[#7A7570]">
-                    <span>{course.price === 0 ? 'Free' : `₮${course.price.toLocaleString()}`}</span>
-                    <span>{course.lessonsCount} lessons</span>
-                  </div>
-                </Link>
+                  {tab.label}
+                </button>
               ))}
             </div>
-          </div>
-        )}
+          </section>
 
-        {/* Upload Tab */}
-        {activeTab === 'upload' && (
-          <div className="max-w-xl mx-auto">
-            <div 
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-[rgba(245,240,232,0.1)] rounded-xl p-12 text-center cursor-pointer hover:border-[#C9A84C] transition-all"
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleFileSelect}
-                accept=".wav,.mp3,.flac,.ogg,.midi"
-                className="hidden"
-                disabled={isUploading}
-              />
-              <div className="text-6xl mb-4"></div>
-              <p className="text-xl font-medium mb-2">
-                {selectedFile ? selectedFile.name : 'Click to select audio file'}
-              </p>
-              <p className="text-[#7A7570] text-sm">
-                WAV, MP3, FLAC, OGG, MIDI • Max 50MB
-              </p>
-              {selectedFile && (
-                <p className="mt-4 text-[#C9A84C]">
-                  {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
-                </p>
-              )}
-            </div>
-            
-            <button
-              onClick={handleUpload}
-              disabled={!selectedFile || isUploading}
-              className="w-full mt-6 py-4 bg-gradient-to-r from-[#C9A84C] to-[#A68940] rounded-xl font-bold text-black disabled:opacity-50 hover:opacity-90 transition-all"
-            >
-              {isUploading ? 'Урдгаж байна...' : 'Upload Audio'}
-            </button>
-          </div>
-        )}
-
-        {/* Files Tab */}
-        {activeTab === 'files' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {audioFiles.length === 0 ? (
-              <div className="col-span-full text-center py-12 text-[#7A7570]">
-                Одоогоор аудио файл байхгүй байна
-              </div>
-            ) : (
-              audioFiles.map((file) => (
-                <div key={file.id} className="bg-[#111118] border border-[rgba(245,240,232,0.06)] rounded-xl p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-[rgba(201,168,76,0.1)] flex items-center justify-center text-xl font-bold text-[#C9A84C]">A</div>
-                    <div>
-                      <p className="font-medium truncate max-w-[200px]">{file.filename}</p>
-                      <p className="text-xs text-[#7A7570]">{file.duration}s • {file.format}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleAnalyze(file.id)}
-                      className="flex-1 py-2 bg-[rgba(201,168,76,0.1)] text-[#C9A84C] rounded-lg text-sm font-medium hover:bg-[rgba(201,168,76,0.2)]"
-                    >
-                      Analyze
-                    </button>
-                    <button
-                      onClick={() => setSelectedFileForMelody(file.id)}
-                      className="flex-1 py-2 bg-[rgba(201,168,76,0.1)] text-[#C9A84C] rounded-lg text-sm font-medium hover:bg-[rgba(201,168,76,0.2)]"
-                    >
-                      Generate
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
-
-        {/* Melody Generation Tab */}
-        {activeTab === 'melody' && (
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-[#111118] border border-[rgba(245,240,232,0.06)] rounded-xl p-6 mb-6">
-              <h3 className="text-xl font-bold mb-4">Melody Generation</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-[#7A7570] mb-2">Select Audio File</label>
-                  <select
-                    value={selectedFileForMelody}
-                    onChange={(e) => setSelectedFileForMelody(e.target.value)}
-                    className="w-full p-3 bg-[#0A0A0F] border border-[rgba(245,240,232,0.1)] rounded-lg"
+          {activeTab === 'courses' && (
+            <section className="mt-8">
+              <h2 className="font-display text-2xl font-bold text-[#F5F0E8]">Миний Хичээлүүд</h2>
+              <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+                {courses.map((course) => (
+                  <Link
+                    key={course.id}
+                    href={`/courses/${course.slug}`}
+                    className="group rounded-xl border border-[rgba(245,240,232,0.06)] bg-[#111118] p-5 transition-all hover:-translate-y-1 hover:border-[rgba(201,168,76,0.3)]"
                   >
-                    <option value="">Select a file...</option>
+                    <div className="mb-2 text-xs font-bold uppercase tracking-wider text-[#9e8d63]">
+                      {course.category}
+                    </div>
+                    <h3 className="mb-3 font-display text-lg font-bold text-[#F5F0E8] transition-colors group-hover:text-[#E8C96D]">
+                      {course.title}
+                    </h3>
+                    <div className="flex items-center justify-between border-t border-[rgba(245,240,232,0.06)] pt-3 text-xs text-[#7A7570]">
+                      <span>
+                        {course.price === 0 ? 'Үнэгүй' : `₮${course.price.toLocaleString()}`}
+                      </span>
+                      <span>{course.lessonsCount} lessons</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'upload' && (
+            <section className="mx-auto mt-8 w-full max-w-2xl rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-6 sm:p-8">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="cursor-pointer rounded-xl border-2 border-dashed border-[rgba(245,240,232,0.12)] p-8 text-center transition-all hover:border-[#C9A84C] sm:p-12"
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileSelect}
+                  accept=".wav,.mp3,.flac,.ogg,.midi"
+                  className="hidden"
+                  disabled={isUploading}
+                />
+                <p className="text-xl font-medium text-[#F5F0E8]">
+                  {selectedFile ? selectedFile.name : 'Аудио файл сонгох'}
+                </p>
+                <p className="mt-3 text-sm text-[#7A7570]">
+                  WAV, MP3, FLAC, OGG, MIDI • Хамгийн их 50MB
+                </p>
+                {selectedFile && (
+                  <p className="mt-4 text-sm font-semibold text-[#C9A84C]">
+                    {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                  </p>
+                )}
+              </div>
+
+              <button
+                onClick={handleUpload}
+                disabled={!selectedFile || isUploading}
+                className="mt-6 w-full rounded-xl bg-gradient-to-r from-[#C9A84C] to-[#A68940] py-3.5 font-bold text-black transition-all hover:opacity-90 disabled:opacity-50"
+              >
+                {isUploading ? 'Илгээж байна...' : 'Аудио файл нэмэх'}
+              </button>
+            </section>
+          )}
+
+          {activeTab === 'files' && (
+            <section className="mt-8">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {audioFiles.length === 0 ? (
+                  <div className="col-span-full rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] py-12 text-center text-[#7A7570]">
+                    Одоогоор аудио файл байхгүй байна
+                  </div>
+                ) : (
+                  audioFiles.map((file) => (
+                    <div
+                      key={file.id}
+                      className="rounded-xl border border-[rgba(245,240,232,0.06)] bg-[#111118] p-4"
+                    >
+                      <div className="mb-3 flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[rgba(201,168,76,0.1)] text-xl font-bold text-[#C9A84C]">
+                          A
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-[#F5F0E8]">{file.filename}</p>
+                          <p className="text-xs text-[#7A7570]">
+                            {file.duration}s • {file.format}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'analysis' && (
+            <section className="mt-8">
+              <div className="mb-6 rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-5 sm:p-6">
+                <h3 className="text-lg font-bold text-[#F5F0E8]">Шинэ анализ эхлүүлэх</h3>
+                <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
+                  <select
+                    value={selectedAnalysisFileId}
+                    onChange={(e) => setSelectedAnalysisFileId(e.target.value)}
+                    className="w-full rounded-lg border border-[rgba(245,240,232,0.12)] bg-[#0A0A0F] p-3 text-sm"
+                  >
+                    <option value="">Аудио файл сонгох...</option>
                     {audioFiles.map((file) => (
-                      <option key={file.id} value={file.id}>{file.filename}</option>
+                      <option key={file.id} value={file.id}>
+                        {file.filename}
+                      </option>
                     ))}
                   </select>
+                  <button
+                    onClick={handleAnalyze}
+                    disabled={!selectedAnalysisFileId || isAnalyzing}
+                    className="rounded-lg bg-[rgba(201,168,76,0.14)] px-5 py-3 text-sm font-semibold text-[#E8C96D] transition hover:bg-[rgba(201,168,76,0.24)] disabled:opacity-50"
+                  >
+                    {isAnalyzing ? 'Анализ хийж байна...' : 'Анализ хийх'}
+                  </button>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-[#7A7570] mb-2">Genre</label>
-                    <select
-                      value={melodyRequest.genre}
-                      onChange={(e) => setMelodyRequest({ ...melodyRequest, genre: e.target.value })}
-                      className="w-full p-3 bg-[#0A0A0F] border border-[rgba(245,240,232,0.1)] rounded-lg"
-                    >
-                      <option value="pop">Pop</option>
-                      <option value="jazz">Jazz</option>
-                      <option value="electronic">Electronic</option>
-                      <option value="hiphop">Hip Hop</option>
-                      <option value="classical">Classical</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-[#7A7570] mb-2">Mood</label>
-                    <select
-                      value={melodyRequest.mood}
-                      onChange={(e) => setMelodyRequest({ ...melodyRequest, mood: e.target.value })}
-                      className="w-full p-3 bg-[#0A0A0F] border border-[rgba(245,240,232,0.1)] rounded-lg"
-                    >
-                      <option value="happy">Happy</option>
-                      <option value="sad">Sad</option>
-                      <option value="energetic">Energetic</option>
-                      <option value="calm">Calm</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-[#7A7570] mb-2">Tempo (BPM)</label>
-                    <input
-                      type="number"
-                      value={melodyRequest.tempo}
-                      onChange={(e) => setMelodyRequest({ ...melodyRequest, tempo: parseInt(e.target.value) })}
-                      className="w-full p-3 bg-[#0A0A0F] border border-[rgba(245,240,232,0.1)] rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-[#7A7570] mb-2">Bars</label>
-                    <input
-                      type="number"
-                      value={melodyRequest.bars}
-                      onChange={(e) => setMelodyRequest({ ...melodyRequest, bars: parseInt(e.target.value) })}
-                      className="w-full p-3 bg-[#0A0A0F] border border-[rgba(245,240,232,0.1)] rounded-lg"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleGenerateMelody}
-                  disabled={!selectedFileForMelody || isGenerating}
-                  className="w-full py-4 bg-gradient-to-r from-[#C9A84C] to-[#A68940] rounded-xl font-bold text-black disabled:opacity-50 hover:opacity-90"
-                >
-                  {isGenerating ? 'Уусгэж байна...' : 'Generate Melody'}
-                </button>
               </div>
-            </div>
 
-            {/* Generated Melodies */}
-            {melodyResults.length > 0 && (
-              <div>
-                <h4 className="text-lg font-bold mb-4">Generated Melodies</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {melodyResults.map((melody) => (
-                    <div key={melody.id} className="bg-[#111118] border border-[rgba(245,240,232,0.06)] rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="px-2 py-1 bg-[rgba(201,168,76,0.1)] text-[#C9A84C] text-xs rounded">{melody.genre}</span>
-                        <span className="px-2 py-1 bg-[rgba(201,168,76,0.1)] text-[#C9A84C] text-xs rounded">{melody.tempo} BPM</span>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {analysisResults.length === 0 ? (
+                  <div className="col-span-full rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] py-12 text-center text-[#7A7570]">
+                    Одоогоор анализ хийгдээгүй байна
+                  </div>
+                ) : (
+                  analysisResults.map((result) => (
+                    <div
+                      key={result.id}
+                      className="rounded-xl border border-[rgba(245,240,232,0.06)] bg-[#111118] p-6"
+                    >
+                      <div className="mb-4 flex items-center justify-between">
+                        <h4 className="font-bold text-[#F5F0E8]">AI Mix Анализ</h4>
+                        <span className="text-2xl font-bold text-[#C9A84C]">
+                          {result.overall_score}/100
+                        </span>
                       </div>
-                      <p className="text-sm text-[#7A7570]">Generated: {new Date(melody.generated_at).toLocaleDateString()}</p>
-                      <button className="mt-3 w-full py-2 bg-[rgba(201,168,76,0.1)] text-[#C9A84C] rounded-lg text-sm font-medium">
-                        Download MIDI
+
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-[#7A7570]">Loudness (LUFS)</span>
+                          <span>{result.loudness_lufs.toFixed(1)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#7A7570]">Пик түвшин (dBFS)</span>
+                          <span>{result.peak_level_dbfs.toFixed(1)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#7A7570]">Динамик</span>
+                          <span>{result.dynamic_range_db.toFixed(1)} dB</span>
+                        </div>
+                      </div>
+
+                      {result.frequency_balance && (
+                        <div className="mt-4 border-t border-[rgba(245,240,232,0.06)] pt-4">
+                          <p className="mb-2 text-sm text-[#7A7570]">Баланс</p>
+                          <div className="grid grid-cols-3 gap-2 text-xs">
+                            <div className="rounded bg-[#0A0A0F] p-2 text-center">
+                              <p className="text-[#7A7570]">Доод</p>
+                              <p className="font-bold">{result.frequency_balance.low_presence}</p>
+                            </div>
+                            <div className="rounded bg-[#0A0A0F] p-2 text-center">
+                              <p className="text-[#7A7570]">Дунд</p>
+                              <p className="font-bold">{result.frequency_balance.mid_presence}</p>
+                            </div>
+                            <div className="rounded bg-[#0A0A0F] p-2 text-center">
+                              <p className="text-[#7A7570]">Дээд</p>
+                              <p className="font-bold">{result.frequency_balance.high_presence}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {result.recommendations && result.recommendations.length > 0 && (
+                        <div className="mt-4 border-t border-[rgba(245,240,232,0.06)] pt-4">
+                          <p className="mb-2 text-sm text-[#7A7570]">Саналууд</p>
+                          <ul className="space-y-1 text-sm">
+                            {result.recommendations.map((rec, i) => (
+                              <li key={i} className="text-[#C9A84C]">
+                                • {rec}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'mentor' && (
+            <section className="mt-8">
+              <div className="rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-5 sm:p-6">
+                <div className="mb-5">
+                  <h3 className="text-lg font-bold text-[#F5F0E8]">Ментортой чат</h3>
+                  <p className="mt-1 text-sm text-[#8f8779]">
+                    Ментороо сонгоод шууд зөвлөгөө авна уу.
+                  </p>
+                  <div className="relative mt-4">
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {teachers.map((mentor) => (
+                        <button
+                          key={mentor.id}
+                          onMouseEnter={() => openMentorPreview(mentor.id)}
+                          onMouseLeave={closeMentorPreview}
+                          onClick={() => setSelectedMentorId(mentor.id)}
+                          className={`flex min-w-[150px] items-center gap-2 rounded-full border px-2.5 py-1.5 text-left transition ${
+                            selectedMentorId === mentor.id
+                              ? 'border-[rgba(201,168,76,0.46)] bg-[rgba(201,168,76,0.08)]'
+                              : 'border-[rgba(245,240,232,0.08)] bg-[#10111a] hover:border-[rgba(201,168,76,0.22)]'
+                          }`}
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] text-xs font-bold text-[#E8C96D]">
+                            {mentor.name[0]}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-[#F5F0E8]">
+                              {mentor.name}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {previewMentor && (
+                      <div
+                        onMouseEnter={() => openMentorPreview(previewMentor.id)}
+                        onMouseLeave={closeMentorPreview}
+                        className="mt-3 rounded-xl border border-[rgba(217,195,138,0.25)] bg-[#0d0f15] p-4 md:absolute md:right-0 md:top-full md:z-20 md:mt-2 md:w-[380px] md:shadow-[0_20px_44px_rgba(0,0,0,0.45)]"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(201,168,76,0.34)] bg-[rgba(201,168,76,0.12)] text-xl font-bold text-[#E8C96D]">
+                              {previewMentor.name[0]}
+                            </div>
+                            <div>
+                              <p className="text-[11px] uppercase tracking-[0.16em] text-[#8f8779]">
+                                Mentor Profile
+                              </p>
+                              <h4 className="mt-1 text-lg font-bold text-[#F5F0E8]">
+                                {previewMentor.name}
+                              </h4>
+                              <p className="text-xs text-[#a89f8b]">
+                                {previewMentor.role} • {previewMentor.specialty}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="rounded-full border border-[rgba(217,195,138,0.3)] bg-[rgba(217,195,138,0.12)] px-2.5 py-1 text-xs font-semibold text-[#E8C96D]">
+                            {previewMentor.stats?.rating || '-'} / 5
+                          </div>
+                        </div>
+                        <p className="mt-3 text-sm leading-6 text-[#b8ad93]">{previewMentor.bio}</p>
+
+                        {previewMentor.instruments && previewMentor.instruments.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {previewMentor.instruments.map((tool) => (
+                              <span
+                                key={tool}
+                                className="rounded-full border border-[rgba(245,240,232,0.1)] bg-[rgba(245,240,232,0.03)] px-2.5 py-1 text-xs text-[#c7b88f]"
+                              >
+                                {tool}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="max-h-[420px] min-h-[320px] space-y-3 overflow-y-auto rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#0A0A0F] p-4">
+                  {selectedMentor && (
+                    <div className="mb-3 flex items-center gap-2">
+                      <button
+                        onMouseEnter={() => openMentorPreview(selectedMentor.id)}
+                        onMouseLeave={closeMentorPreview}
+                        className="flex h-7 w-7 items-center justify-center rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] text-[11px] font-bold text-[#E8C96D] transition hover:scale-105"
+                      >
+                        {selectedMentor.name[0]}
                       </button>
+                      <p className="text-xs uppercase tracking-[0.16em] text-[#8f8779]">
+                        Mentor: {selectedMentor.name}
+                      </p>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* AI Analysis Tab */}
-        {activeTab === 'analysis' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {analysisResults.length === 0 ? (
-              <div className="col-span-full text-center py-12 text-[#7A7570]">
-                Одоогоор анализ хийгдээгүй байна
-              </div>
-            ) : (
-              analysisResults.map((result) => (
-                <div key={result.id} className="bg-[#111118] border border-[rgba(245,240,232,0.06)] rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-bold">AI Mix Analysis</h4>
-                    <span className="text-2xl font-bold text-[#C9A84C]">{result.overall_score}/100</span>
-                  </div>
-                  
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-[#7A7570]">Loudness (LUFS)</span>
-                      <span>{result.loudness_lufs.toFixed(1)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#7A7570]">Peak Level (dBFS)</span>
-                      <span>{result.peak_level_dbfs.toFixed(1)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#7A7570]">Dynamic Range</span>
-                      <span>{result.dynamic_range_db.toFixed(1)} dB</span>
-                    </div>
-                  </div>
-
-                  {result.frequency_balance && (
-                    <div className="mt-4 pt-4 border-t border-[rgba(245,240,232,0.06)]">
-                      <p className="text-sm text-[#7A7570] mb-2">Frequency Balance</p>
-                      <div className="grid grid-cols-3 gap-2 text-xs">
-                        <div className="text-center p-2 bg-[#0A0A0F] rounded">
-                          <p className="text-[#7A7570]">Low</p>
-                          <p className="font-bold">{result.frequency_balance.low_presence}</p>
-                        </div>
-                        <div className="text-center p-2 bg-[#0A0A0F] rounded">
-                          <p className="text-[#7A7570]">Mid</p>
-                          <p className="font-bold">{result.frequency_balance.mid_presence}</p>
-                        </div>
-                        <div className="text-center p-2 bg-[#0A0A0F] rounded">
-                          <p className="text-[#7A7570]">High</p>
-                          <p className="font-bold">{result.frequency_balance.high_presence}</p>
-                        </div>
+                  )}
+                  {currentMentorMessages.length === 0 ? (
+                    <p className="text-sm text-[#7A7570]">
+                      {selectedMentor
+                        ? `${selectedMentor.name}-д асуултаа бичээд зөвлөгөө аваарай.`
+                        : 'Ментор сонгоно уу.'}
+                    </p>
+                  ) : (
+                    currentMentorMessages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`max-w-[85%] rounded-xl px-4 py-3 text-sm leading-6 ${
+                          message.role === 'user'
+                            ? 'ml-auto bg-[rgba(201,168,76,0.18)] text-[#f5e7bc]'
+                            : 'bg-[#161722] text-[#d4d0c8]'
+                        }`}
+                      >
+                        {message.content}
                       </div>
-                    </div>
+                    ))
                   )}
-
-                  {result.recommendations && result.recommendations.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-[rgba(245,240,232,0.06)]">
-                      <p className="text-sm text-[#7A7570] mb-2">Recommendations</p>
-                      <ul className="text-sm space-y-1">
-                        {result.recommendations.map((rec, i) => (
-                          <li key={i} className="text-[#C9A84C]">• {rec}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <div ref={mentorEndRef} />
                 </div>
-              ))
-            )}
-          </div>
-        )}
-      </div>
+
+                <div className="mt-4 flex gap-2">
+                  <input
+                    value={mentorInput}
+                    onChange={(e) => setMentorInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMentorMessage();
+                      }
+                    }}
+                    placeholder={
+                      selectedMentor
+                        ? `${selectedMentor.name}-д асуултаа бичнэ үү...`
+                        : 'Асуултаа бичнэ үү...'
+                    }
+                    className="w-full rounded-lg border border-[rgba(245,240,232,0.12)] bg-[#0A0A0F] px-4 py-3 text-sm text-[#F5F0E8] outline-none focus:border-[rgba(201,168,76,0.35)]"
+                  />
+                  <button
+                    onClick={handleSendMentorMessage}
+                    disabled={!mentorInput.trim() || isSendingMentorMessage}
+                    className="rounded-lg bg-[rgba(201,168,76,0.14)] px-5 py-3 text-sm font-semibold text-[#E8C96D] transition hover:bg-[rgba(201,168,76,0.24)] disabled:opacity-50"
+                  >
+                    {isSendingMentorMessage ? 'Илгээж байна...' : 'Илгээх'}
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
+        </div>
+      </main>
     </>
   );
 }

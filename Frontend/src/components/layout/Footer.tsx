@@ -16,7 +16,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-[#7A7570] text-[13px] leading-relaxed max-w-[220px]">
-              Монгол хэл дээрх FL Studio хичээлийн платформ.
+              Интерактив хөгжмийн суурь ойлголтыг нэг дороос судлах платформ.
             </p>
           </div>
 
@@ -24,12 +24,18 @@ export default function Footer() {
             <h4 className="text-[#F5F0E8] text-sm font-semibold mb-4">Хичээлүүд</h4>
             <ul className="space-y-2.5">
               <li>
-                <Link href="/courses" className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors">
+                <Link
+                  href="/courses"
+                  className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors"
+                >
                   Бүх хичээл
                 </Link>
               </li>
               <li>
-                <Link href="/courses" className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors">
+                <Link
+                  href="/courses"
+                  className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors"
+                >
                   Үнэгүй хичээл
                 </Link>
               </li>
@@ -40,17 +46,26 @@ export default function Footer() {
             <h4 className="text-[#F5F0E8] text-sm font-semibold mb-4">Бүртгэл</h4>
             <ul className="space-y-2.5">
               <li>
-                <Link href="/auth/login" className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors">
+                <Link
+                  href="/auth/login"
+                  className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors"
+                >
                   Нэвтрэх
                 </Link>
               </li>
               <li>
-                <Link href="/auth/register" className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors">
+                <Link
+                  href="/auth/register"
+                  className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors"
+                >
                   Бүртгүүлэх
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors">
+                <Link
+                  href="/dashboard"
+                  className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors"
+                >
                   Миний самбар
                 </Link>
               </li>
@@ -61,12 +76,18 @@ export default function Footer() {
             <h4 className="text-[#F5F0E8] text-sm font-semibold mb-4">melodex</h4>
             <ul className="space-y-2.5">
               <li>
-                <Link href="/" className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors">
+                <Link
+                  href="/"
+                  className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors"
+                >
                   Нүүр
                 </Link>
               </li>
               <li>
-                <Link href="/courses" className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors">
+                <Link
+                  href="/courses"
+                  className="text-[#7A7570] text-sm hover:text-[#C9A84C] transition-colors"
+                >
                   Хичээлүүд
                 </Link>
               </li>
@@ -75,7 +96,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-7 border-t border-[rgba(245,240,232,0.06)] flex items-center justify-between">
-          <p className="text-[#4A4540] text-xs">© 2025 melodex. Бүх эрх хамгаалагдсан.</p>
+          <p className="text-[#4A4540] text-xs">© 2026 melodex. Бүх эрх хамгаалагдсан.</p>
         </div>
       </div>
     </footer>

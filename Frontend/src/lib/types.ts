@@ -30,16 +30,20 @@ export interface Course {
 export interface Lesson {
   id: string;
   title: string;
-  youtubeId: string;
+  youtubeId?: string;
   durationMinutes: number;
   free: boolean;
+  contentType?: 'video' | 'brief';
+  summary?: string;
+  exercise?: string;
+  takeaway?: string;
 }
 
-export type Category = 
-  | "music-production"
-  | "mixing-mastering"
-  | "sound-design"
-  | "melody-voice"
-  | "audio-engineering";
+export type Category =
+  | 'music-production'
+  | 'mixing-mastering'
+  | 'sound-design'
+  | 'melody-voice'
+  | 'audio-engineering';
 
-export type Level = "beginner" | "intermediate" | "advanced";
+export type Level = 'beginner' | 'intermediate' | 'advanced';

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { courses } from '@/lib/data';
 
@@ -7,60 +7,261 @@ const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
 const Footer = dynamic(() => import('@/components/layout/Footer'), { ssr: false });
 const CourseCard = dynamic(() => import('@/components/cards/CourseCard'), { ssr: false });
 
+const categoryLabel: Record<string, string> = {
+  all: 'Бүх ангилал',
+  'music-production': 'Music Production',
+  'mixing-mastering': 'Mixing & Mastering',
+  'sound-design': 'Sound Design',
+  'melody-voice': 'Melody & Voice',
+  'audio-engineering': 'Audio Engineering',
+};
+
+const levelLabel: Record<string, string> = {
+  all: 'Бүх түвшин',
+  beginner: 'Анхан шат',
+  intermediate: 'Дунд шат',
+  advanced: 'Ахисан шат',
+};
+
+const sortLabel: Record<string, string> = {
+  featured: 'Онцлох',
+  lessons_desc: 'Хамгийн олон lesson',
+  duration_desc: 'Урт хугацаатай',
+  price_asc: 'Үнэ: Бага -> Их',
+  price_desc: 'Үнэ: Их -> Бага',
+};
+
 export default function CoursesPage() {
   const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('all');
+  const [level, setLevel] = useState('all');
+  const [priceType, setPriceType] = useState<'all' | 'free' | 'paid'>('all');
+  const [sortBy, setSortBy] = useState('featured');
 
-  const filtered = courses.filter((c) => 
-    c.title.toLowerCase().includes(query.toLowerCase())
+  const totalLessonsAll = useMemo(
+    () =>
+      courses.reduce((sum, course) => sum + (course.curriculum?.length || course.lessonsCount), 0),
+    []
   );
+
+  const totalMinutesAll = useMemo(
+    () =>
+      courses.reduce(
+        (sum, course) =>
+          sum +
+          (course.curriculum?.reduce((lessonSum, l) => lessonSum + l.durationMinutes, 0) || 0),
+        0
+      ),
+    []
+  );
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+
+    const list = courses.filter((course) => {
+      const byQuery =
+        q.length === 0 ||
+        course.title.toLowerCase().includes(q) ||
+        course.description.toLowerCase().includes(q);
+      const byCategory = category === 'all' || course.category === category;
+      const byLevel = level === 'all' || course.level === level;
+      const byPrice =
+        priceType === 'all' || (priceType === 'free' ? course.price === 0 : course.price > 0);
+
+      return byQuery && byCategory && byLevel && byPrice;
+    });
+
+    const sorted = [...list].sort((a, b) => {
+      if (sortBy === 'lessons_desc') {
+        return (b.curriculum?.length || b.lessonsCount) - (a.curriculum?.length || a.lessonsCount);
+      }
+      if (sortBy === 'duration_desc') {
+        const aMinutes = a.curriculum?.reduce((sum, l) => sum + l.durationMinutes, 0) || 0;
+        const bMinutes = b.curriculum?.reduce((sum, l) => sum + l.durationMinutes, 0) || 0;
+        return bMinutes - aMinutes;
+      }
+      if (sortBy === 'price_asc') return a.price - b.price;
+      if (sortBy === 'price_desc') return b.price - a.price;
+      return 0;
+    });
+
+    return sorted;
+  }, [category, level, priceType, query, sortBy]);
 
   const free = filtered.filter((c) => c.price === 0);
   const paid = filtered.filter((c) => c.price > 0);
 
+  const activeFilterCount =
+    Number(category !== 'all') + Number(level !== 'all') + Number(priceType !== 'all');
+
   return (
     <>
       <Nav />
-      <main className="pt-[140px] pb-20 bg-[#0A0A0F] min-h-screen">
-        <div className="px-[60px] mb-14">
-          <h1 className="font-display text-[clamp(38px,5vw,62px)] font-black leading-[1.09] mb-3.5">
-            Хичээлүүд
-          </h1>
-          <p className="text-[#7A7570] text-base max-w-[480px] leading-[1.7]">
-            FL Studio-ийн үнэгүй болон төлбөртэй хичээлүүд.
-          </p>
-        </div>
+      <main className="min-h-screen bg-[#0A0A0F] pb-20 pt-28 sm:pt-32">
+        <div className="mx-auto w-full max-w-[1320px] px-4 sm:px-8 lg:px-14">
+          <section className="relative overflow-hidden rounded-[28px] border border-[rgba(217,195,138,0.22)] bg-[linear-gradient(160deg,rgba(217,195,138,0.12),rgba(17,17,24,0.94)_45%)] px-6 py-8 sm:px-8 sm:py-10">
+            <div className="pointer-events-none absolute right-[-60px] top-[-70px] h-48 w-48 rounded-full bg-[rgba(217,195,138,0.16)] blur-3xl" />
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#a49368]">
+              Melodex course catalog
+            </p>
+            <h1 className="mt-4 font-display text-[clamp(34px,5vw,64px)] font-black leading-[1.02] text-[#F5F0E8]">
+              Хичээлүүд
+            </h1>
+            <p className="mt-4 max-w-[580px] text-sm leading-7 text-[#b8ad93] sm:text-base">
+              Одоогийн library нь rhythm, melody, harmony, arrangement, bass, mix clarity зэрэг
+              суурь ур чадвар дээр төвлөрсөн internal lesson brief-үүдээс бүрдэнэ. Ангилал, түвшин,
+              lesson-ийн тоогоор нь шүүж өөрт тохирох замналаа сонгоорой.
+            </p>
 
-        <div className="px-[60px] mb-9">
-          <input
-            type="text"
-            placeholder="Хичээл хайх..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="bg-[#111118] border border-[rgba(245,240,232,0.07)] text-[#F5F0E8] placeholder-[#7A7570] text-sm px-4 py-2 rounded-lg outline-none w-[300px] focus:border-[rgba(201,168,76,0.30)]"
-          />
-        </div>
-
-        {free.length > 0 && (
-          <section className="px-[60px] mb-14">
-            <h2 className="font-display text-[22px] font-bold mb-7">Үнэгүй</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {free.map((c) => (
-                <CourseCard key={c.id} course={c} />
-              ))}
+            <div className="mt-8 grid gap-3 sm:grid-cols-3 sm:gap-4">
+              <div className="rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[rgba(245,240,232,0.03)] p-4">
+                <p className="font-display text-3xl font-black text-[#F5F0E8]">{courses.length}</p>
+                <p className="mt-1 text-xs text-[#a49368]">Нийт курс</p>
+              </div>
+              <div className="rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[rgba(245,240,232,0.03)] p-4">
+                <p className="font-display text-3xl font-black text-[#F5F0E8]">{totalLessonsAll}</p>
+                <p className="mt-1 text-xs text-[#a49368]">Нийт lesson</p>
+              </div>
+              <div className="rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[rgba(245,240,232,0.03)] p-4">
+                <p className="font-display text-3xl font-black text-[#F5F0E8]">
+                  {(totalMinutesAll / 60).toFixed(1)}ц
+                </p>
+                <p className="mt-1 text-xs text-[#a49368]">Нийт контент</p>
+              </div>
             </div>
           </section>
-        )}
 
-        {paid.length > 0 && (
-          <section className="px-[60px]">
-            <h2 className="font-display text-[22px] font-bold mb-7">Төлбөртэй</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {paid.map((c) => (
-                <CourseCard key={c.id} course={c} />
-              ))}
+          <section className="mt-8 rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-3 sm:mt-10 sm:p-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="relative w-full sm:max-w-[360px]">
+                  <input
+                    type="text"
+                    placeholder="Хичээл хайх..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="w-full rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0A0A0F] py-3 pl-11 pr-4 text-sm text-[#F5F0E8] outline-none transition focus:border-[rgba(201,168,76,0.35)]"
+                  />
+                  <svg
+                    className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7A7570]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.8}
+                      d="m21 21-4.35-4.35m0 0a7 7 0 1 0-9.9 0 7 7 0 0 0 9.9 0Z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-xs text-[#8e8778] sm:text-sm">
+                  {filtered.length} курс олдлоо{' '}
+                  {activeFilterCount > 0 ? `(${activeFilterCount} filter)` : ''}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0A0A0F] px-3 py-2.5 text-sm text-[#F5F0E8] outline-none focus:border-[rgba(201,168,76,0.35)]"
+                >
+                  {Object.entries(categoryLabel).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={level}
+                  onChange={(e) => setLevel(e.target.value)}
+                  className="rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0A0A0F] px-3 py-2.5 text-sm text-[#F5F0E8] outline-none focus:border-[rgba(201,168,76,0.35)]"
+                >
+                  {Object.entries(levelLabel).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={priceType}
+                  onChange={(e) => setPriceType(e.target.value as 'all' | 'free' | 'paid')}
+                  className="rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0A0A0F] px-3 py-2.5 text-sm text-[#F5F0E8] outline-none focus:border-[rgba(201,168,76,0.35)]"
+                >
+                  <option value="all">Бүх үнэ</option>
+                  <option value="free">Зөвхөн үнэгүй</option>
+                  <option value="paid">Зөвхөн төлбөртэй</option>
+                </select>
+
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0A0A0F] px-3 py-2.5 text-sm text-[#F5F0E8] outline-none focus:border-[rgba(201,168,76,0.35)]"
+                >
+                  {Object.entries(sortLabel).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </section>
-        )}
+
+          {filtered.length === 0 ? (
+            <section className="mt-8 rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-8 text-center sm:mt-10">
+              <p className="font-display text-2xl font-bold text-[#F5F0E8]">
+                Хайлтад тохирох курс алга
+              </p>
+              <p className="mt-3 text-sm text-[#7A7570]">
+                Хайлтын үг эсвэл filter-ээ өөрчлөөд дахин оролдоно уу.
+              </p>
+            </section>
+          ) : priceType === 'all' ? (
+            <>
+              {free.length > 0 && (
+                <section className="mt-10 sm:mt-12">
+                  <h2 className="font-display text-2xl font-bold text-[#F5F0E8] sm:text-[28px]">
+                    Үнэгүй
+                  </h2>
+                  <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    {free.map((c) => (
+                      <CourseCard key={c.id} course={c} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {paid.length > 0 && (
+                <section className="mt-12 sm:mt-14">
+                  <h2 className="font-display text-2xl font-bold text-[#F5F0E8] sm:text-[28px]">
+                    Төлбөртэй
+                  </h2>
+                  <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    {paid.map((c) => (
+                      <CourseCard key={c.id} course={c} />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </>
+          ) : (
+            <section className="mt-10 sm:mt-12">
+              <h2 className="font-display text-2xl font-bold text-[#F5F0E8] sm:text-[28px]">
+                Каталог
+              </h2>
+              <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+                {filtered.map((c) => (
+                  <CourseCard key={c.id} course={c} />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
       </main>
       <Footer />
     </>
