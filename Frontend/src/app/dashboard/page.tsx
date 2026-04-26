@@ -48,14 +48,35 @@ export default function DashboardPage() {
   const currentMentorMessages = mentorConversations[selectedMentorId] || [];
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let mounted = true;
+
+    const handleSession = (session: { user: { id: string; email?: string } } | null) => {
+      if (!mounted) return;
+
       if (session) {
         setUser(session.user);
       } else {
-        router.push('/auth/login');
+        setUser(null);
+        router.replace('/auth/login');
       }
+
       setLoading(false);
+    };
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      handleSession(session);
     });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleSession(session);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [router]);
 
   const loadData = useCallback(async () => {

@@ -1,52 +1,35 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
-export default function LoginPage() {
-  const router = useRouter();
-  const [formData, setFormData] = useState({ email: '', password: '' });
+export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasSent, setHasSent] = useState(false);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
-    const submittedForm = new FormData(e.currentTarget);
-    const email = String(submittedForm.get('email') || '').trim();
-    const password = String(submittedForm.get('password') || '');
-
-    setFormData({ email, password });
-
-    if (!email) {
-      toast.error('Please enter your email.');
-      return;
-    }
-
-    if (!password) {
-      toast.error('Please enter your password.');
-      return;
-    }
-
     setIsLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const redirectTo =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/auth/reset-password`
+        : undefined;
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
     });
 
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Амжилттай нэвтэрлээ!');
-      if (!data.session) {
-        await supabase.auth.getSession();
-      }
-      router.replace('/dashboard');
-      router.refresh();
+      setHasSent(true);
+      toast.success('Password reset email sent.');
     }
+
     setIsLoading(false);
   };
 
@@ -65,11 +48,11 @@ export default function LoginPage() {
           </Link>
 
           <h1 className="mt-12 font-display text-5xl font-black leading-[0.95] text-[#F5F0E8]">
-            Welcome
-            <span className="block text-[#d9c38a]">back</span>
+            Recover
+            <span className="block text-[#d9c38a]">your account</span>
           </h1>
           <p className="mt-6 max-w-xs text-sm leading-7 text-[#b8ad93]">
-            Өөрийн бүтээлүүд, AI туслах, курсийн явцаа нэг самбараас үргэлжлүүлээрэй.
+            Get a secure reset link and return to your courses with a fresh password.
           </p>
         </aside>
 
@@ -77,25 +60,27 @@ export default function LoginPage() {
           <div className="mb-8 text-center lg:hidden">
             <Link
               href="/"
-              className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-[#C9A84C] mb-4"
+              className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#C9A84C]"
             >
               <span className="text-lg font-bold text-black">M</span>
             </Link>
           </div>
 
-          <h2 className="font-display text-3xl font-black text-[#F5F0E8] sm:text-4xl">Нэвтрэх</h2>
+          <h2 className="font-display text-3xl font-black text-[#F5F0E8] sm:text-4xl">
+            Forgot password
+          </h2>
           <p className="mt-2 text-sm text-[#7A7570]">
-            melodex руу нэвтэрч суралцахаа үргэлжлүүлнэ үү.
+            Enter your email to receive a password reset link.
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div>
               <label className="mb-2 block text-sm font-medium text-[#F5F0E8]">Email</label>
               <input
                 type="email"
                 name="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-xl border border-[rgba(245,240,232,0.12)] bg-[#0A0A0A] px-4 py-3 text-white placeholder-[#7A7570] outline-none transition focus:border-[#C9A84C]"
                 placeholder="email@domain.com"
                 autoComplete="email"
@@ -103,44 +88,28 @@ export default function LoginPage() {
               />
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-[#F5F0E8]">Нууц үг</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full rounded-xl border border-[rgba(245,240,232,0.12)] bg-[#0A0A0A] px-4 py-3 text-white placeholder-[#7A7570] outline-none transition focus:border-[#C9A84C]"
-                placeholder="********"
-                autoComplete="current-password"
-                required
-              />
-              <div className="mt-2 text-right">
-                <Link
-                  href="/auth/forgot-password"
-                  className="text-sm font-semibold text-[#C9A84C] transition hover:text-[#E8C96D]"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-            </div>
-
             <button
               type="submit"
               disabled={isLoading}
               className="w-full rounded-xl bg-[#C9A84C] py-3.5 font-semibold text-black transition hover:bg-[#E8C96D] disabled:opacity-50"
             >
-              {isLoading ? 'Нэвтэрч байна...' : 'Нэвтрэх'}
+              {isLoading ? 'Sending...' : 'Send reset link'}
             </button>
           </form>
 
+          {hasSent && (
+            <div className="mt-5 rounded-xl border border-[rgba(201,168,76,0.28)] bg-[rgba(201,168,76,0.08)] px-4 py-3 text-sm leading-6 text-[#d9c38a]">
+              Check your inbox for the reset link. It may take a moment to arrive.
+            </div>
+          )}
+
           <div className="mt-6 text-center text-sm text-[#7A7570]">
-            Эрх бүртгэлгүй юу?{' '}
+            Remembered it?{' '}
             <Link
-              href="/auth/register"
+              href="/auth/login"
               className="font-semibold text-[#C9A84C] transition hover:text-[#E8C96D]"
             >
-              Бүртгүүлэх
+              Back to login
             </Link>
           </div>
         </section>
