@@ -1,18 +1,17 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useRef } from 'react';
 import { courses, Lesson } from '@/lib/data';
 import { teachers } from '@/lib/data';
 import { useAuth } from '@/hooks/useAuth';
 import { usePurchases } from '@/hooks/usePurchases';
-import { supabase } from '@/lib/supabase';
 import apiService from '@/services/api';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 import type { ChatMessage } from '@/types';
+import { getYouTubeDuration } from '@/lib/youtube';
 
 const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
-const Footer = dynamic(() => import('@/components/layout/Footer'), { ssr: false });
 const VideoPlayer = dynamic(() => import('@/components/VideoPlayer'), { ssr: false });
 
 const categoryLabel: Record<string, string> = {
@@ -55,7 +54,6 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   const { user } = useAuth();
   const { canWatch } = usePurchases();
   const router = useRouter();
-  const [buying, setBuying] = useState(false);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [showTeacherPreview, setShowTeacherPreview] = useState(false);
   const [showMentorChat, setShowMentorChat] = useState(false);
@@ -70,6 +68,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   const [showQuizModal, setShowQuizModal] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
   const [quizScore, setQuizScore] = useState<number | null>(null);
+  const [lessonDurations, setLessonDurations] = useState<Record<string, number>>({});
   const teacherPreviewRef = useRef<HTMLDivElement>(null);
   const mentorChatEndRef = useRef<HTMLDivElement>(null);
 
@@ -111,6 +110,42 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
     setQuizScore(null);
   }, [slug]);
 
+  useEffect(() => {
+    if (!course?.curriculum) return;
+
+    const fetchDurations = async () => {
+      const newDurations: Record<string, number> = {};
+      const fetchPromises = course.curriculum
+        .filter((lesson) => lesson.youtubeId)
+        .map(async (lesson) => {
+          const duration = await getYouTubeDuration(lesson.youtubeId!);
+          if (duration) {
+            newDurations[lesson.id] = duration;
+          }
+        });
+
+      await Promise.all(fetchPromises);
+      if (Object.keys(newDurations).length > 0) {
+        setLessonDurations(newDurations);
+      }
+    };
+
+    fetchDurations();
+  }, [course]);
+
+  useEffect(() => {
+    if (!course?.curriculum?.length || currentLesson) return;
+
+    const hasAccess = canWatch(course.id, course.price);
+    const initialLesson = hasAccess
+      ? course.curriculum[0]
+      : course.curriculum.find((lesson) => lesson.free);
+
+    if (initialLesson) {
+      setCurrentLesson(initialLesson);
+    }
+  }, [canWatch, course, currentLesson]);
+
   if (loading || !slug) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0A0A0F]">
@@ -128,6 +163,17 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   }
 
   const alreadyOwned = canWatch(course.id, course.price);
+  const freeLessonsCount = course.curriculum.filter((lesson) => lesson.free).length;
+  const paidLessonsCount = course.curriculum.length - freeLessonsCount;
+  const hasActiveLesson = Boolean(currentLesson && (currentLesson.free || alreadyOwned));
+  const nextCourses = courses
+    .filter((item) => item.id !== course.id)
+    .sort((a, b) => {
+      const aScore = a.category === course.category ? 1 : 0;
+      const bScore = b.category === course.category ? 1 : 0;
+      return bScore - aScore;
+    })
+    .slice(0, 4);
   const allLessonsCompleted = lessonCompletedIds.length === course.curriculum.length;
   const allLessonQuizzesPassed = lessonQuizPassedIds.length === course.curriculum.length;
   const finalQuizUnlocked =
@@ -187,8 +233,9 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
 
   const buildLessonQuiz = (lesson: Lesson): SelfCheckQuiz => {
     const lessonIndex = course.curriculum.findIndex((item) => item.id === lesson.id);
-    const wrongLowDuration = Math.max(1, lesson.durationMinutes - 4);
-    const wrongHighDuration = lesson.durationMinutes + 4;
+    const resolvedDuration = lessonDurations[lesson.id] ?? lesson.durationMinutes;
+    const wrongLowDuration = Math.max(1, resolvedDuration - 4);
+    const wrongHighDuration = resolvedDuration + 4;
 
     return {
       id: `lesson-quiz-${lesson.id}`,
@@ -213,10 +260,10 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
           id: `${lesson.id}-q-duration`,
           question: 'Энэ хичээлийн урт хэдэн минут вэ?',
           options: [
-            `${lesson.durationMinutes} мин`,
+            `${resolvedDuration} мин`,
             `${wrongLowDuration} мин`,
             `${wrongHighDuration} мин`,
-            `${lesson.durationMinutes + 9} мин`,
+            `${resolvedDuration + 9} мин`,
           ],
           correctIndex: 0,
         },
@@ -299,32 +346,14 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
     };
   };
 
-  const handleBuy = async () => {
-    if (!user) {
-      router.push('/auth/login');
-      return;
-    }
-
-    setBuying(true);
-
-    const { error } = await supabase
-      .from('purchased_courses')
-      .insert({ user_id: user.id, course_id: course.id });
-
-    if (error) {
-      toast.error('Алдаа гарлаа. Дахин оролдоно уу.');
-    } else {
-      toast.success('Амжилттай худалдаж авлаа!');
-    }
-    setBuying(false);
+  const handleBuy = () => {
+    router.push(`/checkout?courseId=${encodeURIComponent(course.id)}&slug=${encodeURIComponent(course.slug)}`);
   };
 
   const handleLessonClick = (lesson: Lesson) => {
     if (lesson.free || alreadyOwned) {
       setCurrentLesson(lesson);
       setShowLockedModal(false);
-    } else if (!user) {
-      router.push('/auth/login');
     } else {
       setShowLockedModal(true);
     }
@@ -333,10 +362,6 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   const closeModal = () => {
     setShowLockedModal(false);
     setCurrentLesson(null);
-  };
-
-  const handleContactMentor = () => {
-    setShowMentorChat(true);
   };
 
   const handleSendMentorMessage = async () => {
@@ -460,6 +485,13 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   };
 
   const hasVideoCurrentLesson = Boolean(currentLesson?.youtubeId);
+  const currentLessonIndex = currentLesson
+    ? course.curriculum.findIndex((lesson) => lesson.id === currentLesson.id)
+    : -1;
+  const nextLesson =
+    currentLessonIndex >= 0 && currentLessonIndex < course.curriculum.length - 1
+      ? course.curriculum[currentLessonIndex + 1]
+      : null;
 
   return (
     <>
@@ -491,10 +523,9 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                   </p>
                   <button
                     onClick={handleBuy}
-                    disabled={buying}
                     className="mb-3 w-full rounded-xl bg-[#C9A84C] py-3 font-bold text-black transition hover:bg-[#E8C96D]"
                   >
-                    {buying ? 'Төлж байна...' : `₮${course.price.toLocaleString()} - Худалдаж авах`}
+                    {`₮${course.price.toLocaleString()} - Худалдаж авах`}
                   </button>
                   <button
                     onClick={closeModal}
@@ -603,7 +634,10 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
           )}
 
           {currentLesson && (currentLesson.free || alreadyOwned) && (
-            <section className="mb-8 overflow-hidden rounded-[24px] border border-[rgba(245,240,232,0.1)] bg-[#111118] p-4 sm:p-5">
+            <section
+              id="active-player"
+              className="mb-8 overflow-hidden rounded-[24px] border border-[rgba(245,240,232,0.1)] bg-[#111118] p-4 sm:p-5"
+            >
               {!hasVideoCurrentLesson ? (
                 <div className="overflow-hidden rounded-[20px] border border-[rgba(217,195,138,0.22)] bg-[linear-gradient(145deg,rgba(217,195,138,0.12),rgba(12,13,19,0.98)_48%)] p-6 sm:p-7">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -664,45 +698,113 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                   </div>
                 </div>
               ) : (
-                <>
-                  <VideoPlayer videoId={currentLesson.youtubeId || ''} onComplete={() => {}} />
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <h2 className="text-lg font-bold text-white sm:text-xl">
-                        {currentLesson.title}
-                      </h2>
-                      <p className="text-sm text-[#7A7570]">{currentLesson.durationMinutes} мин</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handleLessonCompleted}
-                        className="rounded-lg border border-[rgba(201,168,76,0.35)] bg-[rgba(201,168,76,0.14)] px-3 py-2 text-sm font-semibold text-[#E8C96D] transition hover:bg-[rgba(201,168,76,0.22)]"
-                      >
-                        Дууссан гэж тэмдэглэх
-                      </button>
-                      <button
-                        onClick={() => openLessonQuiz(currentLesson)}
-                        className="rounded-lg border border-[rgba(245,240,232,0.14)] px-3 py-2 text-sm font-semibold text-[#d8ccb1] transition hover:border-[rgba(217,195,138,0.35)] hover:text-[#F5F0E8]"
-                      >
-                        Self-check
-                      </button>
-                      <button
-                        onClick={() => setCurrentLesson(null)}
-                        className="text-[#7A7570] transition hover:text-white"
-                      >
-                        ✕
-                      </button>
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
+                  <div className="min-w-0">
+                    <VideoPlayer videoId={currentLesson.youtubeId || ''} onComplete={() => {}} />
+                    <div className="mt-4 rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[#0f1118] p-4 sm:p-5">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a69262]">
+                            Одоо үзэж байна
+                          </p>
+                          <h2 className="mt-1 text-lg font-bold text-white sm:text-xl">
+                            {currentLesson.title}
+                          </h2>
+                          <p className="text-sm text-[#7A7570]">
+                            {lessonDurations[currentLesson.id] || currentLesson.durationMinutes} мин
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setCurrentLesson(null)}
+                          className="rounded-md px-2 py-1 text-[#7A7570] transition hover:text-white"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      {currentLesson.summary && (
+                        <p className="mt-3 text-sm leading-7 text-[#b8ad93]">{currentLesson.summary}</p>
+                      )}
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <button
+                          onClick={handleLessonCompleted}
+                          className="rounded-lg border border-[rgba(201,168,76,0.35)] bg-[rgba(201,168,76,0.14)] px-3 py-2 text-sm font-semibold text-[#E8C96D] transition hover:bg-[rgba(201,168,76,0.22)]"
+                        >
+                          Дууссан гэж тэмдэглэх
+                        </button>
+                        <button
+                          onClick={() => openLessonQuiz(currentLesson)}
+                          className="rounded-lg border border-[rgba(245,240,232,0.14)] px-3 py-2 text-sm font-semibold text-[#d8ccb1] transition hover:border-[rgba(217,195,138,0.35)] hover:text-[#F5F0E8]"
+                        >
+                          Self-check
+                        </button>
+                        {nextLesson && (
+                          <button
+                            onClick={() => handleLessonClick(nextLesson)}
+                            className="rounded-lg border border-[rgba(245,240,232,0.14)] px-3 py-2 text-sm font-semibold text-[#d8ccb1] transition hover:border-[rgba(217,195,138,0.35)] hover:text-[#F5F0E8]"
+                          >
+                            Дараагийн хичээл →
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </>
+
+                  <aside className="h-fit self-start overflow-hidden rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[#0d0f15]">
+                    <div className="border-b border-[rgba(245,240,232,0.08)] px-4 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a69262]">
+                        Playlist
+                      </p>
+                      <p className="mt-1 text-sm text-[#b8ad93]">
+                        {course.curriculum.length} хичээл
+                      </p>
+                    </div>
+                    <div className="max-h-[520px] space-y-2 overflow-y-auto p-2.5">
+                      {course.curriculum.map((lesson, i) => {
+                        const isActiveLesson = currentLesson.id === lesson.id;
+                        const isCompletedLesson = lessonCompletedIds.includes(lesson.id);
+                        const isLockedLesson = !lesson.free && !alreadyOwned;
+                        const lessonDuration = lessonDurations[lesson.id] || lesson.durationMinutes;
+
+                        return (
+                          <button
+                            key={lesson.id}
+                            onClick={() => handleLessonClick(lesson)}
+                            className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left transition ${
+                              isActiveLesson
+                                ? 'border-[rgba(217,195,138,0.45)] bg-[rgba(201,168,76,0.14)]'
+                                : 'border-[rgba(245,240,232,0.08)] bg-[#11131b] hover:border-[rgba(217,195,138,0.28)]'
+                            }`}
+                          >
+                            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#181a24] text-[11px] font-bold text-[#8b816f]">
+                              {i + 1}
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="line-clamp-2 block text-sm font-semibold text-[#F5F0E8]">
+                                {lesson.title}
+                              </span>
+                              <span className="mt-1 block text-xs text-[#7A7570]">{lessonDuration} мин</span>
+                            </span>
+                            {isLockedLesson && (
+                              <span className="text-xs font-semibold text-[#a99771]">🔒</span>
+                            )}
+                            {isCompletedLesson && !isLockedLesson && (
+                              <span className="text-xs font-semibold text-[#C9A84C]">✓</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </aside>
+                </div>
               )}
             </section>
           )}
 
-          <section className="relative overflow-hidden rounded-[30px] border border-[rgba(217,195,138,0.22)] bg-[linear-gradient(165deg,rgba(217,195,138,0.12),rgba(17,17,24,0.95)_42%)] p-6 sm:p-8">
-            <div className="pointer-events-none absolute right-[-60px] top-[-80px] h-56 w-56 rounded-full bg-[rgba(217,195,138,0.14)] blur-3xl" />
-            <div className="relative grid gap-10 lg:grid-cols-[1fr_360px] lg:gap-12">
-              <div>
+          {!hasActiveLesson && (
+            <section className="relative overflow-hidden rounded-[30px] border border-[rgba(217,195,138,0.22)] bg-[linear-gradient(165deg,rgba(217,195,138,0.12),rgba(17,17,24,0.95)_42%)] p-6 sm:p-8">
+              <div className="pointer-events-none absolute right-[-60px] top-[-80px] h-56 w-56 rounded-full bg-[rgba(217,195,138,0.14)] blur-3xl" />
+              <div className="relative grid gap-10 lg:grid-cols-[1fr_360px] lg:gap-12">
+                <div>
                 <div className="text-xs font-bold uppercase tracking-[0.2em] text-[#C9A84C]">
                   {categoryLabel[course.category] || course.category}
                 </div>
@@ -724,7 +826,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                       <button
                         type="button"
                         onClick={() => setShowTeacherPreview((v) => !v)}
-                        className="group flex flex-1 items-center justify-between rounded-xl border border-[rgba(245,240,232,0.08)] bg-[linear-gradient(135deg,rgba(17,17,24,0.96),rgba(14,15,21,0.96))] p-4 text-left transition hover:border-[rgba(201,168,76,0.28)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.32)]"
+                        className="group flex flex-1 items-center justify-between rounded-xl border border-[rgba(245,240,232,0.08)] bg-[linear-gradient(135deg,rgba(17,17,24,0.96),rgba(14,15,21,0.96))] p-4 text-left"
                       >
                         <div className="flex items-center gap-3">
                           <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(201,168,76,0.26)] bg-gradient-to-br from-[#34270f] to-[#1a1406] font-display text-xl text-[#E8C96D]">
@@ -737,16 +839,6 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                             </div>
                           </div>
                         </div>
-                        <span className="text-xs font-semibold text-[#C9A84C] transition group-hover:text-[#E8C96D]">
-                          Hover for profile
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleContactMentor}
-                        className="rounded-xl border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] px-4 py-3 text-sm font-semibold text-[#E8C96D] transition hover:bg-[rgba(201,168,76,0.2)]"
-                      >
-                        Contact
                       </button>
                     </div>
 
@@ -884,59 +976,63 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                       </button>
                     </div>
                   </div>
-                  <div className="mt-4 space-y-2.5">
-                    {course.curriculum.map((lesson, i) => (
-                      <button
-                        key={lesson.id}
-                        onClick={() => handleLessonClick(lesson)}
-                        className="flex w-full items-center gap-3 rounded-xl border border-[rgba(245,240,232,0.06)] bg-[#111118] p-3.5 text-left transition hover:border-[rgba(201,168,76,0.22)]"
-                      >
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#18181F] text-xs font-bold text-[#7A7570]">
-                          {i + 1}
-                        </span>
-                        <div className="flex-1">
-                          <span className="text-sm text-[#F5F0E8]">{lesson.title}</span>
-                          <div className="mt-1 flex flex-wrap items-center gap-2">
-                            {lessonCompletedIds.includes(lesson.id) && (
-                              <span className="rounded-full border border-[rgba(117,214,144,0.3)] bg-[rgba(46,102,57,0.25)] px-2 py-0.5 text-[10px] font-semibold text-[#dff7e2]">
-                                ДУУССАН
-                              </span>
-                            )}
-                            {lesson.contentType === 'brief' && (
-                              <span className="rounded-full border border-[rgba(88,130,216,0.32)] bg-[rgba(49,74,122,0.24)] px-2 py-0.5 text-[10px] font-semibold text-[#cfe0ff]">
-                                LESSON NOTE
-                              </span>
-                            )}
-                            {lessonQuizPassedIds.includes(lesson.id) && (
-                              <span className="rounded-full border border-[rgba(217,195,138,0.35)] bg-[rgba(217,195,138,0.12)] px-2 py-0.5 text-[10px] font-semibold text-[#E8C96D]">
-                                SELF-CHECK ✓
-                              </span>
-                            )}
+                  {!hasVideoCurrentLesson && (
+                    <div className="mt-4 space-y-2.5">
+                      {course.curriculum.map((lesson, i) => (
+                        <button
+                          key={lesson.id}
+                          onClick={() => handleLessonClick(lesson)}
+                          className="flex w-full items-center gap-3 rounded-xl border border-[rgba(245,240,232,0.06)] bg-[#111118] p-3.5 text-left transition hover:border-[rgba(201,168,76,0.22)]"
+                        >
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#18181F] text-xs font-bold text-[#7A7570]">
+                            {i + 1}
+                          </span>
+                          <div className="flex-1">
+                            <span className="text-sm text-[#F5F0E8]">{lesson.title}</span>
+                            <div className="mt-1 flex flex-wrap items-center gap-2">
+                              {lessonCompletedIds.includes(lesson.id) && (
+                                <span className="rounded-full border border-[rgba(117,214,144,0.3)] bg-[rgba(46,102,57,0.25)] px-2 py-0.5 text-[10px] font-semibold text-[#dff7e2]">
+                                  ДУУССАН
+                                </span>
+                              )}
+                              {lesson.contentType === 'brief' && (
+                                <span className="rounded-full border border-[rgba(88,130,216,0.32)] bg-[rgba(49,74,122,0.24)] px-2 py-0.5 text-[10px] font-semibold text-[#cfe0ff]">
+                                  LESSON NOTE
+                                </span>
+                              )}
+                              {lessonQuizPassedIds.includes(lesson.id) && (
+                                <span className="rounded-full border border-[rgba(217,195,138,0.35)] bg-[rgba(217,195,138,0.12)] px-2 py-0.5 text-[10px] font-semibold text-[#E8C96D]">
+                                  SELF-CHECK ✓
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        {lesson.free ? (
-                          <span className="text-xs font-bold text-[#C9A84C]">Үнэгүй</span>
-                        ) : alreadyOwned ? (
-                          <span className="text-xs text-[#C9A84C]">✓</span>
-                        ) : (
-                          <svg
-                            className="h-4 w-4 text-[#7A7570]"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"
-                            />
-                          </svg>
-                        )}
-                        <span className="text-xs text-[#7A7570]">{lesson.durationMinutes} мин</span>
-                      </button>
-                    ))}
-                  </div>
+                          {lesson.free ? (
+                            <span className="text-xs font-bold text-[#C9A84C]">Үнэгүй</span>
+                          ) : alreadyOwned ? (
+                            <span className="text-xs text-[#C9A84C]">✓</span>
+                          ) : (
+                            <svg
+                              className="h-4 w-4 text-[#7A7570]"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"
+                              />
+                            </svg>
+                          )}
+                          <span className="text-xs text-[#7A7570]">
+                            {lessonDurations[lesson.id] || lesson.durationMinutes} мин
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -945,14 +1041,22 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                   <div className="rounded-2xl border border-[rgba(201,168,76,0.18)] bg-[#111118] p-6">
                     <div className="text-center">
                       <div className="font-display text-4xl font-black text-[#C9A84C]">Үнэгүй</div>
-                      <p className="mt-2 text-sm text-[#7A7570]">Бүртгэлгүй үзэх боломжтой</p>
+                      <p className="mt-2 text-sm text-[#7A7570]">
+                        {hasActiveLesson ? 'Сонгосон хичээлээ үзэж байна' : 'Бүртгэлгүй үзэх боломжтой'}
+                      </p>
                       <button
-                        onClick={() =>
-                          course.curriculum[0] && setCurrentLesson(course.curriculum[0])
-                        }
+                        onClick={() => {
+                          if (hasActiveLesson) {
+                            document
+                              .getElementById('active-player')
+                              ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            return;
+                          }
+                          if (course.curriculum[0]) setCurrentLesson(course.curriculum[0]);
+                        }}
                         className="mt-6 w-full rounded-xl bg-[#C9A84C] py-3.5 font-bold text-[#0A0A0F] transition hover:bg-[#E8C96D]"
                       >
-                        Эхлэх
+                        {hasActiveLesson ? 'Одоо үзэж байна' : 'Эхлэх'}
                       </button>
                     </div>
                   </div>
@@ -966,29 +1070,27 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                     </div>
 
                     <div className="mt-6">
-                      {!user ? (
+                      {alreadyOwned ? (
                         <button
-                          onClick={() => router.push('/auth/login')}
+                          onClick={() => {
+                            if (hasActiveLesson) {
+                              document
+                                .getElementById('active-player')
+                                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              return;
+                            }
+                            if (course.curriculum[0]) setCurrentLesson(course.curriculum[0]);
+                          }}
                           className="w-full rounded-xl bg-[#C9A84C] py-3.5 font-bold text-[#0A0A0F] transition hover:bg-[#E8C96D]"
                         >
-                          Нэвтрэх
-                        </button>
-                      ) : alreadyOwned ? (
-                        <button
-                          onClick={() =>
-                            course.curriculum[0] && setCurrentLesson(course.curriculum[0])
-                          }
-                          className="w-full rounded-xl bg-[#C9A84C] py-3.5 font-bold text-[#0A0A0F] transition hover:bg-[#E8C96D]"
-                        >
-                          Үзэж эхлэх
+                          {hasActiveLesson ? 'Одоо үзэж байна' : 'Үзэж эхлэх'}
                         </button>
                       ) : (
                         <button
                           onClick={handleBuy}
-                          disabled={buying}
-                          className="w-full rounded-xl bg-[#C9A84C] py-3.5 font-bold text-[#0A0A0F] transition hover:bg-[#E8C96D] disabled:opacity-60"
+                          className="w-full rounded-xl bg-[#C9A84C] py-3.5 font-bold text-[#0A0A0F] transition hover:bg-[#E8C96D]"
                         >
-                          {buying ? 'Төлж байна...' : 'Худалдаж авах'}
+                          Худалдаж авах
                         </button>
                       )}
                     </div>
@@ -1004,11 +1106,90 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                         <span className="text-[#C9A84C]">✓</span> .FLP project файл
                       </div>
                     </div>
+
+                    <div className="mt-5 rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0f1118] p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#a69262]">
+                        Төлбөрийн хэсэг (Demo)
+                      </p>
+                      <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[11px]">
+                        <span className="rounded-lg border border-[rgba(245,240,232,0.12)] bg-[rgba(245,240,232,0.03)] px-2 py-1.5 text-[#d9cfb6]">
+                          QPay
+                        </span>
+                        <span className="rounded-lg border border-[rgba(245,240,232,0.12)] bg-[rgba(245,240,232,0.03)] px-2 py-1.5 text-[#d9cfb6]">
+                          Visa
+                        </span>
+                        <span className="rounded-lg border border-[rgba(245,240,232,0.12)] bg-[rgba(245,240,232,0.03)] px-2 py-1.5 text-[#d9cfb6]">
+                          MasterCard
+                        </span>
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-[#9c9077]">
+                        <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#11141d] px-2.5 py-2">
+                          Үнэгүй preview: {freeLessonsCount}
+                        </p>
+                        <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#11141d] px-2.5 py-2">
+                          Төлбөртэй lesson: {paidLessonsCount}
+                        </p>
+                      </div>
+
+                      <p className="mt-3 text-xs leading-5 text-[#7f7564]">
+                        Сургалтын туршилтын горим: “Худалдаж авах” дармагц хандалт идэвхжинэ.
+                      </p>
+                    </div>
                   </div>
                 )}
               </aside>
             </div>
           </section>
+          )}
+
+          {hasActiveLesson && nextCourses.length > 0 && (
+            <section className="mt-8 rounded-[24px] border border-[rgba(245,240,232,0.1)] bg-[#111118] p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a69262]">
+                    Continue learning
+                  </p>
+                  <h2 className="mt-2 font-display text-2xl font-bold text-[#F5F0E8]">
+                    Дараагийн курсууд
+                  </h2>
+                </div>
+                <button
+                  onClick={() => router.push('/courses')}
+                  className="rounded-lg border border-[rgba(245,240,232,0.14)] px-3 py-2 text-xs font-semibold text-[#d7cba8] transition hover:border-[rgba(217,195,138,0.35)] hover:text-[#F5F0E8]"
+                >
+                  Бүгдийг үзэх
+                </button>
+              </div>
+
+              <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                {nextCourses.map((item) => {
+                  const previewCount = item.curriculum.filter((lesson) => lesson.free).length;
+
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => router.push(`/courses/${item.slug}`)}
+                      className="group rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#0f1118] p-4 text-left transition hover:border-[rgba(217,195,138,0.32)]"
+                    >
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#a69262]">
+                        {categoryLabel[item.category] || item.category}
+                      </p>
+                      <h3 className="mt-2 line-clamp-2 text-sm font-bold text-[#F5F0E8] transition-colors group-hover:text-[#E8C96D]">
+                        {item.title}
+                      </h3>
+                      <p className="mt-2 text-xs text-[#8d836f]">
+                        {item.curriculum.length} хичээл • preview {previewCount}
+                      </p>
+                      <p className="mt-3 font-semibold text-[#C9A84C]">
+                        {item.price === 0 ? 'Үнэгүй' : `₮${item.price.toLocaleString()}`}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
         </div>
       </main>
 
@@ -1019,11 +1200,11 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
               <div className="flex items-center justify-between border-b border-[rgba(245,240,232,0.08)] px-4 py-3">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] text-xs font-bold text-[#E8C96D]">
-                    {teacher.name[0]}
+                    AI
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-[#F5F0E8]">{teacher.name}</p>
-                    <p className="text-xs text-[#8f8779]">{teacher.role}</p>
+                    <p className="text-sm font-semibold text-[#F5F0E8]">AI Assistant</p>
+                    <p className="text-xs text-[#8f8779]">Онлайн</p>
                   </div>
                 </div>
                 <button
@@ -1036,9 +1217,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
 
               <div className="max-h-[320px] min-h-[220px] space-y-2 overflow-y-auto bg-[#0A0A0F] p-3">
                 {mentorMessages.length === 0 ? (
-                  <p className="text-sm text-[#7A7570]">
-                    Сайн байна уу! Би {teacher.name}. Юугаар туслах вэ?
-                  </p>
+                  <p className="text-sm text-[#7A7570]">Сайн байна уу! Би танд юугаар туслах вэ?</p>
                 ) : (
                   mentorMessages.map((message) => (
                     <div
@@ -1076,7 +1255,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                         handleSendMentorMessage();
                       }
                     }}
-                    placeholder={`${teacher.name}-д зурвас бичих...`}
+                    placeholder="Зурвас бичих..."
                     className="w-full rounded-lg border border-[rgba(245,240,232,0.12)] bg-[#0A0A0F] px-3 py-2 text-sm text-[#F5F0E8] outline-none focus:border-[rgba(201,168,76,0.35)]"
                   />
                   <button
@@ -1092,17 +1271,16 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
           ) : (
             <button
               onClick={() => setShowMentorChat(true)}
-              className="ml-auto flex items-center gap-2 rounded-full border border-[rgba(201,168,76,0.32)] bg-[rgba(201,168,76,0.16)] px-4 py-2.5 text-sm font-semibold text-[#E8C96D] shadow-[0_12px_28px_rgba(0,0,0,0.35)] transition hover:bg-[rgba(201,168,76,0.24)]"
+              className="chat-pulse ml-auto flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(201,168,76,0.32)] bg-[rgba(201,168,76,0.16)] shadow-[0_12px_28px_rgba(0,0,0,0.35)]"
+              style={{ background: 'var(--gold)' }}
             >
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(201,168,76,0.22)] text-xs font-bold">
-                {teacher.name[0]}
-              </span>
-              Contact {teacher.name.split(' ')[0]}
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="#0c0c0b" aria-hidden>
+                <path d="M12 3C6.9 3 3 6.58 3 11c0 2.19.99 4.17 2.65 5.61L4.5 21l4.72-1.43c.87.2 1.8.31 2.78.31 5.1 0 9-3.58 9-8s-3.9-8.88-9-8.88Zm-4 7.75a1.05 1.05 0 1 1 0-2.1 1.05 1.05 0 0 1 0 2.1Zm4 0a1.05 1.05 0 1 1 0-2.1 1.05 1.05 0 0 1 0 2.1Zm4 0a1.05 1.05 0 1 1 0-2.1 1.05 1.05 0 0 1 0 2.1Z" />
+              </svg>
             </button>
           )}
         </div>
       )}
-      <Footer />
     </>
   );
 }

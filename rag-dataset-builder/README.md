@@ -165,6 +165,37 @@ Validate the generated dataset:
 python scripts/validate_dataset.py --input data/rag_dataset_mn.jsonl
 ```
 
+## Build Ready-to-Use Dataset
+
+After raw generation, build the normalized dataset that is ready for embedding or
+Supabase import:
+
+```powershell
+python scripts/build_ready_dataset.py
+python scripts/validate_ready_dataset.py --input data/ready/rag_ready_mn.jsonl
+```
+
+Generated files:
+
+- `data/ready/rag_ready_mn.jsonl` - normalized JSONL for embedding.
+- `data/ready/rag_ready_mn.csv` - spreadsheet-friendly review copy.
+- `data/ready/supabase_knowledge_base_seed.csv` - import shape for the current
+  `knowledge_base` table: `category`, `question`, `answer`, `source`.
+- `data/ready/rag_ready_mn_report.md` - counts and usage notes for this output.
+
+For retrieval, embed the `rag_text` field. It combines question, title, category,
+answer content, and keywords. Use `citation_safe=true` entries when the chatbot
+needs to show sources. Entries with `source_type=generated_internal_tip` are
+useful internal guidance, but should not be shown as manual/document citations.
+
+`music_theory_rag_final_mn.jsonl` is excluded by default because the current
+generated file has title/content mismatches. Regenerate it with stronger prompts
+before using it for production retrieval, or opt in manually with:
+
+```powershell
+python scripts/build_ready_dataset.py --include-open-music-theory
+```
+
 ## Generation Method
 
 The script reads `.env` with `python-dotenv`.

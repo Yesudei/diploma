@@ -6,18 +6,17 @@ import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabase';
 import apiService from '@/services/api';
 import { toast } from 'sonner';
-import type { AudioFile, ChatMessage, MixingAnalysisResult } from '@/types';
-import { courses, teachers } from '@/lib/data';
+import type { AudioFile, MixingAnalysisResult } from '@/types';
+import { courses } from '@/lib/data';
 import Link from 'next/link';
 
 const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
 
-const tabs: Array<{ id: 'courses' | 'upload' | 'files' | 'analysis' | 'mentor'; label: string }> = [
+const tabs: Array<{ id: 'courses' | 'upload' | 'files' | 'analysis'; label: string }> = [
   { id: 'courses', label: 'Миний хичээл' },
   { id: 'upload', label: 'Файл нэмэх' },
   { id: 'files', label: 'Миний файлууд' },
   { id: 'analysis', label: 'AI анализ' },
-  { id: 'mentor', label: 'Ментортой чат' },
 ];
 
 export default function DashboardPage() {
@@ -25,7 +24,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
-    'courses' | 'upload' | 'files' | 'analysis' | 'mentor'
+    'courses' | 'upload' | 'files' | 'analysis'
   >('courses');
 
   const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
@@ -37,15 +36,6 @@ export default function DashboardPage() {
 
   const [selectedAnalysisFileId, setSelectedAnalysisFileId] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [selectedMentorId, setSelectedMentorId] = useState(teachers[0]?.id || '');
-  const [mentorInput, setMentorInput] = useState('');
-  const [previewMentorId, setPreviewMentorId] = useState<string | null>(null);
-  const [mentorConversations, setMentorConversations] = useState<Record<string, ChatMessage[]>>({});
-  const [isSendingMentorMessage, setIsSendingMentorMessage] = useState(false);
-  const mentorEndRef = useRef<HTMLDivElement>(null);
-  const selectedMentor = teachers.find((t) => t.id === selectedMentorId);
-  const previewMentor = teachers.find((t) => t.id === previewMentorId);
-  const currentMentorMessages = mentorConversations[selectedMentorId] || [];
 
   useEffect(() => {
     let mounted = true;
@@ -97,18 +87,6 @@ export default function DashboardPage() {
       loadData();
     }
   }, [user?.id, loadData]);
-
-  useEffect(() => {
-    mentorEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [mentorConversations, selectedMentorId]);
-
-  const openMentorPreview = (mentorId: string) => {
-    setPreviewMentorId(mentorId);
-  };
-
-  const closeMentorPreview = () => {
-    setPreviewMentorId(null);
-  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -164,64 +142,8 @@ export default function DashboardPage() {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Analysis failed';
       toast.error(message);
-    } finally {
+} finally {
       setIsAnalyzing(false);
-    }
-  };
-
-  const handleSendMentorMessage = async () => {
-    const text = mentorInput.trim();
-    const mentor = selectedMentor;
-
-    if (!text) {
-      return;
-    }
-
-    if (!mentor) {
-      toast.error('Ментор сонгоно уу');
-      return;
-    }
-
-    const userMessage: ChatMessage = {
-      id: `local-user-${Date.now()}`,
-      user_id: user?.id || '',
-      role: 'user',
-      content: text,
-      created_at: new Date().toISOString(),
-    };
-
-    const nextHistory = [...currentMentorMessages, userMessage];
-    setMentorConversations((prev) => ({
-      ...prev,
-      [selectedMentorId]: nextHistory,
-    }));
-    setMentorInput('');
-    setIsSendingMentorMessage(true);
-
-    try {
-      const response = await apiService.sendChatMessage({
-        message: `[mentor:${mentor.id}:${mentor.name}] ${text}`,
-        conversation_history: nextHistory,
-      });
-
-      const assistantMessage: ChatMessage = {
-        id: response.id,
-        user_id: user?.id || '',
-        role: 'assistant',
-        content: response.message,
-        created_at: response.timestamp,
-        sources: response.sources,
-      };
-
-      setMentorConversations((prev) => ({
-        ...prev,
-        [selectedMentorId]: [...(prev[selectedMentorId] || []), assistantMessage],
-      }));
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Message failed';
-      toast.error(message);
-    } finally {
-      setIsSendingMentorMessage(false);
     }
   };
 
@@ -324,7 +246,7 @@ export default function DashboardPage() {
                       <span>
                         {course.price === 0 ? 'Үнэгүй' : `₮${course.price.toLocaleString()}`}
                       </span>
-                      <span>{course.lessonsCount} lessons</span>
+                      <span>{course.lessonsCount} хичээл</span>
                     </div>
                   </Link>
                 ))}
@@ -497,154 +419,7 @@ export default function DashboardPage() {
                 )}
               </div>
             </section>
-          )}
-
-          {activeTab === 'mentor' && (
-            <section className="mt-8">
-              <div className="rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-5 sm:p-6">
-                <div className="mb-5">
-                  <h3 className="text-lg font-bold text-[#F5F0E8]">Ментортой чат</h3>
-                  <p className="mt-1 text-sm text-[#8f8779]">
-                    Ментороо сонгоод шууд зөвлөгөө авна уу.
-                  </p>
-                  <div className="relative mt-4">
-                    <div className="flex gap-2 overflow-x-auto pb-1">
-                      {teachers.map((mentor) => (
-                        <button
-                          key={mentor.id}
-                          onMouseEnter={() => openMentorPreview(mentor.id)}
-                          onMouseLeave={closeMentorPreview}
-                          onClick={() => setSelectedMentorId(mentor.id)}
-                          className={`flex min-w-[150px] items-center gap-2 rounded-full border px-2.5 py-1.5 text-left transition ${
-                            selectedMentorId === mentor.id
-                              ? 'border-[rgba(201,168,76,0.46)] bg-[rgba(201,168,76,0.08)]'
-                              : 'border-[rgba(245,240,232,0.08)] bg-[#10111a] hover:border-[rgba(201,168,76,0.22)]'
-                          }`}
-                        >
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] text-xs font-bold text-[#E8C96D]">
-                            {mentor.name[0]}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-[#F5F0E8]">
-                              {mentor.name}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-
-                    {previewMentor && (
-                      <div
-                        onMouseEnter={() => openMentorPreview(previewMentor.id)}
-                        onMouseLeave={closeMentorPreview}
-                        className="mt-3 rounded-xl border border-[rgba(217,195,138,0.25)] bg-[#0d0f15] p-4 md:absolute md:right-0 md:top-full md:z-20 md:mt-2 md:w-[380px] md:shadow-[0_20px_44px_rgba(0,0,0,0.45)]"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-start gap-3">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(201,168,76,0.34)] bg-[rgba(201,168,76,0.12)] text-xl font-bold text-[#E8C96D]">
-                              {previewMentor.name[0]}
-                            </div>
-                            <div>
-                              <p className="text-[11px] uppercase tracking-[0.16em] text-[#8f8779]">
-                                Mentor Profile
-                              </p>
-                              <h4 className="mt-1 text-lg font-bold text-[#F5F0E8]">
-                                {previewMentor.name}
-                              </h4>
-                              <p className="text-xs text-[#a89f8b]">
-                                {previewMentor.role} • {previewMentor.specialty}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="rounded-full border border-[rgba(217,195,138,0.3)] bg-[rgba(217,195,138,0.12)] px-2.5 py-1 text-xs font-semibold text-[#E8C96D]">
-                            {previewMentor.stats?.rating || '-'} / 5
-                          </div>
-                        </div>
-                        <p className="mt-3 text-sm leading-6 text-[#b8ad93]">{previewMentor.bio}</p>
-
-                        {previewMentor.instruments && previewMentor.instruments.length > 0 && (
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {previewMentor.instruments.map((tool) => (
-                              <span
-                                key={tool}
-                                className="rounded-full border border-[rgba(245,240,232,0.1)] bg-[rgba(245,240,232,0.03)] px-2.5 py-1 text-xs text-[#c7b88f]"
-                              >
-                                {tool}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="max-h-[420px] min-h-[320px] space-y-3 overflow-y-auto rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#0A0A0F] p-4">
-                  {selectedMentor && (
-                    <div className="mb-3 flex items-center gap-2">
-                      <button
-                        onMouseEnter={() => openMentorPreview(selectedMentor.id)}
-                        onMouseLeave={closeMentorPreview}
-                        className="flex h-7 w-7 items-center justify-center rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] text-[11px] font-bold text-[#E8C96D] transition hover:scale-105"
-                      >
-                        {selectedMentor.name[0]}
-                      </button>
-                      <p className="text-xs uppercase tracking-[0.16em] text-[#8f8779]">
-                        Mentor: {selectedMentor.name}
-                      </p>
-                    </div>
-                  )}
-                  {currentMentorMessages.length === 0 ? (
-                    <p className="text-sm text-[#7A7570]">
-                      {selectedMentor
-                        ? `${selectedMentor.name}-д асуултаа бичээд зөвлөгөө аваарай.`
-                        : 'Ментор сонгоно уу.'}
-                    </p>
-                  ) : (
-                    currentMentorMessages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`max-w-[85%] rounded-xl px-4 py-3 text-sm leading-6 ${
-                          message.role === 'user'
-                            ? 'ml-auto bg-[rgba(201,168,76,0.18)] text-[#f5e7bc]'
-                            : 'bg-[#161722] text-[#d4d0c8]'
-                        }`}
-                      >
-                        {message.content}
-                      </div>
-                    ))
-                  )}
-                  <div ref={mentorEndRef} />
-                </div>
-
-                <div className="mt-4 flex gap-2">
-                  <input
-                    value={mentorInput}
-                    onChange={(e) => setMentorInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMentorMessage();
-                      }
-                    }}
-                    placeholder={
-                      selectedMentor
-                        ? `${selectedMentor.name}-д асуултаа бичнэ үү...`
-                        : 'Асуултаа бичнэ үү...'
-                    }
-                    className="w-full rounded-lg border border-[rgba(245,240,232,0.12)] bg-[#0A0A0F] px-4 py-3 text-sm text-[#F5F0E8] outline-none focus:border-[rgba(201,168,76,0.35)]"
-                  />
-                  <button
-                    onClick={handleSendMentorMessage}
-                    disabled={!mentorInput.trim() || isSendingMentorMessage}
-                    className="rounded-lg bg-[rgba(201,168,76,0.14)] px-5 py-3 text-sm font-semibold text-[#E8C96D] transition hover:bg-[rgba(201,168,76,0.24)] disabled:opacity-50"
-                  >
-                    {isSendingMentorMessage ? 'Илгээж байна...' : 'Илгээх'}
-                  </button>
-                </div>
-              </div>
-            </section>
-          )}
+)}
         </div>
       </main>
     </>

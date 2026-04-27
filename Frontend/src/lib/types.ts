@@ -32,6 +32,7 @@ export interface Lesson {
   title: string;
   youtubeId?: string;
   durationMinutes: number;
+  dynamicDurationMinutes?: number;
   free: boolean;
   contentType?: 'video' | 'brief';
   summary?: string;

@@ -1,10 +1,12 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
 import { courses } from '@/lib/data';
+import { supabase } from '@/lib/supabase';
+import type { Course } from '@/lib/types';
 
 const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
-const Footer = dynamic(() => import('@/components/layout/Footer'), { ssr: false });
 const CourseCard = dynamic(() => import('@/components/cards/CourseCard'), { ssr: false });
 
 const categoryLabel: Record<string, string> = {
@@ -14,6 +16,8 @@ const categoryLabel: Record<string, string> = {
   'sound-design': 'Sound Design',
   'melody-voice': 'Melody & Voice',
   'audio-engineering': 'Audio Engineering',
+  beats: 'Битийн',
+  basics: 'Үндэс',
 };
 
 const levelLabel: Record<string, string> = {
@@ -32,33 +36,73 @@ const sortLabel: Record<string, string> = {
 };
 
 export default function CoursesPage() {
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams.get('category') || 'all';
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('all');
+  const [category, setCategory] = useState(initialCategory);
   const [level, setLevel] = useState('all');
   const [priceType, setPriceType] = useState<'all' | 'free' | 'paid'>('all');
   const [sortBy, setSortBy] = useState('featured');
+  const [dbCourses, setDbCourses] = useState<Course[]>([]);
 
+  useEffect(() => {
+    const cat = searchParams.get('category');
+    if (cat) {
+      setCategory(cat);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    supabase
+      .from('courses')
+      .select('*')
+      .then(({ data }) => {
+        if (!data) return;
+        const mapped: Course[] = data.map((row) => ({
+          id: row.course_id,
+          title: row.title,
+          description: row.description || '',
+          thumbnail: row.thumbnail || '',
+          price: row.price || 0,
+          teacherId: row.teacher_id || '',
+          category: row.category,
+          level: row.level,
+          duration: '',
+          lessonsCount: 0,
+          slug: row.slug,
+          curriculum: [],
+        }));
+        setDbCourses(mapped);
+      });
+  }, []);
+
+  const allCourses = [...courses, ...dbCourses];
   const totalLessonsAll = useMemo(
     () =>
-      courses.reduce((sum, course) => sum + (course.curriculum?.length || course.lessonsCount), 0),
-    []
+      allCourses.reduce(
+        (sum, course) => sum + (course.curriculum?.length || course.lessonsCount),
+        0
+      ),
+    [dbCourses]
   );
 
   const totalMinutesAll = useMemo(
     () =>
-      courses.reduce(
+      allCourses.reduce(
         (sum, course) =>
           sum +
           (course.curriculum?.reduce((lessonSum, l) => lessonSum + l.durationMinutes, 0) || 0),
         0
       ),
-    []
+    [dbCourses]
   );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    const list = courses.filter((course) => {
+    const all = [...courses, ...dbCourses];
+
+    const list = all.filter((course) => {
       const byQuery =
         q.length === 0 ||
         course.title.toLowerCase().includes(q) ||
@@ -86,7 +130,7 @@ export default function CoursesPage() {
     });
 
     return sorted;
-  }, [category, level, priceType, query, sortBy]);
+  }, [category, level, priceType, query, sortBy, dbCourses]);
 
   const free = filtered.filter((c) => c.price === 0);
   const paid = filtered.filter((c) => c.price > 0);
@@ -115,7 +159,9 @@ export default function CoursesPage() {
 
             <div className="mt-8 grid gap-3 sm:grid-cols-3 sm:gap-4">
               <div className="rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[rgba(245,240,232,0.03)] p-4">
-                <p className="font-display text-3xl font-black text-[#F5F0E8]">{courses.length}</p>
+                <p className="font-display text-3xl font-black text-[#F5F0E8]">
+                  {allCourses.length}
+                </p>
                 <p className="mt-1 text-xs text-[#a49368]">Нийт курс</p>
               </div>
               <div className="rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[rgba(245,240,232,0.03)] p-4">
@@ -263,7 +309,6 @@ export default function CoursesPage() {
           )}
         </div>
       </main>
-      <Footer />
     </>
   );
 }

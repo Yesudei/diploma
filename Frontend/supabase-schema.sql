@@ -107,6 +107,40 @@ create table public.course_progress (
   unique(user_id, course_id)
 );
 
+-- COURSES table
+create table public.courses (
+  id uuid default uuid_generate_v4() primary key,
+  course_id text not null unique,
+  title text not null,
+  description text,
+  thumbnail text,
+  teacher_id text,
+  teacher_name text,
+  category text not null,
+  level text not null,
+  price integer default 0,
+  slug text not null unique,
+  created_at timestamp with time zone default now()
+);
+
+-- LESSONS table
+create table public.lessons (
+  id uuid default uuid_generate_v4() primary key,
+  course_id text not null,
+  lesson_id text not null,
+  title text not null,
+  youtube_id text,
+  duration_minutes integer default 0,
+  summary text,
+  exercise text,
+  takeaway text,
+  content_type text default 'brief',
+  free boolean default false,
+  sort_order integer default 0,
+  created_at timestamp with time zone default now(),
+  unique(course_id, lesson_id)
+);
+
 -- MARKETPLACE_ITEMS table
 create table public.marketplace_items (
   id uuid default uuid_generate_v4() primary key,
@@ -147,6 +181,21 @@ alter table public.completed_lessons enable row level security;
 alter table public.course_progress enable row level security;
 alter table public.marketplace_items enable row level security;
 alter table public.payments enable row level security;
+alter table public.courses enable row level security;
+alter table public.lessons enable row level security;
+
+-- Helper used by admin RLS policies
+create or replace function public.current_user_is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    (select is_admin from public.profiles where id = auth.uid()),
+    false
+  );
+$$;
 
 -- RLS Policies
 -- Profiles
@@ -198,6 +247,38 @@ create policy "Users can delete own items" on public.marketplace_items for delet
 
 -- Payments
 create policy "Users can view own payments" on public.payments for select using (auth.uid() = user_id);
+
+-- Admin policies for the admin dashboard
+create policy "Admins can manage all audio files" on public.audio_files
+  for all using (public.current_user_is_admin()) with check (public.current_user_is_admin());
+create policy "Admins can manage all mixing analysis" on public.mixing_analysis
+  for all using (public.current_user_is_admin()) with check (public.current_user_is_admin());
+create policy "Admins can manage all melody variations" on public.melody_variations
+  for all using (public.current_user_is_admin()) with check (public.current_user_is_admin());
+create policy "Admins can manage all chat messages" on public.chat_messages
+  for all using (public.current_user_is_admin()) with check (public.current_user_is_admin());
+create policy "Admins can manage all purchases" on public.purchased_courses
+  for all using (public.current_user_is_admin()) with check (public.current_user_is_admin());
+create policy "Admins can manage all completed lessons" on public.completed_lessons
+  for all using (public.current_user_is_admin()) with check (public.current_user_is_admin());
+create policy "Admins can manage all course progress" on public.course_progress
+  for all using (public.current_user_is_admin()) with check (public.current_user_is_admin());
+create policy "Admins can manage all marketplace items" on public.marketplace_items
+  for all using (public.current_user_is_admin()) with check (public.current_user_is_admin());
+create policy "Admins can manage all payments" on public.payments
+  for all using (public.current_user_is_admin()) with check (public.current_user_is_admin());
+
+-- Courses
+create policy "Anyone can view active courses" on public.courses for select using (true);
+create policy "Admins can manage courses" on public.courses for all using (
+  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+);
+
+-- Lessons
+create policy "Anyone can view lessons" on public.lessons for select using (true);
+create policy "Admins can manage lessons" on public.lessons for all using (
+  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+);
 
 -- Auto-create profile on signup
 create or replace function public.handle_new_user()

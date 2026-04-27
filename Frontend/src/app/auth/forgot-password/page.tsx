@@ -4,6 +4,7 @@ import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import Nav from '@/components/Nav';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -34,7 +35,9 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0A0A0A] px-4 py-10 sm:px-6">
+    <>
+      <Nav />
+      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0A0A0A] px-4 py-10 pt-24 sm:px-6 sm:pt-28">
       <div className="pointer-events-none absolute left-[-120px] top-[-60px] h-72 w-72 rounded-full bg-[rgba(201,168,76,0.17)] blur-3xl" />
       <div className="pointer-events-none absolute bottom-[-110px] right-[-80px] h-72 w-72 rounded-full bg-[rgba(145,95,35,0.15)] blur-3xl" />
 
@@ -114,6 +117,7 @@ export default function ForgotPasswordPage() {
           </div>
         </section>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

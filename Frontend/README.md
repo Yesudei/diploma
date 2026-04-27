@@ -159,7 +159,41 @@ Create `.env.local`:
 ```bash
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
 NEXT_PUBLIC_API_TIMEOUT=30000
+CHAT_PROVIDER=openai-compatible
+CHAT_MODEL=your-model-name
+OPENAI_COMPATIBLE_BASE_URL=https://openrouter.ai/api/v1
+OPENAI_COMPATIBLE_API_KEY=your-provider-key
 ```
+
+### Gemini RAG Chatbot
+
+The chatbot is available at `/chat`.
+
+Server route:
+
+```text
+src/app/api/chat/route.ts
+```
+
+It reads the cleaned RAG dataset from:
+
+```text
+../rag-dataset-builder/data/ready/rag_ready_mn.jsonl
+```
+
+The route retrieves relevant local context, sends that context to the selected
+LLM provider, and returns the answer plus the retrieved sources.
+
+Provider options:
+
+- `CHAT_PROVIDER=gemini`: uses `GEMINI_API_KEY` and `GEMINI_MODEL`.
+- `CHAT_PROVIDER=openai-compatible`: works with OpenAI, OpenRouter, Groq, and
+  other `/chat/completions` compatible APIs. Set
+  `OPENAI_COMPATIBLE_BASE_URL`, `OPENAI_COMPATIBLE_API_KEY`, and `CHAT_MODEL`.
+- `CHAT_PROVIDER=ollama`: uses local Ollama at `OLLAMA_BASE_URL` with
+  `OLLAMA_MODEL` or `CHAT_MODEL`.
+
+API keys are server-only and must not be prefixed with `NEXT_PUBLIC_`.
 
 ### Tailwind CSS Theme
 Customize colors in `tailwind.config.js`:

@@ -12,6 +12,7 @@ interface Props {
   currentLesson: Lesson;
   onLessonSelect: (lesson: Lesson) => void;
   completedLessonIds: string[];
+  lessonDurations?: Record<string, number>;
 }
 
 export default function LessonPlayer({
@@ -19,6 +20,7 @@ export default function LessonPlayer({
   currentLesson,
   onLessonSelect,
   completedLessonIds,
+  lessonDurations,
 }: Props) {
   const { user } = useAuth();
   const { canWatch } = usePurchases();
@@ -145,7 +147,9 @@ export default function LessonPlayer({
                   {lesson.title}
                 </span>
                 {locked && <span className="text-[#7A7570] text-xs">Locked</span>}
-                <span className="text-[#7A7570] text-xs">{lesson.durationMinutes}мін</span>
+                <span className="text-[#7A7570] text-xs">
+                  {lessonDurations?.[lesson.id] || lesson.durationMinutes}мін
+                </span>
               </button>
             );
           })}
