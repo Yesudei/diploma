@@ -1,0 +1,26 @@
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
+  \tikzstyle{entity}=[draw, rounded corners=4pt, minimum width=4.6cm, minimum height=2.1cm, align=left, font=\scriptsize]
+
+  \node[entity] (profiles) at (0,6.6) {\textbf{profiles}\\PK id\\full\_name\\is\_admin};
+  \node[entity] (courses) at (6.0,6.6) {\textbf{courses}\\PK id\\course\_id, slug\\title, price\\category, level};
+  \node[entity] (lessons) at (12.0,6.6) {\textbf{lessons}\\PK id\\course\_id\\lesson\_id\\youtube\_id, free};
+
+  \node[entity] (purchases) at (0,3.2) {\textbf{purchased\_courses}\\PK id\\FK user\_id\\course\_id\\purchased\_at};
+  \node[entity] (completed) at (6.0,3.2) {\textbf{completed\_lessons}\\PK id\\FK user\_id\\lesson\_id\\course\_id};
+  \node[entity] (progress) at (12.0,3.2) {\textbf{course\_progress}\\PK id\\FK user\_id\\course\_id\\progress\_percent};
+
+  \node[entity] (kb) at (0,-0.2) {\textbf{knowledge\_base}\\PK id\\category\\question, answer\\source, embedding};
+  \node[entity] (chat) at (6.0,-0.2) {\textbf{chat\_messages}\\PK id\\FK user\_id\\user\_message\\ai\_response, sources};
+  \node[entity] (payments) at (12.0,-0.2) {\textbf{payments}\\PK id\\FK user\_id\\course\_id\\amount, status};
+
+  \draw[->] (courses) -- node[above,font=\scriptsize] {1:N} (lessons);
+  \draw[->] (profiles) -- node[left,font=\scriptsize] {1:N} (purchases);
+  \draw[->] (profiles) -- node[above,font=\scriptsize] {1:N} (completed);
+  \draw[->] (profiles) -- node[right,font=\scriptsize] {1:N} (progress);
+  \draw[->] (profiles) -- node[above,font=\scriptsize] {1:N} (chat);
+  \draw[->] (profiles) -- node[above,font=\scriptsize] {1:N} (payments);
+  \draw[->] (courses) -- node[left,font=\scriptsize] {course\_id} (purchases);
+  \draw[->] (lessons) -- node[right,font=\scriptsize] {lesson\_id} (completed);
+  \draw[->] (courses) -- node[right,font=\scriptsize] {course\_id} (progress);
+  \draw[->] (kb) -- node[above,font=\scriptsize] {retrieval context} (chat);
+\end{tikzpicture}

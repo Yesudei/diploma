@@ -1,0 +1,30 @@
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
+  \node[draw, rounded corners=4pt, minimum width=2.4cm, minimum height=0.8cm] (u) at (0,0) {Суралцагч};
+  \node[draw, rounded corners=4pt, minimum width=2.6cm, minimum height=0.8cm] (ui) at (4.0,0) {Chat UI};
+  \node[draw, rounded corners=4pt, minimum width=2.8cm, minimum height=0.8cm] (api) at (8.0,0) {/api/chat};
+  \node[draw, rounded corners=4pt, minimum width=2.8cm, minimum height=0.8cm] (rag) at (12.0,0) {RAG dataset};
+  \node[draw, rounded corners=4pt, minimum width=2.8cm, minimum height=0.8cm] (llm) at (16.0,0) {LLM provider};
+
+  \draw[dashed] (0,-0.5) -- (0,-8.2);
+  \draw[dashed] (4.0,-0.5) -- (4.0,-8.2);
+  \draw[dashed] (8.0,-0.5) -- (8.0,-8.2);
+  \draw[dashed] (12.0,-0.5) -- (12.0,-8.2);
+  \draw[dashed] (16.0,-0.5) -- (16.0,-8.2);
+
+  \draw[->] (0,-1.2) -- (4.0,-1.2);
+  \node[font=\scriptsize, above] at (2.0,-1.2) {1. Асуулт бичих};
+  \draw[->] (4.0,-2.1) -- (8.0,-2.1);
+  \node[font=\scriptsize, above] at (6.0,-2.1) {2. POST message};
+  \draw[->] (8.0,-3.0) -- (12.0,-3.0);
+  \node[font=\scriptsize, above] at (10.0,-3.0) {3. Context хайх};
+  \draw[->] (12.0,-3.9) -- (8.0,-3.9);
+  \node[font=\scriptsize, above] at (10.0,-3.9) {4. Relevant sources};
+  \draw[->] (8.0,-4.8) -- (16.0,-4.8);
+  \node[font=\scriptsize, above] at (12.0,-4.8) {5. Prompt + context};
+  \draw[->] (16.0,-5.8) -- (8.0,-5.8);
+  \node[font=\scriptsize, above] at (12.0,-5.8) {6. Chatbot answer};
+  \draw[->] (8.0,-6.8) -- (4.0,-6.8);
+  \node[font=\scriptsize, above] at (6.0,-6.8) {7. Answer + sources};
+  \draw[->] (4.0,-7.6) -- (0,-7.6);
+  \node[font=\scriptsize, above] at (2.0,-7.6) {8. Зөвлөгөө харах};
+\end{tikzpicture}

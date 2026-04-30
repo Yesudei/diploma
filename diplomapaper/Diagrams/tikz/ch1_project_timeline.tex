@@ -1,0 +1,18 @@
+\begin{tikzpicture}[x=1cm,y=1cm,>=latex]
+  \tikzstyle{phase}=[draw, rounded corners=2pt, fill=blue!8, minimum width=3.2cm, minimum height=1.1cm, align=center]
+  \tikzstyle{arrow}=[->, thick]
+
+  \node[phase] (p1) at (0,0) {1-р үе шат\\Контент ба UX эхлэл};
+  \node[phase] (p2) at (4.2,0) {2-р үе шат\\Course/Lesson бүтэц};
+  \node[phase] (p3) at (8.4,0) {3-р үе шат\\Supabase интеграц};
+  \node[phase] (p4) at (12.6,0) {4-р үе шат\\RAG чатбот ба админ};
+
+  \draw[arrow] (p1) -- (p2);
+  \draw[arrow] (p2) -- (p3);
+  \draw[arrow] (p3) -- (p4);
+
+  \node[align=center] at (0,-1.2) {Landing\\Static data};
+  \node[align=center] at (4.2,-1.2) {Curriculum\\Self-check};
+  \node[align=center] at (8.4,-1.2) {Auth, purchases\\progress};
+  \node[align=center] at (12.6,-1.2) {RAG route\\Admin panel};
+\end{tikzpicture}

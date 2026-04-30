@@ -1,0 +1,20 @@
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
+  \tikzstyle{nodebox}=[draw, rounded corners=5pt, minimum width=4.5cm, minimum height=1.1cm, align=center]
+  \tikzstyle{store}=[draw, cylinder, shape border rotate=90, aspect=0.25, minimum height=1.2cm, minimum width=2.2cm, align=center]
+
+  \node[nodebox, fill=blue!8] (browser) at (0,0) {Browser\\Student/Admin};
+  \node[nodebox, fill=green!8] (next) at (6,0) {Next.js Frontend\\Pages + Components};
+  \node[nodebox, fill=yellow!10] (api) at (6,-2.4) {Next.js API Routes\\Chat, YouTube duration};
+  \node[store, fill=orange!10] (supabase) at (12,0) {Supabase\\PostgreSQL + Auth};
+  \node[store, fill=gray!14] (rag) at (12,-2.4) {RAG Dataset\\JSONL/CSV};
+  \node[nodebox, fill=purple!8] (llm) at (12,-4.8) {LLM Provider\\Ollama/Gemini/OpenAI-compatible};
+
+  \draw[->] (browser) -- node[above,font=\scriptsize] {HTTPS UI request} (next);
+  \draw[->] (next) -- node[above,font=\scriptsize] {Supabase client} (supabase);
+  \draw[->] (next) -- node[right,font=\scriptsize] {POST /api/chat} (api);
+  \draw[->] (api) -- node[above,font=\scriptsize] {read/retrieve} (rag);
+  \draw[->] (api) -- node[right,font=\scriptsize] {prompt + context} (llm);
+  \draw[->] (llm) -- node[left,font=\scriptsize] {answer} (api);
+  \draw[->] (api) -- node[left,font=\scriptsize] {answer + sources} (next);
+  \draw[->] (api) -- node[above,font=\scriptsize] {chat log / future import} (supabase);
+\end{tikzpicture}

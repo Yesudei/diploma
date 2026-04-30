@@ -1,0 +1,25 @@
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
+  \tikzstyle{layer}=[draw, rounded corners=5pt, minimum width=13.5cm, minimum height=1.0cm, align=center]
+  \tikzstyle{side}=[draw, rounded corners=4pt, minimum width=3.5cm, minimum height=0.8cm, align=center, font=\small]
+
+  \node[layer, fill=blue!8] (ui) at (0,0) {\textbf{Presentation Layer}\\Next.js pages, React components, Tailwind UI, Course/Lesson/Chat interfaces};
+  \node[layer, fill=green!8] (app) at (0,-1.8) {\textbf{Application Layer}\\Client hooks, access control, lesson flow, quiz state, admin workflow};
+  \node[layer, fill=yellow!10] (api) at (0,-3.6) {\textbf{API and AI Support Layer}\\Next.js API routes, RAG retrieval, prompt assembly, provider abstraction, fallback};
+  \node[layer, fill=orange!10] (data) at (0,-5.4) {\textbf{Data Layer}\\Supabase PostgreSQL, Auth, RLS, courses, lessons, purchases, progress, knowledge base};
+  \node[layer, fill=gray!14] (assets) at (0,-7.2) {\textbf{Content and Dataset Layer}\\Course seed data, YouTube lesson references, RAG JSONL/CSV, generated FL Studio tips};
+
+  \draw[->] (ui) -- (app);
+  \draw[->] (app) -- (api);
+  \draw[->] (api) -- (data);
+  \draw[->] (data) -- (assets);
+
+  \node[side, fill=purple!8] (student) at (-9.0,-0.9) {Суралцагч};
+  \node[side, fill=purple!8] (admin) at (9.0,-0.9) {Админ};
+  \node[side, fill=cyan!8] (llm) at (9.0,-3.6) {LLM Provider};
+  \node[side, fill=cyan!8] (supabase) at (9.0,-5.4) {Supabase Service};
+
+  \draw[->] (student) -- (ui.west);
+  \draw[->] (admin) -- (ui.east);
+  \draw[->] (api.east) -- (llm);
+  \draw[->] (data.east) -- (supabase);
+\end{tikzpicture}

@@ -1,0 +1,56 @@
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
+  % System boundary
+  \draw[rounded corners=8pt] (0,0) rectangle (13,8);
+  \node[font=\small] at (6.5,7.65) {\textbf{Anoce загварын платформ}};
+
+  % Actors
+  \node[draw, circle, minimum size=0.9cm] (adminHead) at (-1.8,6.4) {};
+  \draw (-1.8,5.95) -- (-1.8,4.95);
+  \draw (-2.25,5.45) -- (-1.35,5.45);
+  \draw (-1.8,4.95) -- (-2.25,4.35);
+  \draw (-1.8,4.95) -- (-1.35,4.35);
+  \node[font=\small] at (-1.8,3.95) {Админ};
+
+  \node[draw, circle, minimum size=0.9cm] (editorHead) at (-1.8,2.6) {};
+  \draw (-1.8,2.15) -- (-1.8,1.15);
+  \draw (-2.25,1.65) -- (-1.35,1.65);
+  \draw (-1.8,1.15) -- (-2.25,0.55);
+  \draw (-1.8,1.15) -- (-1.35,0.55);
+  \node[font=\small] at (-1.8,0.1) {Редактор};
+
+  \node[draw, circle, minimum size=0.9cm] (readerHead) at (14.7,4.5) {};
+  \draw (14.7,4.05) -- (14.7,3.05);
+  \draw (14.25,3.55) -- (15.15,3.55);
+  \draw (14.7,3.05) -- (14.25,2.45);
+  \draw (14.7,3.05) -- (15.15,2.45);
+  \node[font=\small] at (14.7,2.0) {Уншигч};
+
+  % Use-cases
+  \node[draw, ellipse, minimum width=3.9cm, minimum height=1cm] (login) at (3.2,6.3) {Админ нэвтрэх};
+  \node[draw, ellipse, minimum width=4.5cm, minimum height=1cm] (manageArticles) at (6.7,6.3) {Нийтлэл удирдах};
+  \node[draw, ellipse, minimum width=4.8cm, minimum height=1cm] (manageCollections) at (10.2,6.3) {Коллекц удирдах};
+
+  \node[draw, ellipse, minimum width=4.5cm, minimum height=1cm] (manageDesigners) at (6.0,4.3) {Дизайнер/брэнд удирдах};
+  \node[draw, ellipse, minimum width=4.1cm, minimum height=1cm] (assets) at (10.1,4.3) {Asset upload хийх};
+
+  \node[draw, ellipse, minimum width=4.3cm, minimum height=1cm] (search) at (5.8,2.1) {Хайлт хийх};
+  \node[draw, ellipse, minimum width=4.8cm, minimum height=1cm] (archive) at (10.0,2.1) {Архив шүүх/үзэх};
+
+  % Associations
+  \draw (-1.25,5.45) -- (1.3,6.1);
+  \draw (-1.25,5.45) -- (4.5,6.3);
+  \draw (-1.25,5.45) -- (8.0,6.3);
+  \draw (-1.25,5.45) -- (3.8,4.3);
+
+  \draw (-1.25,1.65) -- (4.7,6.05);
+  \draw (-1.25,1.65) -- (7.9,6.0);
+  \draw (-1.25,1.65) -- (4.1,4.05);
+  \draw (-1.25,1.65) -- (8.0,4.1);
+
+  \draw (14.1,3.55) -- (8.0,2.1);
+  \draw (14.1,3.55) -- (12.2,2.1);
+
+  % Include style relation
+  \draw[dashed,->] (10.2,5.8) -- (9.8,4.8);
+  \node[font=\scriptsize, fill=white, inner sep=1pt] at (10.7,5.3) {<<include>>};
+\end{tikzpicture}

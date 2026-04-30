@@ -1,0 +1,17 @@
+\begin{tikzpicture}[x=1cm,y=1cm,>=latex]
+  \tikzstyle{block}=[draw, rounded corners=2pt, minimum width=4.8cm, minimum height=1.0cm, align=center]
+  \tikzstyle{arrow}=[->, thick]
+
+  \node[block, fill=green!10] (u) at (0,0) {Хэрэглэгчийн асуулт (MN/EN)};
+  \node[block, fill=yellow!12] (t) at (0,-1.6) {Tokenization + lexical scoring};
+  \node[block, fill=orange!12] (r) at (0,-3.2) {Local retrieval (rag\_ready\_mn.jsonl)};
+  \node[block, fill=cyan!12] (p) at (0,-4.8) {Prompt assembly + safety rules};
+  \node[block, fill=purple!12] (m) at (0,-6.4) {LLM provider (Ollama / Gemini / OpenAI-compatible)};
+  \node[block, fill=gray!18] (o) at (0,-8.0) {Хариулт + source metadata + fallback logic};
+
+  \draw[arrow] (u) -- (t);
+  \draw[arrow] (t) -- (r);
+  \draw[arrow] (r) -- (p);
+  \draw[arrow] (p) -- (m);
+  \draw[arrow] (m) -- (o);
+\end{tikzpicture}

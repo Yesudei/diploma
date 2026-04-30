@@ -1,0 +1,419 @@
+% Бүлэг 3
+
+\chapter{Платформын дизайн ба хөгжүүлэлт}
+\label{Chapter3}
+
+\section{Бүлгийн зорилго}
+Энэ бүлэгт FL Studio болон хөгжим боловсруулалтын сургалтын платформын бодит дизайн, frontend, backend, database, AI туслах, RAG dataset pipeline-ийн хэрэгжилтийг тайлбарлана. Нэгдүгээр бүлэгт арга зүй, хоёрдугаар бүлэгт технологи ба AI онолыг судалсан бол энэ бүлэг нь тэдгээр сонголтыг бодит кодын баазад хэрхэн хэрэгжүүлснийг харуулна.
+
+Системийн хэрэгжилт нь дараах үндсэн бүрэлдэхүүнтэй.
+\begin{itemize}
+  \item Next.js App Router дээр суурилсан frontend application;
+  \item course catalog, course detail, lesson player, dashboard, checkout, admin зэрэг UI урсгал;
+  \item Supabase Auth, PostgreSQL schema, RLS policy, purchase/progress өгөгдлийн давхарга;
+  \item \texttt{/api/chat} route дээр суурилсан RAG chatbot;
+  \item \texttt{rag-dataset-builder} pipeline болон ready dataset;
+  \item хэрэглэгчийн асуултад source metadata бүхий AI хариу буцаах chat UI.
+\end{itemize}
+
+\section{Төслийн файлын бүтэц}
+Дипломын ажлын бүх хавтас нэг төслийн бүрэлдэхүүн гэж үзэгдэнэ. \texttt{Frontend} хавтас нь веб application, \texttt{dataset} болон \texttt{rag-dataset-builder} хавтас нь AI мэдлэгийн сан, \texttt{diplomapaper} хавтас нь судалгааны тайлан, диаграм, LaTeX эхийг агуулна.
+
+\begin{longtable}{|p{0.24\textwidth}|p{0.28\textwidth}|p{0.36\textwidth}|}
+  \caption{Төслийн гол хавтас ба үүрэг}
+  \label{tab:project-folders}\\
+  \hline
+  \textbf{Хавтас/файл} & \textbf{Үүрэг} & \textbf{Тайлбар} \\ \hline
+  \texttt{Frontend} & Веб платформын код & Next.js, React, TypeScript, Tailwind CSS, Supabase client, UI компонентууд \\ \hline
+  \texttt{src/app} & App Router хуудас ба API & Landing, courses, dashboard, admin, chat, checkout, auth routes, \texttt{/api/chat} \\ \hline
+  \texttt{src/components} & Дахин ашиглагдах UI компонент & CourseCard, LessonPlayer, VideoPlayer, ChatDrawer, Nav, Footer гэх мэт \\ \hline
+  \texttt{src/hooks} & Client-side state ба data hook & \texttt{useAuth}, \texttt{usePurchases}, \texttt{useReveal} \\ \hline
+  \texttt{src/lib} & Shared utility ба өгөгдөл & Static course data, Supabase client, database helper, youtube utility \\ \hline
+  \texttt{supabase-schema.sql} & Өгөгдлийн сангийн schema & Course, lesson, progress, payment, knowledge base, RLS policy \\ \hline
+  \texttt{dataset} & Том хэмжээний FL Studio зөвлөмж & 20000 бичлэгтэй compression/dynamics чиглэлийн JSON dataset \\ \hline
+  \texttt{rag-dataset-builder} & RAG dataset pipeline & Topic extraction, generation, validation, ready JSONL/CSV, Supabase seed \\ \hline
+  \texttt{diplomapaper} & Дипломын тайлан & LaTeX chapter, references, figures, diagrams, generated PDF \\ \hline
+\end{longtable}
+
+\section{Фронтенд платформын дизайн}
+\subsection{App Router-ийн route бүтэц}
+Frontend application нь Next.js App Router ашигласан. Энэ нь route бүрийг \texttt{src/app} дотор file-based байдлаар тодорхойлох боломжтой. Сургалтын платформын үндсэн route-уудыг Хүснэгт \ref{tab:frontend-routes}-д харуулав.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Frontend route-ууд ба хэрэглэгчийн урсгал}
+  \label{tab:frontend-routes}
+  \begin{tabular}{|p{0.24\textwidth}|p{0.26\textwidth}|p{0.38\textwidth}|}
+    \hline
+    \textbf{Route} & \textbf{Хуудасны үүрэг} & \textbf{Гол компонент/логик} \\ \hline
+    \texttt{/} & Нүүр хуудас, бүтээгдэхүүний танилцуулга & \texttt{HeroSection}, \texttt{LearningPathSection}, \texttt{FeaturesSection}, \texttt{ChatButton} \\ \hline
+    \texttt{/courses} & Курсийн каталог & Хайлт, ангилал, түвшин, үнэ, эрэмбэлэлт, Supabase course query \\ \hline
+    \texttt{/courses/[slug]} & Курсийн дэлгэрэнгүй ба lesson player & Access check, free/paid lesson, quiz, mentor chat, YouTube duration \\ \hline
+    \texttt{/dashboard} & Хэрэглэгчийн самбар & Суралцах явц, худалдан авалт, хэрэглэгчийн мэдээлэл \\ \hline
+    \texttt{/admin} & Админ удирдлага & Course, lesson, хэрэглэгч, өгөгдөл удирдах интерфейс \\ \hline
+    \texttt{/chat} & AI чат хуудас & Chat UI, \texttt{/api/chat} дуудлага \\ \hline
+    \texttt{/checkout} & Төлбөрийн урсгал & Course purchase simulation, access update \\ \hline
+  \end{tabular}
+\end{table}
+
+Нүүр хуудас нь хэрэглэгчид платформын зорилго, суралцах замнал, гол боломжуудыг харуулах үүрэгтэй. Course catalog нь хэрэглэгчийг бодит сургалтын бүтээгдэхүүн сонгох шат руу оруулна. Course detail нь системийн хамгийн төв хэсэг бөгөөд хичээл үзэх, quiz өгөх, төлбөртэй эрх шалгах, AI туслахаас лавлах боломжийг нэг дор нэгтгэнэ.
+
+\subsection{Компонентын зохион байгуулалт}
+React компонентуудыг domain болон UI хариуцлагаар салгасан. \texttt{CourseCard} нь курсийг жагсаалтад харуулах, \texttt{LessonPlayer} нь хичээл тоглуулах, \texttt{VideoPlayer} нь YouTube video embed хийх, \texttt{ChatDrawer} нь AI туслахын overlay chat интерфейсийг удирдана. Layout түвшинд \texttt{Nav}, \texttt{Footer}, \texttt{DashboardLayout} зэрэг компонентууд ашиглагдана.
+
+\begin{longtable}{|p{0.24\textwidth}|p{0.28\textwidth}|p{0.36\textwidth}|}
+  \caption{Frontend компонентуудын үүрэг}
+  \label{tab:frontend-components}\\
+  \hline
+  \textbf{Компонент} & \textbf{Үүрэг} & \textbf{Системд өгөх ач холбогдол} \\ \hline
+  \texttt{HeroSection} & Нүүр хуудасны эхний хэсэг & Платформын үнэ цэнийг хэрэглэгчид шууд ойлгуулах \\ \hline
+  \texttt{LearningPathSection} & Суралцах замналыг харуулах & Хэрэглэгчид дараалсан сургалтын ойлголт өгөх \\ \hline
+  \texttt{CourseCard} & Курсийн товч мэдээлэл харуулах & Каталогийг уншигдахуйц, сонгоход хялбар болгох \\ \hline
+  \texttt{LessonPlayer} & Хичээл, brief, lock state, completion & Сургалтын үндсэн хэрэглээг хэрэгжүүлэх \\ \hline
+  \texttt{VideoPlayer} & YouTube хичээл тоглуулах & Гадаад video content-ийг course flow-д нэгтгэх \\ \hline
+  \texttt{ChatDrawer} & AI mentor chat overlay & Суралцагч тухайн мөчид асуулт асуух боломж олгох \\ \hline
+  \texttt{DashboardLayout} & Хэрэглэгчийн самбарын layout & Progress болон хувийн мэдээллийг цэгцтэй харуулах \\ \hline
+  \texttt{PricingCard} & Төлбөрийн сонголт харуулах & Course monetization урсгалд дэмжлэг үзүүлэх \\ \hline
+\end{longtable}
+
+\section{Курс ба хичээлийн өгөгдлийн дизайн}
+\subsection{Статик курсийн өгөгдөл}
+Одоогийн курсийн эхний өгөгдөл \texttt{Frontend/src/lib/data.ts} файлд тодорхойлогдсон. Энэ файлд багшийн мэдээлэл, course seed, lesson seed, lesson duration, youtubeId, exercise, takeaway зэрэг өгөгдөл орно. Static data нь эхний prototype болон demo-д тохиромжтой бөгөөд дараагийн шатанд Supabase \texttt{courses}, \texttt{lessons} хүснэгтүүдтэй бүрэн синхрончлогдох боломжтой.
+
+Курсийн data model нь дараах үндсэн талбаруудтай.
+\begin{itemize}
+  \item \texttt{id}, \texttt{slug}, \texttt{title}, \texttt{description};
+  \item \texttt{category}, \texttt{level}, \texttt{price}, \texttt{teacherId};
+  \item \texttt{duration}, \texttt{lessonsCount}, \texttt{curriculum};
+  \item lesson бүрийн \texttt{title}, \texttt{youtubeId}, \texttt{durationMinutes}, \texttt{summary}, \texttt{exercise}, \texttt{takeaway}, \texttt{free}.
+\end{itemize}
+
+Энэ бүтэц нь сургалтын platform-д хэрэгтэй “контент + дадлага + ахиц” гэсэн гурван талт логикийг дэмжинэ.
+
+\subsection{Курсийн каталогийн хэрэгжилт}
+\texttt{/courses} хуудас нь static course data болон Supabase-аас ирэх course data-г нэгтгэж харуулна. Хэрэглэгч query, category, level, price type, sort option ашиглан курсийг шүүнэ. Энэ нь платформыг энгийн жагсаалт бус, суралцагч өөрийн түвшин, сонирхол, төлбөрийн боломжид тохируулан шийдвэр гаргах орчин болгодог.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Course catalog-ийн гол боломжууд}
+  \label{tab:course-catalog}
+  \begin{tabular}{|p{0.24\textwidth}|p{0.34\textwidth}|p{0.30\textwidth}|}
+    \hline
+    \textbf{Боломж} & \textbf{Хэрэгжилтийн логик} & \textbf{Хэрэглэгчийн ач холбогдол} \\ \hline
+    Хайлт & Course title болон description дээр query matching хийх & Тодорхой сэдвийн курс хурдан олох \\ \hline
+    Ангилал шүүх & Music production, mixing, mastering гэх мэт category filter & Сонирхсон чиглэлээр төвлөрөх \\ \hline
+    Түвшин шүүх & Beginner, intermediate, advanced & Өөрийн чадварт тохирох курс сонгох \\ \hline
+    Үнээр шүүх & Free болон paid course ялгах & Туршиж үзэх эсвэл төлбөртэй контент сонгох \\ \hline
+    Эрэмбэлэх & Lesson count, duration, price & Суралцах хугацаа, үнэ цэнээр харьцуулах \\ \hline
+  \end{tabular}
+\end{table}
+
+\section{Хичээлийн дэлгэрэнгүй ба тоглуулагч}
+\subsection{Хандалтын хяналт}
+\texttt{/courses/[slug]} хуудас нь хэрэглэгч тухайн курсийг үзэх эрхтэй эсэхийг \texttt{usePurchases} hook-оор шалгана. Free lesson бол зочин эсвэл худалдан аваагүй хэрэглэгч үзэж болно. Paid lesson бол хэрэглэгч тухайн course-ийг худалдан авсан үед л нээгдэнэ. Энэ нь төлбөртэй сургалтын платформын үндсэн бизнес шаардлага юм.
+
+\subsection{Хичээлийн тоглуулагч}
+\texttt{LessonPlayer} компонент нь дараах төлөвүүдийг зохицуулна.
+\begin{itemize}
+  \item lesson locked бол худалдан авах CTA харуулах;
+  \item video lesson бол YouTube player харуулах;
+  \item video байхгүй lesson бол summary, exercise, takeaway бүхий lesson brief харуулах;
+  \item lesson дуусгасан үед completed state харуулах;
+  \item lesson list дотор current lesson, locked lesson, completed lesson ялгах.
+\end{itemize}
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{0.82\textwidth}{!}{\input{Diagrams/tikz/activity_music_workflow.tex}}
+  \caption[Суралцагчийн үйл ажиллагааны урсгал]{Суралцагчийн course access, lesson, quiz, chatbot, progress хадгалалтын үйл ажиллагааны урсгал}
+  \label{fig:activity-music-workflow}
+\end{figure}
+
+\subsection{Өөрийгөө шалгах сорил}
+Course detail хуудас нь lesson бүрийн дараах богино self-check болон final quiz-ийн логик агуулна. Self-check нь сургалтын platform-д хоёр үүрэгтэй. Нэгдүгээрт, хэрэглэгч видео үзээд өнгөрөх бус, гол ойлголтоо шалгана. Хоёрдугаарт, progress tracking нь зөвхөн “үзсэн” төлөвөөс илүү утгатай болно. Quiz нь одоогоор client-side state дээр суурилсан боловч дараагийн шатанд Supabase-д хадгалах боломжтой.
+
+\section{Нэвтрэлт, худалдан авалт ба ахицын хэрэгжилт}
+\subsection{Нэвтрэлтийн hook}
+\texttt{useAuth.ts} hook нь хэрэглэгчийн session, login, logout, auth state change зэрэг үйлдлийг удирдана. Энэ hook-ийг course detail, dashboard, lesson player зэрэг хэрэглэгчийн төлөв шаарддаг компонентууд ашиглаж болно. Authentication нь зөвхөн UI state бус, Supabase RLS policy-ийн үндэс болдог.
+
+\subsection{Худалдан авалтын хандалт}
+\texttt{usePurchases.ts} hook нь хэрэглэгчийн худалдан авсан course-уудыг уншиж, \texttt{canWatch(courseId, price)} логикоор хичээл үзэх эрхийг тодорхойлно. Үнэгүй курс эсвэл free lesson бол шууд нээгдэнэ. Төлбөртэй lesson-д хандах үед хэрэглэгчийг checkout урсгал руу чиглүүлнэ.
+
+\subsection{Ахицын хяналт}
+Progress tracking нь \texttt{completed\_lessons} болон \texttt{course\_progress} хүснэгтүүдтэй холбоотой. Хэрэглэгч lesson дуусгасан гэж тэмдэглэхэд lesson progress хадгалагдаж, course-ийн progress percent шинэчлэгдэх боломжтой. Энэ нь сургалтын платформыг статик video library бус, суралцагчийн замналыг хэмждэг систем болгоно.
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{\input{Diagrams/tikz/sequence_music_analysis.tex}}
+  \caption[Lesson ба progress дарааллын диаграм]{Lesson үзэх, self-check хийх, progress хадгалах дарааллын диаграм}
+  \label{fig:sequence-lesson-progress}
+\end{figure}
+
+\section{Өгөгдлийн сангийн хэрэгжилт}
+\subsection{Supabase schema}
+\texttt{supabase-schema.sql} файлд платформын өгөгдлийн үндсэн schema тодорхойлогдсон. Schema нь authentication хэрэглэгчтэй холбогдох profile, course, lesson, purchase, completion, progress, payment, knowledge base, chat message зэрэг хүснэгтүүдээс бүрдэнэ.
+
+\begin{longtable}{|p{0.22\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}
+  \caption{Өгөгдлийн сангийн хүснэгтүүд ба үүрэг}
+  \label{tab:db-tables}\\
+  \hline
+  \textbf{Хүснэгт} & \textbf{Үндсэн өгөгдөл} & \textbf{Системд гүйцэтгэх үүрэг} \\ \hline
+  \texttt{profiles} & full name, avatar, bio, is\_admin & Auth user-ийн нэмэлт мэдээлэл ба admin role \\ \hline
+  \texttt{courses} & course id, title, description, category, level, price, slug & Курсийн каталог ба админ удирдлагын үндсэн entity \\ \hline
+  \texttt{lessons} & lesson id, course id, youtube id, summary, exercise, free & Course curriculum ба lesson player-ийн өгөгдөл \\ \hline
+  \texttt{purchased\_courses} & user id, course id, purchased at & Paid access шалгах үндсэн хүснэгт \\ \hline
+  \texttt{completed\_lessons} & user id, lesson id, course id & Lesson completion ба progress тооцоолол \\ \hline
+  \texttt{course\_progress} & user id, course id, progress percent, last lesson & Dashboard болон суралцах явцын мэдээлэл \\ \hline
+  \texttt{knowledge\_base} & category, question, answer, source, embedding & RAG chatbot-ийн мэдлэгийн сан \\ \hline
+  \texttt{chat\_messages} & user message, ai response, sources, confidence & Chat history, quality review, future analytics \\ \hline
+  \texttt{payments} & user id, course id, amount, currency, status & Төлбөрийн түүх ба purchase flow \\ \hline
+  \texttt{audio\_files}, \texttt{mixing\_analysis} & upload metadata, analysis result & Ирээдүйн audio analysis өргөтгөлийн суурь \\ \hline
+\end{longtable}
+
+\subsection{RLS бодлого}
+Schema-д бүх гол хүснэгт дээр RLS идэвхжүүлсэн. Энэ нь хэрэглэгч өөрийн progress, purchase, chat message, audio file зэрэг хувийн өгөгдөлд л хандах боломжтой гэсэн зарчимтай. Админ role-той хэрэглэгчид course, lesson, knowledge base, хэрэглэгчийн өгөгдлийг удирдах policy нээгдэнэ. Ингэснээр frontend дээр алдаа гарсан ч database түвшинд хамгаалалт давхар ажиллана.
+
+\section{AI чатботын хэрэгжилт}
+\subsection{API route-ийн үүрэг}
+AI туслахын backend нь \texttt{Frontend/src/app/api/chat/route.ts} файлд байрлана. Энэ route нь хэрэглэгчийн message хүлээн авч, local RAG dataset уншиж, lexical scoring-оор context сонгож, prompt үүсгэж, сонгосон LLM provider руу илгээж, хариулт болон source metadata-г буцаана.
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{\input{Diagrams/tikz/sequence_music_generation.tex}}
+  \caption[AI mentor дарааллын диаграм]{AI mentor асуулт-хариултын дарааллын диаграм}
+  \label{fig:sequence-ai-mentor}
+\end{figure}
+
+\subsection{Мэдээлэл сэргээх хэрэгжилт}
+RAG route нь \texttt{rag\_ready\_mn.jsonl} dataset-ийг cache хийж уншина. Entry бүрийн title, question, category, content, keywords талбарыг нэг searchable string болгон, token set үүсгэнэ. Хэрэглэгчийн асуултыг tokenize хийж, token overlap, substring match, category match зэрэг энгийн scoring ашиглан хамгийн тохирох context-уудыг сонгоно.
+
+Энэ lexical retrieval нь дараах давуу талтай.
+\begin{itemize}
+  \item implementation хялбар, demo хийхэд хурдан;
+  \item жижиг болон дунд хэмжээний dataset-д ойлгомжтой;
+  \item ямар token context сонгоход нөлөөлж байгааг тайлбарлах боломжтой;
+  \item embedding service шаардлагагүй тул local development-д тохиромжтой.
+\end{itemize}
+
+Сул тал нь paraphrase болон semantic similarity-г бүрэн барихгүй. Иймээс дараагийн хувилбарт Supabase pgvector ашиглан embedding search нэмэх боломжтой.
+
+\subsection{Prompt бүрдүүлэлт}
+Prompt нь хэрэглэгчийн асуулт, retrieved context, source type, citation-safe тэмдэглэл, AI mentor-ийн persona, хариулах дүрэм зэргийг нэгтгэнэ. Persona нь “Melodex Mentor” буюу FL Studio суралцагчдад дулаан, практик зөвлөгөө өгдөг туслах байдлаар тодорхойлогдсон. Prompt-д “generated tip-ийг official manual мэт бүү танилцуул” гэсэн дүрэм орсон нь dataset-ийн copyright болон source-safety эрсдэлийг бууруулна.
+
+\subsection{Үйлчилгээний abstraction ба fallback}
+Route нь Gemini, OpenAI-compatible, Ollama гэсэн provider-уудыг environment variable-аар сонгоно. Ollama provider дээр response чанар тогтворгүй үед repeated text, low unique token ratio, low unique character ratio зэрэг шалгуураар чанар муу хариултыг илрүүлж retry хийдэг. Мөн limiter, EQ muddy, clipping зэрэг нийтлэг асуултад rule-based fallback answer буцаах боломжтой.
+
+\begin{longtable}{|p{0.20\textwidth}|p{0.34\textwidth}|p{0.34\textwidth}|}
+  \caption{AI chatbot-ийн инженерчлэлийн шийдлүүд}
+  \label{tab:chatbot-implementation}\\
+  \hline
+  \textbf{Шийдэл} & \textbf{Хэрэгжилт} & \textbf{Ач холбогдол} \\ \hline
+  Dataset cache & JSONL файлыг нэг удаа уншиж IndexedEntry болгон хадгалах & API request бүрд file parse хийх зардлыг бууруулна. \\ \hline
+  Lexical scoring & Token overlap, substring, category match ашиглах & MVP шатанд хурдан, ойлгомжтой retrieval өгнө. \\ \hline
+  Prompt assembly & Context, source metadata, persona, rules нэгтгэх & AI хариултыг сургалтын хүрээнд хязгаарлана. \\ \hline
+  Provider abstraction & Ollama, Gemini, OpenAI-compatible сонголт & Зардал, чанар, privacy-ийн уян хатан байдал олгоно. \\ \hline
+  Low-quality detection & Давталт, token ratio, character ratio шалгах & Жижиг local model-ийн муу хариултаас хамгаална. \\ \hline
+  Rule fallback & Нийтлэг mixing/mastering асуудалд шууд хариу & Provider unavailable үед хэрэглэгчид хэрэгтэй тусламж өгнө. \\ \hline
+  Source metadata & title, category, sourceName, citationSafe буцаах & AI хариултын эх сурвалжийн ил тод байдлыг нэмэгдүүлнэ. \\ \hline
+\end{longtable}
+
+\section{RAG dataset builder-ийн хэрэгжилт}
+\subsection{Pipeline-ийн бүтэц}
+\texttt{rag-dataset-builder} нь RAG мэдлэгийн санг бэлтгэх тусдаа pipeline юм. Энэ нь source metadata олборлох, Mongolian entry үүсгэх, validation хийх, ready dataset build хийх, Supabase import CSV гаргах алхмуудтай.
+
+\begin{enumerate}
+  \item \texttt{extract\_topics.py}: source URL-уудаас copyright-safe topic metadata олборлоно.
+  \item \texttt{generate\_dataset.py}: topic бүрээс beginner-friendly Mongolian entry үүсгэнэ.
+  \item \texttt{validate\_dataset.py}: JSON structure, duplicate, word count, category зэрэг шалгуурыг шалгана.
+  \item \texttt{build\_ready\_dataset.py}: normalized JSONL/CSV болон Supabase seed CSV үүсгэнэ.
+  \item \texttt{validate\_ready\_dataset.py}: ready dataset-ийн нийт бүрэн байдлыг шалгана.
+\end{enumerate}
+
+\subsection{Dataset-ийн одоогийн төлөв}
+Ready dataset report-оос үзэхэд RAG dataset нь 4990 орчим бичлэгтэй бөгөөд голчлон Mixing ба Mastering ангилалд төвлөрсөн. Мөн \texttt{dataset} хавтас дахь FL Studio tips JSON файлд 20000 бичлэгтэй compression/dynamics чиглэлийн зөвлөмж хадгалагдаж байна. Энэ нь системийн AI туслахыг music production domain-д чиглүүлэх суурь өгөгдөл болно.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Dataset бүрэлдэхүүнүүд}
+  \label{tab:dataset-assets}
+  \begin{tabular}{|p{0.30\textwidth}|p{0.20\textwidth}|p{0.36\textwidth}|}
+    \hline
+    \textbf{Dataset} & \textbf{Хэмжээ} & \textbf{Үүрэг} \\ \hline
+    Ready JSONL & 4990 орчим бичлэг & Chatbot retrieval-д ашиглах normalized knowledge entry \\ \hline
+    Ready CSV & 4990 орчим мөр & Хүний review хийхэд тохиромжтой spreadsheet хувилбар \\ \hline
+    Supabase seed CSV & Import shape & \texttt{knowledge\_base} хүснэгтэд import хийх өгөгдөл \\ \hline
+    FL Studio tips JSON & 20000 бичлэг & FL Studio mixing/compression зөвлөмжийн том сан \\ \hline
+  \end{tabular}
+\end{table}
+
+\section{Админ удирдлагын хэрэгжилт}
+Admin page нь course, lesson, хэрэглэгч, өгөгдлийн удирдлагын эхний интерфейс юм. Database түвшинд \texttt{is\_admin} талбар болон admin шалгах helper function ашиглан admin policy тогтоосон. Энэ нь зөвхөн frontend дээр admin button нуух биш, database level authorization хийх боломжтой болгож байна.
+
+Админ удирдлагын үндсэн үүрэг:
+\begin{itemize}
+  \item course болон lesson мэдээлэл нэмэх, засах;
+  \item хэрэглэгчийн role болон profile мэдээлэл хянах;
+  \item knowledge base entry удирдах;
+  \item payment, purchase, progress мэдээллийг review хийх;
+  \item chatbot-ийн source болон dataset чанарыг ирээдүйд засварлах.
+\end{itemize}
+
+\section{Хэрэгжилтийн traceability шинжилгээ}
+Гуравдугаар бүлгийн хэрэгжилтийг зөвхөн файл тус бүрийн тайлбар байдлаар бус, хэрэглэгчийн шаардлагаас эхлэн UI, hook, API, database хүртэл хэрхэн дамжиж байгаагаар шинжлэх нь илүү оновчтой. Энэ нь системийн шаардлага бодит кодтой холбогдсон эсэхийг шалгах боломж олгоно. Traceability нь дипломын төсөлд хоёр ач холбогдолтой. Нэгдүгээрт, тайлангийн судалгааны хэсэг бодит implementation-тэй тасрахгүй. Хоёрдугаарт, ирээдүйд аль шаардлага ямар module-д нөлөөлөхийг ойлгоход хялбар болно.
+
+\begin{longtable}{|p{0.18\textwidth}|p{0.26\textwidth}|p{0.26\textwidth}|p{0.20\textwidth}|}
+  \caption{Шаардлагаас хэрэгжилт хүртэлх traceability}
+  \label{tab:implementation-traceability}\\
+  \hline
+  \textbf{Шаардлага} & \textbf{Frontend хэрэгжилт} & \textbf{Backend/database хэрэгжилт} & \textbf{Үр дүн} \\ \hline
+  Course discovery & Course catalog, filter, CourseCard & courses table, static data fallback & Суралцагч курс хайж сонгоно. \\ \hline
+  Lesson access & Course detail, LessonPlayer, lock UI & purchased courses, completed lessons & Free болон paid lesson ялгаатай нээгдэнэ. \\ \hline
+  Progress tracking & Mark complete, dashboard progress & completed lessons, course progress & Суралцагчийн явц хадгалагдана. \\ \hline
+  AI mentor & ChatDrawer, chat page, source display & chat API, RAG dataset, provider abstraction & Хичээлтэй холбоотой асуултад context-тэй хариулна. \\ \hline
+  Admin control & Admin page, CRUD form direction & admin RLS, helper function, management tables & Контент ба хэрэглэгчийн өгөгдлийг удирдах суурь бүрдэнэ. \\ \hline
+  Future audio & AudioUploader, service layer direction & audio files, mixing analysis, melody variations & Audio analysis модульд өргөжих боломжтой. \\ \hline
+\end{longtable}
+
+\section{Route бүрийн хэрэгжилтийн дэлгэрэнгүй}
+Frontend route бүр хэрэглэгчийн тодорхой workflow-тэй холбогдоно. Нүүр хуудас нь бүтээгдэхүүний үнэ цэнийг ойлгуулах, course page нь суралцах сонголт хийх, course detail page нь хичээл үзэх, dashboard нь ахиц харах, checkout page нь paid access авах, chat page нь AI туслахтай харилцах, admin page нь платформын өгөгдлийг удирдах үүрэгтэй.
+
+\begin{longtable}{|p{0.18\textwidth}|p{0.28\textwidth}|p{0.30\textwidth}|p{0.14\textwidth}|}
+  \caption{Route бүрийн implementation responsibility}
+  \label{tab:route-responsibility}\\
+  \hline
+  \textbf{Route} & \textbf{UI responsibility} & \textbf{Data responsibility} & \textbf{Access} \\ \hline
+  Home & Hero, learning path, feature summary, CTA & Static section data & Public \\ \hline
+  Courses & Catalog, search, category, sort, cards & Course list, price, level, duration & Public \\ \hline
+  Course detail & Lesson player, lock state, quiz, chat button & Course slug, lesson list, purchase state & Mixed \\ \hline
+  Dashboard & User profile, purchased courses, progress summary & User session, purchase, progress & Private \\ \hline
+  Checkout & Payment simulation, selected course summary & Course id, user id, purchase insert & Private \\ \hline
+  Chat & Full chat UI, message history direction & Chat API request, sources, model response & Public/private hybrid \\ \hline
+  Admin & Course, lesson, user and data management direction & Admin policy, management tables & Admin only \\ \hline
+\end{longtable}
+
+Route design-ийн үед page бүр бие даан бүх logic-ийг агуулах ёсгүй. Давтагдах хэсгийг component болон hook руу салгаснаар засвар хийхэд хялбар болно. Жишээлбэл course card-ийн visual logic catalog болон landing section-д дахин ашиглагдаж болно. Auth state dashboard, course detail, checkout, admin login зэрэг олон route-д хэрэгтэй тул hook хэлбэрээр төвлөрүүлэх нь зөв.
+
+\section{Component ба hook түвшний хэрэгжилт}
+Component architecture нь хэрэглэгчийн interface-ийг жижиг, давтагдах боломжтой нэгж болгон салгах зарчимтай. Энэ төслийн хувьд CourseCard нь course мэдээллийг товч харуулна, LessonPlayer нь lesson content, video, lock state, completion logic-ийг нэгтгэнэ, ChatDrawer нь хэрэглэгч хичээл үзэж байхдаа тусламж авах боломжийг өгнө. DashboardLayout нь private learning area-ийн нийтлэг structure-г тогтвортой хадгална.
+
+Hook түвшинд useAuth, usePurchases, useReveal зэрэг logic байрлана. useAuth нь хэрэглэгчийн session болон auth state change-г хариуцна. usePurchases нь course access шалгах logic-ийг төвлөрүүлнэ. useReveal нь scroll animation, section reveal зэрэг presentation logic-ийг component-оос тусгаарлана. Энэ хуваарилалт нь React application-д separation of concerns зарчим хэрэгжиж байгааг харуулна.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Component ба hook-ийн хэрэгжилтийн үүрэг}
+  \label{tab:component-hook-role}
+  \begin{tabular}{|p{0.24\textwidth}|p{0.35\textwidth}|p{0.27\textwidth}|}
+    \hline
+    \textbf{Нэгж} & \textbf{Гол үүрэг} & \textbf{Дахин ашиглалтын боломж} \\ \hline
+    CourseCard & Course title, price, level, duration, CTA харуулах & Catalog, landing, dashboard \\ \hline
+    LessonPlayer & Video, brief, lock state, completion action & Course detail page \\ \hline
+    ChatDrawer & Floating chat interaction, message request & Lesson page, landing page \\ \hline
+    useAuth & Session, login state, logout, user metadata & Dashboard, checkout, admin \\ \hline
+    usePurchases & Course access, paid/free logic & Lesson player, checkout, dashboard \\ \hline
+    useReveal & Scroll-based visual state & Landing sections \\ \hline
+  \end{tabular}
+\end{table}
+
+\section{AI chat API-ийн алгоритмын тайлбар}
+AI chat route нь хэрэглэгчийн асуултыг шууд LLM provider руу дамжуулахгүй. Эхлээд dataset уншиж cache хийх, query-г normalization хийх, lexical scoring гүйцэтгэх, relevant context сонгох, prompt бүрдүүлэх, provider сонгох, fallback шалгах, response metadata буцаах гэсэн алхмуудтай. Энэ нь RAG-ийн үндсэн pipeline-ийг practical implementation болгож байна.
+
+\begin{enumerate}
+  \item Хэрэглэгч UI-гаас message илгээнэ.
+  \item API route request body-г шалгаж, хоосон эсвэл буруу форматтай message-г буцаана.
+  \item Ready dataset memory cache-д байгаа эсэхийг шалгана. Байхгүй бол JSONL файл уншиж parse хийнэ.
+  \item Query token болон dataset entry-ийн title, question, content, category талбаруудыг харьцуулж scoring хийнэ.
+  \item Өндөр оноотой хэдэн context сонгож, prompt-д оруулна.
+  \item Environment configuration-д тулгуурлан Ollama, Gemini эсвэл OpenAI-compatible provider сонгоно.
+  \item Provider хариу амжилтгүй эсвэл чанар муу бол fallback answer үүсгэнэ.
+  \item Хариулт, sources, provider metadata-г frontend руу буцаана.
+\end{enumerate}
+
+\begin{longtable}{|p{0.20\textwidth}|p{0.34\textwidth}|p{0.32\textwidth}|}
+  \caption{AI chat API-ийн хэрэгжилтийн алхам}
+  \label{tab:chat-api-steps}\\
+  \hline
+  \textbf{Алхам} & \textbf{Implementation detail} & \textbf{Чанарын зорилго} \\ \hline
+  Input validation & Message хоосон эсэх, body format шалгах & API misuse бууруулах \\ \hline
+  Dataset cache & JSONL-г memory-д хадгалж дахин уншихгүй байх & Latency бууруулах \\ \hline
+  Lexical scoring & Token overlap, category match, substring & MVP retrieval ойлгомжтой байх \\ \hline
+  Prompt assembly & Context, source, style rule нэгтгэх & Хариултыг сургалтын хүрээнд барих \\ \hline
+  Provider call & Environment-д тулгуурласан provider сонголт & Deployment flexibility \\ \hline
+  Fallback & Low quality эсвэл provider failure үед rule answer & Demo stability \\ \hline
+  Source metadata & Context entry-ийн title, source type буцаах & Transparency нэмэх \\ \hline
+\end{longtable}
+
+\section{Dataset pipeline-ийн хэрэгжилтийн дэлгэрэнгүй}
+RAG dataset builder нь дипломын төслийн тусдаа судалгааны artifact гэж үзэж болно. Учир нь AI туслахын чанар зөвхөн chat route-ийн кодоос бус, ямар мэдлэгийн сангаар тэжээгдэж байгаагаас хамаарна. Pipeline нь source topic extraction, generated Mongolian explanation, validation, ready export, Supabase seed гэсэн шаттай.
+
+Энд онцлох зүйл нь copyright-safe хандлага юм. Dataset нь эх сурвалжийн урт текстийг шууд хуулбарлах бус, topic metadata болон богино чиглүүлэгч мэдээлэлд тулгуурлан өөрийн үгээр боловсруулсан сургалтын тайлбар бэлтгэнэ. Гэхдээ generated/internal tip-ийг official citation мэт харуулах ёсгүй. Иймээс source type, citation-safe, source-grounded зэрэг metadata-г ялгах шаардлагатай.
+
+\begin{longtable}{|p{0.22\textwidth}|p{0.34\textwidth}|p{0.30\textwidth}|}
+  \caption{Dataset pipeline-ийн artifact-ууд}
+  \label{tab:dataset-pipeline-artifacts}\\
+  \hline
+  \textbf{Artifact} & \textbf{Үүрэг} & \textbf{Чанарын шалгуур} \\ \hline
+  Sources list & Судлах эх сурвалжийн URL болон topic direction & Давхардал бага, domain холбоотой байх \\ \hline
+  Raw topics & Heading, snippet, page title metadata & Хэт урт copied text агуулахгүй байх \\ \hline
+  Generated dataset & Монгол тайлбар, keyword, category, level & Уншигдахуйц, beginner-friendly байх \\ \hline
+  Ready JSONL & Chat API-д унших normalized entry & Stable schema, id, content талбартай байх \\ \hline
+  Ready CSV & Хүний review хийх spreadsheet хэлбэр & Review хийхэд ойлгомжтой багануудтай байх \\ \hline
+  Supabase seed & knowledge base-д import хийх shape & Database schema-тай нийцэх \\ \hline
+\end{longtable}
+
+\section{Өгөгдлийн сангийн implementation pattern}
+Supabase schema нь MVP болон future audio module-ийг хамтад нь дэмжихээр зохион байгуулагдсан. Одоогийн course, lesson, purchase, progress, knowledge base хүснэгтүүд нь сургалтын платформын үндсэн өгөгдлийг хадгална. Audio files, mixing analysis, melody variations зэрэг хүснэгтүүд нь дараагийн шатны AI audio processing-д бэлтгэсэн өргөтгөлийн суурь юм.
+
+Database implementation-ийн үед foreign key, unique constraint, RLS policy, admin helper function зэрэг элементүүдийг хамтад нь хэрэглэх шаардлагатай. Foreign key нь entity хоорондын integrity-г хангана. Unique constraint нь давхар purchase эсвэл completion бичлэг үүсэхээс хамгаална. RLS нь хэрэглэгч өөрийн өгөгдөлдөө л хандах боломжтой болгоно. Admin helper function нь policy давхардлыг багасгана.
+
+\begin{longtable}{|p{0.20\textwidth}|p{0.30\textwidth}|p{0.36\textwidth}|}
+  \caption{Database implementation pattern}
+  \label{tab:database-pattern}\\
+  \hline
+  \textbf{Pattern} & \textbf{Төслийн жишээ} & \textbf{Ач холбогдол} \\ \hline
+  Foreign key & user id, course id, lesson id relation & Өгөгдлийн холбоо алдагдахаас хамгаална. \\ \hline
+  Unique constraint & User-course purchase, user-lesson completion & Давхар бичлэг үүсэхээс сэргийлнэ. \\ \hline
+  Public read table & Courses, lessons, knowledge base select & Зочин хэрэглэгч preview харах боломжтой. \\ \hline
+  Owner protected table & Progress, chat messages, payments & Хувийн өгөгдөл хамгаалагдана. \\ \hline
+  Admin policy & Course, lesson, knowledge base manage & Контент удирдлагыг зөвшөөрөлтэй болгоно. \\ \hline
+\end{longtable}
+
+\section{Туршилт ба шалгалтын хэрэгжилт}
+Дипломын MVP түвшний системд automated test бүрэн бичигдээгүй байсан ч implementation чанарыг шалгах тодорхой арга хэрэгтэй. Frontend route бүр гараар нэвтэрч үзэх, auth state өөрчлөх, paid lesson lock шалгах, chat API-д sample question илгээх, dataset validation script ажиллуулах, LaTeX build хийх зэрэг нь practical verification болно.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Implementation verification checklist}
+  \label{tab:implementation-verification}
+  \begin{tabular}{|p{0.26\textwidth}|p{0.36\textwidth}|p{0.24\textwidth}|}
+    \hline
+    \textbf{Шалгах хэсэг} & \textbf{Шалгах арга} & \textbf{Хүлээгдэх үр дүн} \\ \hline
+    Course catalog & Search, filter, course card click & Course detail нээгдэнэ. \\ \hline
+    Lesson access & Free болон paid lesson турших & Lock state зөв харагдана. \\ \hline
+    Auth flow & Login, register, logout scenario & Session state шинэчлэгдэнэ. \\ \hline
+    Progress & Lesson complete action турших & Progress state хадгалагдана. \\ \hline
+    Chatbot & FL Studio, mixing, theory асуулт илгээх & Context-тэй хариулт ирнэ. \\ \hline
+    Dataset & Validation script ажиллуулах & Schema болон duplicate шалгагдана. \\ \hline
+    Thesis PDF & LaTeX build хийх & PDF, citation, figure/table reference гарна. \\ \hline
+  \end{tabular}
+\end{table}
+
+\section{Хэрэгжилтийн эрсдэл ба сайжруулалтын чиглэл}
+Одоогийн хэрэгжилт нь дипломын MVP түвшинд сургалтын платформын үндсэн логикийг харуулж байгаа боловч дараах сайжруулалт шаардлагатай.
+
+\begin{longtable}{|p{0.22\textwidth}|p{0.34\textwidth}|p{0.32\textwidth}|}
+  \caption{Хэрэгжилтийн эрсдэл ба сайжруулалтын төлөвлөгөө}
+  \label{tab:implementation-risks}\\
+  \hline
+  \textbf{Эрсдэл} & \textbf{Одоогийн төлөв} & \textbf{Сайжруулах чиглэл} \\ \hline
+  Static ба database course data давхардах & Static \texttt{data.ts} болон Supabase course query зэрэгцэж байна & Course data-г бүрэн Supabase migration хийх \\ \hline
+  Lexical retrieval-ийн хязгаар & Token overlap-д тулгуурласан тул semantic match сул & Embedding, pgvector, HNSW search нэмэх \\ \hline
+  Citation-safe бичлэг цөөн & Ready dataset-д source-grounded бичлэг бага & Official/manual source-той curated entry нэмэх \\ \hline
+  Lesson progress helper зөрүү & Зарим helper \texttt{lesson\_progress} гэж нэрлэсэн, schema-д \texttt{completed\_lessons} байгаа & Database helper-ийг schema-тай бүрэн нийцүүлэх \\ \hline
+  Payment integration mock түвшинд & Payment flow simulation байна & Бодит payment provider, webhook, receipt validation нэмэх \\ \hline
+  Admin UX эхний шатанд & Admin dashboard basic удирдлагатай & CRUD form, validation, audit log нэмэх \\ \hline
+\end{longtable}
+
+\section{Бүлгийн дүгнэлт}
+Гуравдугаар бүлгээр платформын бодит дизайн ба хэрэгжилтийг тайлбарлав. Frontend талд Next.js App Router, React component, course catalog, lesson player, self-check quiz, chat drawer зэрэг хэрэглэгчийн үндсэн урсгалууд хэрэгжсэн. Backend ба өгөгдлийн талд Supabase schema, authentication, RLS policy, purchase/progress table, knowledge base, chat message зэрэг бүтэц тодорхойлогдсон. AI туслах нь \texttt{/api/chat} route, local JSONL retrieval, prompt assembly, provider abstraction, fallback logic дээр тулгуурласан.
+
+Энэхүү хэрэгжилт нь сургалтын платформын MVP-г бүрдүүлж байгаа боловч production түвшинд хүргэхийн тулд course data migration, embedding retrieval, citation-safe dataset нэмэгдүүлэлт, бодит payment integration, admin CRUD сайжруулалт хийх шаардлагатай. Дараагийн бүлэгт энэхүү хэрэгжилтийн архитектур, системийн бүтэц, давхарга хоорондын уялдааг илүү өргөн хүрээнд авч үзнэ.
