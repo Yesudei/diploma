@@ -1,0 +1,222 @@
+[
+  {
+    "id": "music-001-daw",
+    "title": "DAW гэж юу вэ",
+    "category": "basics",
+    "level": "beginner",
+    "content": "DAW буюу Digital Audio Workstation нь дуу бичих, beat хийх, audio засах, mix хийх програм юм. FL Studio, Ableton Live, Logic Pro зэрэг нь DAW-д орно. Beginner хүн DAW-г студийн ширээ гэж ойлгож болно: channel rack дээр дууны эх үүсвэр нэмнэ, playlist дээр хэсгүүдээ байрлуулна, mixer дээр өнгө болон чанга сулыг тохируулна.",
+    "tags": ["daw", "digital audio workstation", "програм", "studio", "дуу хийх"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-002-fl-studio",
+    "title": "FL Studio гэж юу вэ",
+    "category": "fl-studio",
+    "level": "beginner",
+    "content": "FL Studio нь beat хийхэд тохиромжтой DAW. Үндсэн хэсгүүд нь Channel Rack, Piano Roll, Playlist, Mixer юм. Channel Rack дээр kick, snare, hi-hat зэрэг sound тавина. Piano Roll дээр melody, chord бичнэ. Playlist дээр pattern-уудаа дууны бүтэц болгон өрнүүлнэ. Mixer дээр EQ, compression, reverb зэрэг effect ашиглана.",
+    "tags": ["fl studio", "fl", "channel rack", "piano roll", "playlist", "mixer"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-003-bpm",
+    "title": "BPM гэж юу вэ",
+    "category": "music-theory",
+    "level": "beginner",
+    "content": "BPM буюу Beats Per Minute нь дууны хурдыг хэмждэг тоо. 60 BPM бол нэг минутад 60 цохилт гэсэн үг. Trap beat ихэвчлэн 130-160 BPM орчим, boom bap 80-100 BPM орчим байдаг. FL Studio дээр BPM-ийг дээд toolbar дээрх tempo хэсгээс өөрчилнө.",
+    "tags": ["bpm", "tempo", "хурд", "beats per minute", "duu hurd"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-004-beat-structure",
+    "title": "Beat structure",
+    "category": "arrangement",
+    "level": "beginner",
+    "content": "Beat structure гэдэг нь intro, verse, hook, bridge, outro зэрэг хэсгүүдийн дараалал юм. Beginner beat-д 4-8 bar intro, 16 bar verse, 8 bar hook ашиглаж эхэлж болно. Hook хэсэгт илүү олон layer, open hat, crash, counter melody нэмэхэд дуу томорч сонсогдоно.",
+    "tags": ["beat structure", "arrangement", "intro", "verse", "hook", "бүтэц"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-005-drum-pattern",
+    "title": "Drum pattern хийх үндэс",
+    "category": "drums",
+    "level": "beginner",
+    "content": "Drum pattern нь kick, snare, hi-hat зэрэг percussion sound-уудын хэмнэл. Эхлээд snare эсвэл clap-аа 2 болон 4 дэх beat дээр тавь. Дараа нь kick-ээ groove үүсгэхээр нэм. Hi-hat-аа 1/8 эсвэл 1/16 алхмаар тавиад velocity-г бага зэрэг өөрчилбөл илүү амьд сонсогдоно.",
+    "tags": ["drum", "pattern", "kick", "snare", "hi-hat", "hihat", "хэмнэл"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-006-kick",
+    "title": "Kick-ийг punchy болгох",
+    "category": "drums",
+    "level": "beginner",
+    "content": "Kick punchy сонсогдохын тулд зөв sample сонгох нь хамгийн эхний алхам. Mixer дээр kick-ийн 30 Hz доош шаардлагагүй low rumble-ийг EQ-гаар зөөлөн cut хийж болно. 60-120 Hz хэсэг body өгдөг, 2-5 kHz хэсэг attack буюу цохилтын тод байдлыг нэмдэг. Kick-ийг хэт их boost хийхийн оронд бусад sound-тай давхцах хэсгийг багасгах нь цэвэр сонсогдоно.",
+    "tags": ["kick", "kik", "кик", "цохилт", "punchy", "drum"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-007-snare-clap",
+    "title": "Snare болон clap том сонсгох",
+    "category": "drums",
+    "level": "beginner",
+    "content": "Snare эсвэл clap том сонсгохын тулд эхлээд тохирох sample сонго. 150-250 Hz орчим body, 2-5 kHz орчим crack, 8-12 kHz орчим air өгдөг. Богино reverb бага хэмжээгээр нэмбэл өргөн болно. Хэт их reverb хийвэл snare холдож, beat muddy болно.",
+    "tags": ["snare", "clap", "снэйр", "алга ташилт", "дуу томруулах", "presence"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-008-hihat",
+    "title": "Hi-hat rhythm",
+    "category": "drums",
+    "level": "beginner",
+    "content": "Hi-hat нь beat-д хөдөлгөөн өгдөг. Энгийн trap pattern-д 1/16 алхам ашиглаж болно. Зарим нотуудын velocity-г багасгаж, заримыг нь roll болговол илүү groove-тэй сонсогдоно. FL Studio Piano Roll дээр Alt+U ашиглан chop хийх, velocity хэсгийг гараар өөрчлөх нь hi-hat-ийг амьд болгодог.",
+    "tags": ["hi-hat", "hihat", "hat", "roll", "velocity", "хэмнэл"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-009-808-bass",
+    "title": "808 bass ба kick давхцах үед",
+    "category": "bass",
+    "level": "beginner",
+    "content": "808 bass болон kick хоёулаа low frequency эзэлдэг учраас хоорондоо мөргөлдөж болно. 808 дээр 25-30 Hz доош хэсгийг EQ-гаар цэвэрлэ. Kick-ийн punch байгаа frequency-г сонсоод 808 дээр тэр хэсгийг бага зэрэг суллаж болно. Kick орох мөчид 808-г sidechain compression ашиглан түр намсгавал kick тод, bass цэвэр болно.",
+    "tags": ["808", "bass", "kick", "sidechain", "low frequency", "murulduud", "давхцах"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-010-melody",
+    "title": "Melody хийх үндэс",
+    "category": "melody",
+    "level": "beginner",
+    "content": "Melody буюу аялгуу нь сонсогчийн санаанд үлдэх гол шугам. Эхлээд scale сонгоод зөвхөн тэр scale-ийн нотууд дээр ажилла. 2-4 bar богино phrase бичээд давт, дараа нь төгсгөл дээр нь бага өөрчлөлт хий. FL Studio Piano Roll дээр ghost notes асаавал chord-тойгоо зохицсон melody бичихэд амар.",
+    "tags": ["melody", "aylal", "ayalguu", "аялгуу", "piano roll", "phrase"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-011-chord",
+    "title": "Chord гэж юу вэ",
+    "category": "music-theory",
+    "level": "beginner",
+    "content": "Chord буюу аккорд нь хэд хэдэн нот зэрэг дуугарахыг хэлнэ. Major chord ихэвчлэн гэрэлтэй, баяртай мэдрэмж өгдөг бол minor chord илүү гунигтай, dark мэдрэмж өгдөг. Beat хийхдээ эхлээд 3-4 chord-ийн progression бичээд дээр нь melody нэмэх нь амар арга.",
+    "tags": ["chord", "аккорд", "major", "minor", "progression"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-012-scale",
+    "title": "Scale гэж юу вэ",
+    "category": "music-theory",
+    "level": "beginner",
+    "content": "Scale буюу хөг нь хоорондоо зохицдог нотуудын багц. Жишээ нь C major scale нь C, D, E, F, G, A, B нотуудтай. Scale мэдэх нь буруу сонсогдох нот багасгаж, melody болон chord хурдан хийхэд тусалдаг. Beginner хүн major, minor scale-ээс эхлэхэд хангалттай.",
+    "tags": ["scale", "хөг", "ноот", "major", "minor", "music theory"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-013-eq",
+    "title": "EQ гэж юу вэ",
+    "category": "mixing",
+    "level": "beginner",
+    "content": "EQ буюу equalizer нь sound-ийн frequency хэсгийг чангаруулах эсвэл багасгах хэрэгсэл. Low frequency нь bass, mid нь гол өнгө, high нь тод ба агаарлаг мэдрэмж өгдөг. Mixing хийхдээ эхлээд хэрэггүй frequency-г cut хийж цэвэрлэх нь их boost хийхээс илүү найдвартай.",
+    "tags": ["eq", "equalizer", "давтамж", "frequency", "cut", "boost"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-014-compression",
+    "title": "Compression гэж юу вэ",
+    "category": "mixing",
+    "level": "beginner",
+    "content": "Compression нь sound-ийн чанга хэсгийг намсгаж, сул хэсгийг илүү тогтвортой болгодог dynamic tool. Threshold нь compressor хэзээ ажиллахыг, ratio нь хэр хүчтэй дарахыг, attack нь хэр хурдан эхлэхийг, release нь хэр хурдан буцахыг удирдана. Kick, vocal, bass дээр compression ашиглаж болно, гэхдээ хэт их compression хийвэл амьгүй сонсогдоно.",
+    "tags": ["compression", "compressor", "dynamic", "threshold", "ratio", "attack", "release"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-015-reverb",
+    "title": "Reverb ашиглах",
+    "category": "effects",
+    "level": "beginner",
+    "content": "Reverb нь sound-д өрөө, зай, цуурай мэдрэмж өгдөг effect. Melody, clap, vocal дээр бага хэмжээгээр ашиглавал өргөн болно. Kick болон 808 дээр их reverb хийхээс зайлсхий, low end булингартай болно. Reverb-ийн wet хэмжээ бага, decay богино байвал mix илүү цэвэр үлддэг.",
+    "tags": ["reverb", "цуурай", "space", "wet", "decay", "орон зай"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-016-delay",
+    "title": "Delay ашиглах",
+    "category": "effects",
+    "level": "beginner",
+    "content": "Delay нь sound-ийг хугацааны зайтай давтаж сонсгодог effect. Melody эсвэл vocal-ийн төгсгөлд delay тавибал хоосон зайг гоё дүүргэнэ. Tempo sync ашиглавал delay BPM-тэй таарна. Feedback их байвал давталт олон болж mix замбараагүй сонсогдож магадгүй.",
+    "tags": ["delay", "echo", "давталт", "feedback", "tempo sync"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-017-mixing",
+    "title": "Mixing гэж юу вэ",
+    "category": "mixing",
+    "level": "beginner",
+    "content": "Mixing гэдэг нь бүх sound-уудыг хооронд нь тэнцвэртэй, цэвэр сонсогдуулах процесс. Эхлээд volume balance хий: kick, snare, 808, melody хоорондоо зөв чанга султай байх ёстой. Дараа нь panning, EQ, compression, reverb зэрэг хэрэгслийг бага багаар ашигла. Сайн mix нь бүх element сонсогдох боловч нэг нь нөгөөгөө дарахгүй байхыг хэлнэ.",
+    "tags": ["mixing", "mix", "volume balance", "panning", "eq", "compression"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-018-mastering",
+    "title": "Mastering гэж юу вэ",
+    "category": "mastering",
+    "level": "beginner",
+    "content": "Mastering нь mix дууссаны дараа бүхэл дууг нийтэд нь чанга, цэвэр, тогтвортой болгох сүүлийн шат. Master дээр бага EQ, зөөлөн compression, limiter ашиглаж болно. Limiter-ээр дууг чангаруулахдаа хэт шахвал distortion гарч dynamic алдагдана. Mastering муу mix-ийг бүрэн засдаг зүйл биш, сайн mix дээр л сайн ажилладаг.",
+    "tags": ["mastering", "master", "limiter", "loudness", "dynamic range"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-019-arrangement",
+    "title": "Arrangement хийх",
+    "category": "arrangement",
+    "level": "beginner",
+    "content": "Arrangement нь loop-оо бүтэн дуу болгон өрнүүлэх ажил. 8 bar loop сайхан байсан ч бүх дуу турш давтагдвал уйтгартай болно. Intro дээр цөөн element, verse дээр drum ба bass, hook дээр хамгийн хүчтэй layer-уудыг ашиглаж болно. 4 эсвэл 8 bar тутам жижиг өөрчлөлт хийх нь сонсогчийн анхаарлыг барина.",
+    "tags": ["arrangement", "арранж", "intro", "verse", "hook", "loop", "бүтэц"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "music-020-export",
+    "title": "FL Studio дээр export хийх",
+    "category": "fl-studio",
+    "level": "beginner",
+    "content": "FL Studio дээр дуугаа export хийхдээ File > Export цэснээс WAV эсвэл MP3 сонгоно. WAV нь чанар өндөр тул upload, mastering, archive-д тохиромжтой. MP3 нь хэмжээ бага тул demo явуулахад тохиромжтой. Export хийхээс өмнө playlist дээр дууны эхлэл төгсгөл зөв байгаа эсэх, master channel clipping хийхгүй байгаа эсэхийг шалга.",
+    "tags": ["export", "render", "wav", "mp3", "fl studio", "file export"],
+    "source": "music-course-seed",
+    "language": "mn",
+    "createdAt": "2026-05-20"
+  }
+]
