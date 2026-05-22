@@ -1,9 +1,9 @@
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
   % Participants
   \node[draw, rounded corners=4pt, minimum width=2.4cm, minimum height=0.8cm] (editor) at (0,0) {Редактор};
-  \node[draw, rounded corners=4pt, minimum width=2.8cm, minimum height=0.8cm] (adminui) at (4,0) {Admin UI};
-  \node[draw, rounded corners=4pt, minimum width=3.0cm, minimum height=0.8cm] (api) at (8.3,0) {Supabase API};
-  \node[draw, rounded corners=4pt, minimum width=2.8cm, minimum height=0.8cm] (db) at (12.3,0) {PostgreSQL};
+  \node[draw, rounded corners=4pt, minimum width=2.8cm, minimum height=0.8cm] (adminui) at (4,0) {Админ интерфейс};
+  \node[draw, rounded corners=4pt, minimum width=3.0cm, minimum height=0.8cm] (api) at (8.3,0) {Програмчлалын интерфейс};
+  \node[draw, rounded corners=4pt, minimum width=2.8cm, minimum height=0.8cm] (db) at (12.3,0) {Өгөгдлийн сан};
 
   % Lifelines
   \draw[dashed] (0,-0.5) -- (0,-8.0);
@@ -16,20 +16,20 @@
   \node[font=\scriptsize, above] at (2,-1.2) {1. Коллекцын форм бөглөх};
 
   \draw[->] (4,-2.2) -- (8.3,-2.2);
-  \node[font=\scriptsize, above] at (6.15,-2.2) {2. POST /collections};
+  \node[font=\scriptsize, above] at (6.15,-2.2) {2. Коллекц илгээх};
 
   \draw[->] (8.3,-3.2) -- (12.3,-3.2);
-  \node[font=\scriptsize, above] at (10.3,-3.2) {3. Insert коллекц};
+  \node[font=\scriptsize, above] at (10.3,-3.2) {3. Коллекц нэмэх};
 
   \draw[->] (12.3,-4.2) -- (8.3,-4.2);
-  \node[font=\scriptsize, above] at (10.3,-4.2) {4. id, статус OK};
+  \node[font=\scriptsize, above] at (10.3,-4.2) {4. Дугаар, амжилттай төлөв};
 
   \draw[->] (8.3,-5.2) -- (4,-5.2);
   \node[font=\scriptsize, above] at (6.15,-5.2) {5. Амжилттай хадгалсан};
 
   \draw[->] (4,-6.2) -- (0,-6.2);
-  \node[font=\scriptsize, above] at (2,-6.2) {6. Preview ба Publish товч};
+  \node[font=\scriptsize, above] at (2,-6.2) {6. Урьдчилан харах ба нийтлэх товч};
 
   \draw[->] (0,-7.2) -- (4,-7.2);
-  \node[font=\scriptsize, above] at (2,-7.2) {7. Publish};
+  \node[font=\scriptsize, above] at (2,-7.2) {7. Нийтлэх};
 \end{tikzpicture}

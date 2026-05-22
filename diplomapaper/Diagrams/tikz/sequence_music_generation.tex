@@ -1,30 +1,38 @@
-\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
-  \node[draw, rounded corners=4pt, minimum width=2.4cm, minimum height=0.8cm] (u) at (0,0) {Суралцагч};
-  \node[draw, rounded corners=4pt, minimum width=2.6cm, minimum height=0.8cm] (ui) at (4.0,0) {Chat UI};
-  \node[draw, rounded corners=4pt, minimum width=2.8cm, minimum height=0.8cm] (api) at (8.0,0) {/api/chat};
-  \node[draw, rounded corners=4pt, minimum width=2.8cm, minimum height=0.8cm] (rag) at (12.0,0) {RAG dataset};
-  \node[draw, rounded corners=4pt, minimum width=2.8cm, minimum height=0.8cm] (llm) at (16.0,0) {LLM provider};
+\begin{tikzpicture}[
+  x=1cm,
+  y=1cm,
+  >=stealth,
+  font=\sffamily\small,
+  participant/.style={
+    draw=blue!55!black,
+    fill=blue!5,
+    rounded corners=6pt,
+    minimum width=2.85cm,
+    minimum height=0.82cm,
+    align=center,
+    line width=0.75pt
+  },
+  life/.style={draw=gray!45, dashed, line width=0.55pt},
+  msg/.style={->, draw=blue!45!black, line width=0.75pt},
+  returnmsg/.style={->, draw=gray!55!black, line width=0.75pt},
+  msglabel/.style={font=\sffamily\scriptsize, fill=white, inner sep=1.4pt, text=gray!25!black}
+]
+  \node[participant] (u) at (0,0) {Суралцагч};
+  \node[participant] (ui) at (4.0,0) {Чат интерфейс};
+  \node[participant] (api) at (8.0,0) {Чатын API зам};
+  \node[participant] (rag) at (12.0,0) {RAG өгөгдлийн багц};
+  \node[participant] (llm) at (16.0,0) {Хэлний загвар};
 
-  \draw[dashed] (0,-0.5) -- (0,-8.2);
-  \draw[dashed] (4.0,-0.5) -- (4.0,-8.2);
-  \draw[dashed] (8.0,-0.5) -- (8.0,-8.2);
-  \draw[dashed] (12.0,-0.5) -- (12.0,-8.2);
-  \draw[dashed] (16.0,-0.5) -- (16.0,-8.2);
+  \foreach \x in {0,4,8,12,16} {
+    \draw[life] (\x,-0.55) -- (\x,-8.05);
+  }
 
-  \draw[->] (0,-1.2) -- (4.0,-1.2);
-  \node[font=\scriptsize, above] at (2.0,-1.2) {1. Асуулт бичих};
-  \draw[->] (4.0,-2.1) -- (8.0,-2.1);
-  \node[font=\scriptsize, above] at (6.0,-2.1) {2. POST message};
-  \draw[->] (8.0,-3.0) -- (12.0,-3.0);
-  \node[font=\scriptsize, above] at (10.0,-3.0) {3. Context хайх};
-  \draw[->] (12.0,-3.9) -- (8.0,-3.9);
-  \node[font=\scriptsize, above] at (10.0,-3.9) {4. Relevant sources};
-  \draw[->] (8.0,-4.8) -- (16.0,-4.8);
-  \node[font=\scriptsize, above] at (12.0,-4.8) {5. Prompt + context};
-  \draw[->] (16.0,-5.8) -- (8.0,-5.8);
-  \node[font=\scriptsize, above] at (12.0,-5.8) {6. Chatbot answer};
-  \draw[->] (8.0,-6.8) -- (4.0,-6.8);
-  \node[font=\scriptsize, above] at (6.0,-6.8) {7. Answer + sources};
-  \draw[->] (4.0,-7.6) -- (0,-7.6);
-  \node[font=\scriptsize, above] at (2.0,-7.6) {8. Зөвлөгөө харах};
+  \draw[msg] (0,-1.15) -- node[msglabel, above] {1. Асуулт бичих} (4.0,-1.15);
+  \draw[msg] (4.0,-2.05) -- node[msglabel, above] {2. Зурвас илгээх} (8.0,-2.05);
+  \draw[msg] (8.0,-2.95) -- node[msglabel, above] {3. Контекст хайх} (12.0,-2.95);
+  \draw[returnmsg] (12.0,-3.85) -- node[msglabel, above] {4. Холбогдох эх сурвалж} (8.0,-3.85);
+  \draw[msg] (8.0,-4.75) -- node[msglabel, above] {5. Зааварчилгаа + контекст} (16.0,-4.75);
+  \draw[returnmsg] (16.0,-5.70) -- node[msglabel, above] {6. Чатботын хариу} (8.0,-5.70);
+  \draw[returnmsg] (8.0,-6.65) -- node[msglabel, above] {7. Хариу + эх сурвалж} (4.0,-6.65);
+  \draw[returnmsg] (4.0,-7.45) -- node[msglabel, above] {8. Зөвлөгөө харах} (0,-7.45);
 \end{tikzpicture}

@@ -1,8 +1,8 @@
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
   \node[draw, rounded corners=4pt, minimum width=2.4cm, minimum height=0.8cm] (u) at (0,0) {Суралцагч};
-  \node[draw, rounded corners=4pt, minimum width=2.7cm, minimum height=0.8cm] (ui) at (4,0) {Lesson UI};
-  \node[draw, rounded corners=4pt, minimum width=3.0cm, minimum height=0.8cm] (quiz) at (8.5,0) {Quiz/Progress};
-  \node[draw, rounded corners=4pt, minimum width=2.7cm, minimum height=0.8cm] (db) at (12.7,0) {Supabase DB};
+  \node[draw, rounded corners=4pt, minimum width=2.7cm, minimum height=0.8cm] (ui) at (4,0) {Хичээлийн интерфейс};
+  \node[draw, rounded corners=4pt, minimum width=3.0cm, minimum height=0.8cm] (quiz) at (8.5,0) {Сорил/Ахиц};
+  \node[draw, rounded corners=4pt, minimum width=2.7cm, minimum height=0.8cm] (db) at (12.7,0) {Өгөгдлийн сан};
 
   \draw[dashed] (0,-0.5) -- (0,-8.2);
   \draw[dashed] (4,-0.5) -- (4,-8.2);
@@ -10,19 +10,19 @@
   \draw[dashed] (12.7,-0.5) -- (12.7,-8.2);
 
   \draw[->] (0,-1.2) -- (4,-1.2);
-  \node[font=\scriptsize, above] at (2,-1.2) {1. Lesson сонгох};
+  \node[font=\scriptsize, above] at (2,-1.2) {1. Хичээл сонгох};
   \draw[->] (4,-2.2) -- (12.7,-2.2);
-  \node[font=\scriptsize, above] at (8.35,-2.2) {2. Course/Lesson data авах};
+  \node[font=\scriptsize, above] at (8.35,-2.2) {2. Курс/хичээлийн өгөгдөл авах};
   \draw[->] (12.7,-3.2) -- (4,-3.2);
-  \node[font=\scriptsize, above] at (8.35,-3.2) {3. Video + brief буцаах};
+  \node[font=\scriptsize, above] at (8.35,-3.2) {3. Видео + товч тайлбар буцаах};
   \draw[->] (4,-4.2) -- (0,-4.2);
   \node[font=\scriptsize, above] at (2,-4.2) {4. Хичээл үзүүлэх};
   \draw[->] (0,-5.2) -- (8.5,-5.2);
-  \node[font=\scriptsize, above] at (4.25,-5.2) {5. Self-check бөглөх};
+  \node[font=\scriptsize, above] at (4.25,-5.2) {5. Өөрийгөө шалгах сорил бөглөх};
   \draw[->] (8.5,-6.2) -- (12.7,-6.2);
-  \node[font=\scriptsize, above] at (10.6,-6.2) {6. Progress хадгалах};
+  \node[font=\scriptsize, above] at (10.6,-6.2) {6. Ахиц хадгалах};
   \draw[->] (12.7,-7.2) -- (4,-7.2);
-  \node[font=\scriptsize, above] at (8.35,-7.2) {7. Updated status};
+  \node[font=\scriptsize, above] at (8.35,-7.2) {7. Шинэчилсэн төлөв};
   \draw[->] (4,-7.8) -- (0,-7.8);
   \node[font=\scriptsize, above] at (2,-7.8) {8. Явц харуулах};
 \end{tikzpicture}

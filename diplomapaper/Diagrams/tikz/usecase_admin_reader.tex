@@ -1,7 +1,7 @@
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
-  % System boundary
+  % Platform boundary
   \draw[rounded corners=8pt] (0,0) rectangle (13,8);
-  \node[font=\small] at (6.5,7.65) {\textbf{Anoce загварын платформ}};
+  \node[font=\small] at (6.5,7.65) {\textbf{Загварын платформ}};
 
   % Actors
   \node[draw, circle, minimum size=0.9cm] (adminHead) at (-1.8,6.4) {};
@@ -31,7 +31,7 @@
   \node[draw, ellipse, minimum width=4.8cm, minimum height=1cm] (manageCollections) at (10.2,6.3) {Коллекц удирдах};
 
   \node[draw, ellipse, minimum width=4.5cm, minimum height=1cm] (manageDesigners) at (6.0,4.3) {Дизайнер/брэнд удирдах};
-  \node[draw, ellipse, minimum width=4.1cm, minimum height=1cm] (assets) at (10.1,4.3) {Asset upload хийх};
+  \node[draw, ellipse, minimum width=4.1cm, minimum height=1cm] (assets) at (10.1,4.3) {Файл байршуулах};
 
   \node[draw, ellipse, minimum width=4.3cm, minimum height=1cm] (search) at (5.8,2.1) {Хайлт хийх};
   \node[draw, ellipse, minimum width=4.8cm, minimum height=1cm] (archive) at (10.0,2.1) {Архив шүүх/үзэх};
@@ -52,5 +52,5 @@
 
   % Include style relation
   \draw[dashed,->] (10.2,5.8) -- (9.8,4.8);
-  \node[font=\scriptsize, fill=white, inner sep=1pt] at (10.7,5.3) {<<include>>};
+  \node[font=\scriptsize, fill=white, inner sep=1pt] at (10.7,5.3) {хамруулна};
 \end{tikzpicture}

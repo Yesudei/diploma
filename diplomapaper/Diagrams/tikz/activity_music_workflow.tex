@@ -1,28 +1,56 @@
-\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
-  \node[circle,draw,minimum size=0.6cm,fill=black] (start) at (0,0) {};
-  \node[draw,rounded corners=4pt,minimum width=4.0cm,minimum height=0.9cm] (login) at (0,-1.3) {Нэвтрэх / Бүртгүүлэх};
-  \node[draw,rounded corners=4pt,minimum width=4.0cm,minimum height=0.9cm] (catalog) at (0,-2.7) {Course catalog үзэх};
-  \node[draw,rounded corners=4pt,minimum width=4.2cm,minimum height=0.9cm] (course) at (0,-4.1) {Курс сонгох};
-  \node[diamond,draw,aspect=2.2] (access) at (0,-5.7) {Access байна уу?};
-  \node[draw,rounded corners=4pt,minimum width=4.2cm,minimum height=0.9cm] (buy) at (-4.6,-7.2) {Курс худалдан авах};
-  \node[draw,rounded corners=4pt,minimum width=4.2cm,minimum height=0.9cm] (lesson) at (0,-8.4) {Lesson үзэх};
-  \node[draw,rounded corners=4pt,minimum width=4.2cm,minimum height=0.9cm] (quiz) at (0,-9.9) {Self-check quiz};
-  \node[diamond,draw,aspect=2.4] (help) at (0,-11.5) {Тусламж хэрэгтэй юу?};
-  \node[draw,rounded corners=4pt,minimum width=4.4cm,minimum height=0.9cm] (chat) at (4.8,-12.9) {Chatbot-оос асуух};
-  \node[draw,rounded corners=4pt,minimum width=4.2cm,minimum height=0.9cm] (progress) at (0,-14.1) {Progress хадгалах};
-  \node[circle,draw,minimum size=0.6cm,fill=black] (end) at (0,-15.6) {};
+\begin{tikzpicture}[
+  x=1cm,
+  y=1cm,
+  >=stealth,
+  font=\sffamily\small,
+  flow/.style={->, draw=blue!45!black, line width=0.8pt},
+  activity/.style={
+    draw=blue!55!black,
+    fill=blue!4,
+    rounded corners=6pt,
+    minimum width=4.35cm,
+    minimum height=0.86cm,
+    align=center,
+    line width=0.75pt
+  },
+  decision/.style={
+    diamond,
+    draw=orange!60!black,
+    fill=orange!8,
+    aspect=2.45,
+    minimum width=3.85cm,
+    minimum height=1.12cm,
+    align=center,
+    inner xsep=1pt,
+    line width=0.75pt
+  },
+  terminal/.style={circle, draw=blue!55!black, fill=blue!70!black, minimum size=0.50cm, inner sep=0pt},
+  flowlabel/.style={font=\sffamily\scriptsize, fill=white, inner sep=1.2pt, text=gray!35!black}
+]
+  \node[terminal] (start) at (0,0) {};
+  \node[activity] (login) at (0,-1.05) {Нэвтрэх / бүртгүүлэх};
+  \node[activity] (catalog) at (0,-2.25) {Курсийн каталог үзэх};
+  \node[activity] (course) at (0,-3.45) {Курс сонгох};
+  \node[decision] (access) at (0,-4.90) {Үзэх эрхтэй\\юу?};
+  \node[activity] (buy) at (-4.75,-6.10) {Курс худалдан авах};
+  \node[activity] (lesson) at (0,-7.20) {Хичээл үзэх};
+  \node[activity] (quiz) at (0,-8.45) {Өөрийгөө шалгах};
+  \node[decision] (help) at (0,-9.90) {Тусламж\\хэрэгтэй юу?};
+  \node[activity] (chat) at (4.75,-11.10) {AI туслахаас асуух};
+  \node[activity] (progress) at (0,-12.30) {Ахиц хадгалах};
+  \node[terminal] (end) at (0,-13.40) {};
 
-  \draw[->] (start) -- (login);
-  \draw[->] (login) -- (catalog);
-  \draw[->] (catalog) -- (course);
-  \draw[->] (course) -- (access);
-  \draw[->] (access) -- node[above,font=\scriptsize] {Үгүй} (buy);
-  \draw[->] (buy.south) |- (lesson.west);
-  \draw[->] (access) -- node[right,font=\scriptsize] {Тийм} (lesson);
-  \draw[->] (lesson) -- (quiz);
-  \draw[->] (quiz) -- (help);
-  \draw[->] (help) -- node[above,font=\scriptsize] {Тийм} (chat);
-  \draw[->] (chat.south) |- (progress.east);
-  \draw[->] (help) -- node[left,font=\scriptsize] {Үгүй} (progress);
-  \draw[->] (progress) -- (end);
+  \draw[flow] (start) -- (login);
+  \draw[flow] (login) -- (catalog);
+  \draw[flow] (catalog) -- (course);
+  \draw[flow] (course) -- (access);
+  \draw[flow] (access.west) -- node[flowlabel, above] {Үгүй} (buy.east);
+  \draw[flow] (buy.south) |- (lesson.west);
+  \draw[flow] (access.south) -- node[flowlabel, right] {Тийм} (lesson.north);
+  \draw[flow] (lesson) -- (quiz);
+  \draw[flow] (quiz) -- (help);
+  \draw[flow] (help.east) -- node[flowlabel, above] {Тийм} (chat.west);
+  \draw[flow] (chat.south) |- (progress.east);
+  \draw[flow] (help.south) -- node[flowlabel, left] {Үгүй} (progress.north);
+  \draw[flow] (progress) -- (end);
 \end{tikzpicture}

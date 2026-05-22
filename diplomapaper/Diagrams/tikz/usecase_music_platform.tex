@@ -28,7 +28,7 @@
   \draw[boundary] (0,0) rectangle (15,9);
   \fill[blue!10, rounded corners=14pt] (0.02,8.1) rectangle (14.98,8.98);
   \node[font=\sffamily\bfseries, text=blue!35!black] at (7.5,8.55)
-    {FL Studio сургалтын AI веб платформ};
+    {FL Studio сургалтын AI дэмжлэгтэй веб платформ};
 
   \draw[band, fill=cyan!4] (0.45,6.72) rectangle (14.55,7.95);
   \node[font=\sffamily\scriptsize\bfseries, text=cyan!45!black, anchor=west]
@@ -44,17 +44,17 @@
 
   \node[publiccase] (auth) at (3.25,7.28) {Бүртгүүлэх\\Нэвтрэх};
   \node[publiccase] (browse) at (7.55,7.28) {Курс хайх\\шүүх};
-  \node[publiccase] (preview) at (11.85,7.28) {Free preview\\үзэх};
+  \node[publiccase] (preview) at (11.85,7.28) {Үнэгүй танилцах\\хичээл үзэх};
 
   \node[learncase] (purchase) at (3.25,5.45) {Курс худалдан\\авах};
   \node[learncase] (lesson) at (7.55,5.45) {Хичээл\\үзэх};
-  \node[learncase] (quiz) at (11.85,5.45) {Self-check quiz\\өгөх};
+  \node[learncase] (quiz) at (11.85,5.45) {Өөрийгөө шалгах\\сорил өгөх};
   \node[learncase] (progress) at (11.85,4.35) {Явц\\хадгалах};
 
-  \node[aicase] (chat) at (3.25,2.35) {AI mentor-оос\\асуух};
+  \node[aicase] (chat) at (3.25,2.35) {AI туслахаас\\асуух};
   \node[aicase] (source) at (7.55,2.35) {Эх сурвалжтай\\хариу авах};
-  \node[admincase] (adminContent) at (11.85,2.72) {Course/Lesson\\удирдах};
-  \node[admincase] (adminKnowledge) at (11.85,1.52) {Knowledge base\\удирдах};
+  \node[admincase] (adminContent) at (11.85,2.72) {Курс ба хичээл\\удирдах};
+  \node[admincase] (adminKnowledge) at (11.85,1.52) {Мэдлэгийн сан\\удирдах};
 
   % Guest actor
   \node[draw=cyan!45!black, circle, fill=cyan!8, minimum size=0.68cm] at (-1.75,7.35) {};
@@ -110,5 +110,5 @@
   \node[notelabel] at (12.65,4.90) {<<include>>};
 
   \draw[include] (chat) -- (source);
-  \node[notelabel] at (5.40,2.65) {<<support>>};
+  \node[notelabel] at (5.40,2.65) {<<include>>};
 \end{tikzpicture}
