@@ -27,6 +27,29 @@ const levelLabel: Record<string, string> = {
 const getYouTubeThumbnail = (videoId?: string) =>
   videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
 
+const categoryThumbnailVideoIds: Record<string, string[]> = {
+  'music-production': ['rgaTLrZGlk0', 'pDIsEZsalAo', 'od5lD20Mnvw', 'aBzQ5KV4glE'],
+  'mixing-mastering': ['f1wVqmhLxUc', 'Zl-uG5oIUdg', '0rEnGUUJ5oA', 'TkTZLblecPM'],
+  'sound-design': ['bSrR-6BCGy4', 'f1wVqmhLxUc', '0rEnGUUJ5oA'],
+  'melody-voice': ['pDIsEZsalAo', 'od5lD20Mnvw', 'TkTZLblecPM', 'aBzQ5KV4glE'],
+  'audio-engineering': ['TkTZLblecPM', '0rEnGUUJ5oA', 'Zl-uG5oIUdg'],
+};
+
+const hashString = (value: string) =>
+  Array.from(value).reduce((hash, char) => hash + char.charCodeAt(0), 0);
+
+const pickCourseVideoId = (course: Course) => {
+  const lessonVideoIds = Array.from(
+    new Set(course.curriculum?.map((lesson) => lesson.youtubeId).filter(Boolean))
+  ) as string[];
+  const fallbackVideoIds = categoryThumbnailVideoIds[course.category] || [];
+  const pool = lessonVideoIds.length > 1 ? lessonVideoIds : fallbackVideoIds;
+
+  if (pool.length === 0) return lessonVideoIds[0];
+
+  return pool[hashString(course.slug) % pool.length];
+};
+
 export default function CourseCard({ course }: { course: Course }) {
   const teacher = teachers.find((t) => t.id === course.teacherId);
   const totalLessons = course.curriculum?.length || course.lessonsCount;
@@ -34,8 +57,8 @@ export default function CourseCard({ course }: { course: Course }) {
     course.curriculum?.reduce((sum, lesson) => sum + lesson.durationMinutes, 0) || 0;
   const freeLessons = course.curriculum?.filter((lesson) => lesson.free).length || 0;
   const freeRatio = totalLessons > 0 ? (freeLessons / totalLessons) * 100 : 0;
-  const firstVideoLesson = course.curriculum?.find((lesson) => lesson.youtubeId);
-  const thumbnailUrl = getYouTubeThumbnail(firstVideoLesson?.youtubeId) || course.thumbnail;
+  const thumbnailVideoId = pickCourseVideoId(course);
+  const thumbnailUrl = getYouTubeThumbnail(thumbnailVideoId) || course.thumbnail;
   const hasThumbnail = Boolean(thumbnailUrl);
 
   return (
@@ -83,7 +106,7 @@ export default function CourseCard({ course }: { course: Course }) {
           <span className="font-display text-5xl font-black uppercase leading-none tracking-[0.02em] text-[rgba(245,240,232,0.20)]">
             {categoryLabel[course.category]?.slice(0, 4) || course.category.slice(0, 4)}
           </span>
-          {firstVideoLesson && (
+          {thumbnailVideoId && (
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[rgba(245,240,232,0.22)] bg-[rgba(8,9,12,0.72)] text-[#E8C96D] shadow-[0_12px_28px_rgba(0,0,0,0.35)] backdrop-blur-md transition group-hover:scale-105">
               ▶
             </span>
