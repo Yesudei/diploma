@@ -80,6 +80,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   const [dbCourse, setDbCourse] = useState<Course | null>(null);
   const [dbTeacher, setDbTeacher] = useState<Teacher | null>(null);
   const [dbCourseLoading, setDbCourseLoading] = useState(false);
+  const [dbCourseResolved, setDbCourseResolved] = useState(false);
   const [showLockedModal, setShowLockedModal] = useState(false);
   const staticCourse = courses.find((c) => c.slug === slug);
   const course = staticCourse || dbCourse;
@@ -120,11 +121,13 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
       setDbCourse(null);
       setDbTeacher(null);
       setDbCourseLoading(false);
+      setDbCourseResolved(Boolean(staticCourse) || !slug);
       return;
     }
 
     let mounted = true;
     setDbCourseLoading(true);
+    setDbCourseResolved(false);
 
     fetchDbCourseBundleBySlug(slug)
       .then((bundle) => {
@@ -141,6 +144,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
       .finally(() => {
         if (mounted) {
           setDbCourseLoading(false);
+          setDbCourseResolved(true);
         }
       });
 
@@ -217,7 +221,9 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
     }
   }, [canWatch, course, currentLesson]);
 
-  if (loading || !slug || dbCourseLoading) {
+  const waitingForDbCourse = !staticCourse && slug && (!dbCourseResolved || dbCourseLoading);
+
+  if (loading || !slug || waitingForDbCourse) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0A0A0F]">
         <div className="text-[#7A7570]">Ачаалж байна...</div>

@@ -8,8 +8,10 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { getIsAdmin } from '@/lib/admin';
 import { courses } from '@/lib/data';
+import { fetchDbCourses } from '@/lib/db-courses';
 import { getSupabaseSetupMessage, isMissingTableError } from '@/lib/supabase-errors';
 import { normalizeYouTubeVideoId } from '@/lib/youtube';
+import type { Course } from '@/lib/types';
 
 const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
 
@@ -162,6 +164,7 @@ export default function AdminPage() {
   const [counts, setCounts] = useState<AdminCounts>(emptyCounts);
   const [dbCourseCount, setDbCourseCount] = useState(0);
   const [dbLessonCount, setDbLessonCount] = useState(0);
+  const [dbCourses, setDbCourses] = useState<Course[]>([]);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [knowledgeBase, setKnowledgeBase] = useState<KnowledgeBaseRow[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessageRow[]>([]);
@@ -310,6 +313,8 @@ export default function AdminPage() {
       setChatMessages((chatsResult.data || []) as ChatMessageRow[]);
       setAudioFiles((audioResult.data || []) as AudioFileRow[]);
       setPayments((paymentsResult.data || []) as PaymentRow[]);
+      const loadedDbCourses = await fetchDbCourses();
+      setDbCourses(loadedDbCourses);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Could not load admin data.';
       toast.error(message);
@@ -770,7 +775,7 @@ export default function AdminPage() {
 
           {activeTab === 'courses' && (
             <section className="mt-7 grid gap-5 lg:grid-cols-2">
-              {courses.map((course) => {
+              {[...courses, ...dbCourses].map((course) => {
                 const videoCount = course.curriculum.filter((lesson) => lesson.youtubeId).length;
                 return (
                   <article
