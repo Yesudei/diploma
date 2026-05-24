@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState, useEffect } from 'react';
+import { Suspense, useMemo, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { courses } from '@/lib/data';
@@ -16,7 +16,7 @@ const categoryLabel: Record<string, string> = {
   'sound-design': 'Sound Design',
   'melody-voice': 'Melody & Voice',
   'audio-engineering': 'Audio Engineering',
-  beats: 'Битийн',
+  beats: 'Beat хийх',
   basics: 'Үндэс',
 };
 
@@ -29,13 +29,27 @@ const levelLabel: Record<string, string> = {
 
 const sortLabel: Record<string, string> = {
   featured: 'Онцлох',
-  lessons_desc: 'Хамгийн олон lesson',
+  lessons_desc: 'Хамгийн олон хичээл',
   duration_desc: 'Урт хугацаатай',
-  price_asc: 'Үнэ: Бага -> Их',
-  price_desc: 'Үнэ: Их -> Бага',
+  price_asc: 'Үнэ: бага → их',
+  price_desc: 'Үнэ: их → бага',
 };
 
 export default function CoursesPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[#0A0A0F] px-4 py-28 text-center text-[#b8ad93]">
+          Курсуудыг ачаалж байна...
+        </main>
+      }
+    >
+      <CoursesPageContent />
+    </Suspense>
+  );
+}
+
+function CoursesPageContent() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') || 'all';
   const [query, setQuery] = useState('');
@@ -76,14 +90,14 @@ export default function CoursesPage() {
       });
   }, []);
 
-  const allCourses = [...courses, ...dbCourses];
+  const allCourses = useMemo(() => [...courses, ...dbCourses], [dbCourses]);
   const totalLessonsAll = useMemo(
     () =>
       allCourses.reduce(
         (sum, course) => sum + (course.curriculum?.length || course.lessonsCount),
         0
       ),
-    [dbCourses]
+    [allCourses]
   );
 
   const totalMinutesAll = useMemo(
@@ -94,15 +108,13 @@ export default function CoursesPage() {
           (course.curriculum?.reduce((lessonSum, l) => lessonSum + l.durationMinutes, 0) || 0),
         0
       ),
-    [dbCourses]
+    [allCourses]
   );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    const all = [...courses, ...dbCourses];
-
-    const list = all.filter((course) => {
+    const list = allCourses.filter((course) => {
       const byQuery =
         q.length === 0 ||
         course.title.toLowerCase().includes(q) ||
@@ -130,7 +142,7 @@ export default function CoursesPage() {
     });
 
     return sorted;
-  }, [category, level, priceType, query, sortBy, dbCourses]);
+  }, [allCourses, category, level, priceType, query, sortBy]);
 
   const free = filtered.filter((c) => c.price === 0);
   const paid = filtered.filter((c) => c.price > 0);
@@ -143,32 +155,31 @@ export default function CoursesPage() {
       <Nav />
       <main className="min-h-screen bg-[#0A0A0F] pb-20 pt-28 sm:pt-32">
         <div className="mx-auto w-full max-w-[1320px] px-4 sm:px-8 lg:px-14">
-          <section className="relative overflow-hidden rounded-[28px] border border-[rgba(217,195,138,0.22)] bg-[linear-gradient(160deg,rgba(217,195,138,0.12),rgba(17,17,24,0.94)_45%)] px-6 py-8 sm:px-8 sm:py-10">
-            <div className="pointer-events-none absolute right-[-60px] top-[-70px] h-48 w-48 rounded-full bg-[rgba(217,195,138,0.16)] blur-3xl" />
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#a49368]">
+          <section className="studio-panel rounded-[32px] px-6 py-8 sm:px-8 sm:py-10">
+            <p className="studio-kicker">
               Melodex course catalog
             </p>
             <h1 className="mt-4 font-display text-[clamp(34px,5vw,64px)] font-black leading-[1.02] text-[#F5F0E8]">
               Хичээлүүд
             </h1>
             <p className="mt-4 max-w-[580px] text-sm leading-7 text-[#b8ad93] sm:text-base">
-              Одоогийн library нь rhythm, melody, harmony, arrangement, bass, mix clarity зэрэг
-              суурь ур чадвар дээр төвлөрсөн internal lesson brief-үүдээс бүрдэнэ. Ангилал, түвшин,
-              lesson-ийн тоогоор нь шүүж өөрт тохирох замналаа сонгоорой.
+              Одоогийн сургалтын сан rhythm, melody, harmony, arrangement, bass, mix clarity зэрэг
+              суурь ур чадварт төвлөрсөн хичээлүүдээс бүрдэнэ. Ангилал, түвшин,
+              хичээлийн тоогоор шүүж өөрт тохирох замналаа сонгоорой.
             </p>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-3 sm:gap-4">
-              <div className="rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[rgba(245,240,232,0.03)] p-4">
+              <div className="rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[rgba(245,240,232,0.04)] p-4">
                 <p className="font-display text-3xl font-black text-[#F5F0E8]">
                   {allCourses.length}
                 </p>
                 <p className="mt-1 text-xs text-[#a49368]">Нийт курс</p>
               </div>
-              <div className="rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[rgba(245,240,232,0.03)] p-4">
+              <div className="rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[rgba(245,240,232,0.04)] p-4">
                 <p className="font-display text-3xl font-black text-[#F5F0E8]">{totalLessonsAll}</p>
-                <p className="mt-1 text-xs text-[#a49368]">Нийт lesson</p>
+                <p className="mt-1 text-xs text-[#a49368]">Нийт хичээл</p>
               </div>
-              <div className="rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[rgba(245,240,232,0.03)] p-4">
+              <div className="rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[rgba(245,240,232,0.04)] p-4">
                 <p className="font-display text-3xl font-black text-[#F5F0E8]">
                   {(totalMinutesAll / 60).toFixed(1)}ц
                 </p>
@@ -177,7 +188,7 @@ export default function CoursesPage() {
             </div>
           </section>
 
-          <section className="mt-8 rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-3 sm:mt-10 sm:p-4">
+          <section className="studio-panel mt-8 rounded-[24px] p-3 sm:mt-10 sm:p-4">
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="relative w-full sm:max-w-[360px]">
@@ -186,7 +197,7 @@ export default function CoursesPage() {
                     placeholder="Хичээл хайх..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    className="w-full rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0A0A0F] py-3 pl-11 pr-4 text-sm text-[#F5F0E8] outline-none transition focus:border-[rgba(201,168,76,0.35)]"
+                    className="studio-input w-full rounded-xl py-3 pl-11 pr-4 text-sm"
                   />
                   <svg
                     className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7A7570]"
@@ -204,7 +215,7 @@ export default function CoursesPage() {
                 </div>
                 <p className="text-xs text-[#8e8778] sm:text-sm">
                   {filtered.length} курс олдлоо{' '}
-                  {activeFilterCount > 0 ? `(${activeFilterCount} filter)` : ''}
+                  {activeFilterCount > 0 ? `(${activeFilterCount} шүүлтүүр)` : ''}
                 </p>
               </div>
 
@@ -212,7 +223,7 @@ export default function CoursesPage() {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0A0A0F] px-3 py-2.5 text-sm text-[#F5F0E8] outline-none focus:border-[rgba(201,168,76,0.35)]"
+                  className="studio-select rounded-xl px-3 py-2.5 text-sm"
                 >
                   {Object.entries(categoryLabel).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -224,7 +235,7 @@ export default function CoursesPage() {
                 <select
                   value={level}
                   onChange={(e) => setLevel(e.target.value)}
-                  className="rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0A0A0F] px-3 py-2.5 text-sm text-[#F5F0E8] outline-none focus:border-[rgba(201,168,76,0.35)]"
+                  className="studio-select rounded-xl px-3 py-2.5 text-sm"
                 >
                   {Object.entries(levelLabel).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -236,9 +247,9 @@ export default function CoursesPage() {
                 <select
                   value={priceType}
                   onChange={(e) => setPriceType(e.target.value as 'all' | 'free' | 'paid')}
-                  className="rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0A0A0F] px-3 py-2.5 text-sm text-[#F5F0E8] outline-none focus:border-[rgba(201,168,76,0.35)]"
+                  className="studio-select rounded-xl px-3 py-2.5 text-sm"
                 >
-                  <option value="all">Бүх үнэ</option>
+                  <option value="all">Үнийн бүх төрөл</option>
                   <option value="free">Зөвхөн үнэгүй</option>
                   <option value="paid">Зөвхөн төлбөртэй</option>
                 </select>
@@ -246,7 +257,7 @@ export default function CoursesPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0A0A0F] px-3 py-2.5 text-sm text-[#F5F0E8] outline-none focus:border-[rgba(201,168,76,0.35)]"
+                  className="studio-select rounded-xl px-3 py-2.5 text-sm"
                 >
                   {Object.entries(sortLabel).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -259,12 +270,12 @@ export default function CoursesPage() {
           </section>
 
           {filtered.length === 0 ? (
-            <section className="mt-8 rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-8 text-center sm:mt-10">
+            <section className="studio-panel mt-8 rounded-[24px] p-8 text-center sm:mt-10">
               <p className="font-display text-2xl font-bold text-[#F5F0E8]">
                 Хайлтад тохирох курс алга
               </p>
               <p className="mt-3 text-sm text-[#7A7570]">
-                Хайлтын үг эсвэл filter-ээ өөрчлөөд дахин оролдоно уу.
+                Хайлтын үг эсвэл шүүлтүүрээ өөрчлөөд дахин оролдоно уу.
               </p>
             </section>
           ) : priceType === 'all' ? (

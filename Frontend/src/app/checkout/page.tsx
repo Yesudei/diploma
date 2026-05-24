@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -36,6 +36,20 @@ const maskExpiryInput = (value: string): string => {
 };
 
 export default function CheckoutPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[#0A0A0F] px-4 py-28 text-center text-[#b8ad93]">
+          Төлбөрийн хуудсыг ачаалж байна...
+        </main>
+      }
+    >
+      <CheckoutPageContent />
+    </Suspense>
+  );
+}
+
+function CheckoutPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
@@ -104,7 +118,7 @@ export default function CheckoutPage() {
             <section className="rounded-2xl border border-[rgba(245,240,232,0.12)] bg-[#111118] p-8 text-center">
               <h1 className="font-display text-3xl font-bold text-[#F5F0E8]">Төлбөрийн мэдээлэл олдсонгүй</h1>
               <p className="mt-3 text-sm text-[#8e8778]">
-                Курс сонгож байгаад дахин оролдоно уу.
+                Курс сонгоод дахин оролдоно уу.
               </p>
               <Link
                 href="/courses"
@@ -119,7 +133,7 @@ export default function CheckoutPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a69262]">Secure checkout</p>
                 <h1 className="mt-3 font-display text-3xl font-bold text-[#F5F0E8]">Төлбөр хийх</h1>
                 <p className="mt-2 text-sm text-[#9f9279]">
-                  Demo checkout: backend/API холболтгүй, сургалтын тестэд зориулав.
+                  Энэ бол backend/API холболтгүй сургалтын туршилтын төлбөрийн хэсэг.
                 </p>
 
                 <div className="mt-6 space-y-3">
@@ -240,10 +254,10 @@ export default function CheckoutPage() {
                 {paymentMethod === 'qpay' && (
                   <div className="mt-6 rounded-xl border border-[rgba(245,240,232,0.12)] bg-[#0f1118] p-4">
                     <div className="mx-auto grid h-44 w-44 place-items-center rounded-lg border border-[rgba(201,168,76,0.28)] bg-[radial-gradient(circle_at_40%_30%,rgba(201,168,76,0.2),rgba(12,12,11,0.95)_60%)] text-xs text-[#c7bb9e]">
-                      QR Demo
+                      QR туршилт
                     </div>
                     <p className="mt-3 text-center text-xs text-[#8e8778]">
-                      Энэ бол demo QR. Төлбөрийн API холболтгүй.
+                      Энэ бол туршилтын QR. Төлбөрийн API холболтгүй.
                     </p>
                   </div>
                 )}
@@ -253,7 +267,7 @@ export default function CheckoutPage() {
                     <p>Хүлээн авагч: Melodex Training LLC</p>
                     <p className="mt-1">Банк: ХААН Банк</p>
                     <p className="mt-1">Данс: 5000 1234 5678 9012</p>
-                    <p className="mt-2 text-xs text-[#8e8778]">Demo мэдээлэл, бодит шилжүүлэг хийхгүй.</p>
+                    <p className="mt-2 text-xs text-[#8e8778]">Туршилтын мэдээлэл тул бодит шилжүүлэг хийхгүй.</p>
                   </div>
                 )}
 
@@ -274,15 +288,15 @@ export default function CheckoutPage() {
 
                 <div className="mt-5 space-y-2 rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0f1118] p-4 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-[#8e8778]">Нийт lesson</span>
+                    <span className="text-[#8e8778]">Нийт хичээл</span>
                     <span className="font-semibold text-[#F5F0E8]">{course.curriculum.length}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[#8e8778]">Үнэгүй preview</span>
+                    <span className="text-[#8e8778]">Үнэгүй урьдчилсан үзэлт</span>
                     <span className="font-semibold text-[#F5F0E8]">{freeLessons}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[#8e8778]">Төлбөртэй lesson</span>
+                    <span className="text-[#8e8778]">Төлбөртэй хичээл</span>
                     <span className="font-semibold text-[#F5F0E8]">{paidLessons}</span>
                   </div>
                   <div className="mt-3 border-t border-[rgba(245,240,232,0.08)] pt-3">
@@ -307,4 +321,3 @@ export default function CheckoutPage() {
     </>
   );
 }
-

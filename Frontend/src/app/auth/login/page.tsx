@@ -72,7 +72,7 @@ export default function LoginPage() {
             <span className="block text-[#d9c38a]">back</span>
           </h1>
           <p className="mt-6 max-w-xs text-sm leading-7 text-[#b8ad93]">
-            Өөрийн бүтээлүүд, AI туслах, курсийн явцаа нэг самбараас үргэлжлүүлээрэй.
+            Өөрийн бүтээл, AI туслах, курсын явцаа нэг самбараас үргэлжлүүлээрэй.
           </p>
         </aside>
 
@@ -88,7 +88,7 @@ export default function LoginPage() {
 
           <h2 className="font-display text-3xl font-black text-[#F5F0E8] sm:text-4xl">Нэвтрэх</h2>
           <p className="mt-2 text-sm text-[#7A7570]">
-            melodex руу нэвтэрч суралцахаа үргэлжлүүлнэ үү.
+            Melodex руу нэвтэрч суралцахаа үргэлжлүүлнэ үү.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
@@ -123,7 +123,7 @@ export default function LoginPage() {
                   href="/auth/forgot-password"
                   className="text-sm font-semibold text-[#C9A84C] transition hover:text-[#E8C96D]"
                 >
-                  Forgot password?
+                  Нууц үгээ мартсан уу?
                 </Link>
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center text-sm text-[#7A7570]">
-            Эрх бүртгэлгүй юу?{' '}
+            Бүртгэлгүй юу?{' '}
             <Link
               href="/auth/register"
               className="font-semibold text-[#C9A84C] transition hover:text-[#E8C96D]"

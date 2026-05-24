@@ -111,9 +111,9 @@ const buildCourse = (seed: CourseSeed): Course => {
 const courseSeeds: CourseSeed[] = [
   {
     id: '0',
-    title: 'Music From Zero',
+    title: 'Хөгжмийн суурь ойлголт',
     description:
-      'A complete first path for absolute beginners: music theory basics, rhythm, chords, FL Studio navigation, and a first beat.',
+      'Анхлан суралцагчдад зориулсан эхний курс: хөгжим хэрхэн бүтээгддэг, rhythm, chord, FL Studio-ийн үндсэн цонхнууд, энгийн beat хийх дарааллыг сурна.',
     thumbnail: '/images/courses/electronic.jpg',
     price: 59000,
     freePreviewLessons: 3,
@@ -123,122 +123,122 @@ const courseSeeds: CourseSeed[] = [
     slug: 'music-from-zero',
     lessons: [
       {
-        title: 'Music theory overview',
+        title: 'Хөгжмийн онолын суурь',
         minutes: 30,
         youtubeId: 'rgaTLrZGlk0',
         summary:
-          'Start with notes, rhythm, scales, chords, and why theory helps producers make faster decisions.',
+          'Note, rhythm, scale, chord гэж юу болох, эдгээр нь дуу болон beat бүтээхэд ямар үүрэгтэйг энгийнээр тайлбарлана.',
         exercise:
-          'Write down C D E F G A B, then build one simple C major chord: C, E, G.',
+          'C D E F G A B note-уудыг тоглоод C, E, G гурвыг хамтад нь дарж C major chord үүсгэ.',
         takeaway:
-          'Theory is not rules to memorize. It is a map for choosing notes, chords, rhythm, and mood.',
+          'Дуу нэг дороос эхэлдэггүй. Note, chord, rhythm, mood гэсэн жижиг хэсгүүд нийлж бүтээл болдог.',
       },
       {
-        title: 'Pulse, tempo, and counting',
+        title: 'Pulse, tempo ба тоолол',
         minutes: 30,
         youtubeId: 'rgaTLrZGlk0',
         summary:
-          'Learn how beat, tempo, bars, and counting create the grid that every song sits on.',
+          'Beat, tempo, bar, тоолол гэсэн ойлголтууд DAW-ийн grid дээр хэрхэн ажилладгийг үзнэ.',
         exercise:
-          'Count 1-2-3-4 over a favorite song and mark where each new bar starts.',
+          'Metronome асаагаад 1-2-3-4 гэж тоолж, нэг bar дотор kick болон snare байрлуул.',
         takeaway:
-          'Before drums, chords, or melody, a track needs a steady pulse.',
+          'Drum, chord, melody бүгд track-ийн үндсэн pulse дээр тогтвортой суух хэрэгтэй.',
       },
       {
-        title: 'Scales and melody notes',
+        title: 'Scale ба melody note',
         minutes: 30,
         youtubeId: 'rgaTLrZGlk0',
         summary:
-          'Use a scale as a small note family so your melody choices feel connected instead of random.',
+          'Scale доторх note-ууд яагаад хоорондоо зохицож сонсогддог, melody хийхэд scale хэрхэн тусалдгийг харуулна.',
         exercise:
-          'Make a 4-note melody using only white keys, then repeat it with one small change.',
+          'C major scale ашиглаад 4 note-той богино melody бич. Дараа нь нэг note-ийг өөрчилж ялгааг нь сонс.',
         takeaway:
-          'A simple scale gives beginners a safe place to start writing melodies.',
+          'Зөв scale сонгох нь melody-г илүү цэвэр, зохицолтой сонсгох эхний алхам.',
       },
       {
-        title: 'Chords and progressions',
+        title: 'Chord ба progression',
         minutes: 30,
         youtubeId: 'rgaTLrZGlk0',
         summary:
-          'Learn how stacked notes become chords and how chord movement gives a song emotion.',
+          'Олон note зэрэг дарахад chord үүсдэг, chord-ууд дарааллаар солигдоход progression болж mood үүсгэдгийг тайлбарлана.',
         exercise:
-          'Try C, G, Am, F in any instrument or piano roll and listen to the emotional movement.',
+          'Piano Roll дээр piano instrument сонгоод C, G, Am, F progression бичиж, дээр нь энгийн melody турш.',
         takeaway:
-          'Chords are the emotional foundation under melody and bass.',
+          'Chord нь melody болон bass-д чиглэл өгдөг harmony-ийн суурь хэсэг.',
       },
       {
-        title: 'FL Studio first look',
+        title: 'FL Studio-ийн үндсэн цонхнууд',
         minutes: 18,
         youtubeId: 'pDIsEZsalAo',
         summary:
-          'Open FL Studio and understand Browser, Channel Rack, Playlist, Piano Roll, and Mixer.',
+          'FL Studio доторх Browser, Channel Rack, Playlist, Piano Roll, Mixer гэсэн үндсэн хэсгүүдийг танилцуулна.',
         exercise:
-          'Open an empty project and click through the five main areas without adding plugins yet.',
+          'Шинэ project нээгээд plugin нэмэх, pattern үүсгэх, mixer track руу routing хийхийг турш.',
         takeaway:
-          'Once you know what each window is for, FL Studio stops feeling random.',
+          'Аль цонх ямар ажил хийдгийг мэдвэл FL Studio илүү ойлгомжтой, хурдан санагдана.',
       },
       {
-        title: 'Channel Rack and first drum pattern',
+        title: 'Channel Rack дээр drum pattern хийх',
         minutes: 10,
         youtubeId: 'od5lD20Mnvw',
         summary:
-          'Use the Channel Rack as the starting point for drums and simple patterns.',
+          'Channel Rack дээр drum sample байрлуулж, pattern бичих эхний аргачлалыг үзнэ.',
         exercise:
-          'Place a kick on beats 1 and 3, snare on 2 and 4, and hi-hat on every beat.',
+          'Kick-ийг 1 ба 3 дээр, snare-ийг 2 ба 4 дээр, hi-hat-ийг beat бүр дээр байрлуул.',
         takeaway:
-          'A basic drum pattern is enough to start feeling time and groove.',
+          'Энгийн drum pattern хүртэл зөв timing-тэй байвал groove мэдрэгдэж эхэлдэг.',
       },
       {
-        title: 'Playlist arrangement',
+        title: 'Playlist дээр arrangement хийх',
         minutes: 10,
         youtubeId: 'TkTZLblecPM',
         summary:
-          'Move from a loop to an arrangement by placing patterns across the Playlist.',
+          'Pattern-уудаа Playlist дээр байрлуулж, loop-ийг intro, main, outro хэсэгтэй arrangement болгоно.',
         exercise:
-          'Arrange an 8-bar loop with drums for all 8 bars and one small change in the last 2 bars.',
+          '8 bar loop үүсгээд drum-ийг эхний 4 bar-д бага, дараагийн 4 bar-д бүтэн оруул.',
         takeaway:
-          'The Playlist turns repeated patterns into song sections.',
+          'Playlist бол pattern-уудыг дууны бүтцэд оруулж эмхлэх гол хэсэг.',
       },
       {
-        title: 'Mixer basics',
+        title: 'Mixer-ийн суурь',
         minutes: 10,
         youtubeId: 'f1wVqmhLxUc',
         summary:
-          'Learn where volume, routing, EQ, and effects live before doing complicated mixing.',
+          'Энгийн mixing хийхэд volume, routing, EQ, effect ямар үүрэгтэйг тайлбарлана.',
         exercise:
-          'Route kick, snare, and melody to separate mixer tracks and balance only with faders.',
+          'Kick, snare, melody-г тус тусад нь mixer track руу илгээж, volume fader-ээр balance хий.',
         takeaway:
-          'Mixing starts with clean routing and volume balance.',
+          'Mixing эхлэхээс өмнө routing болон volume balance хамгийн чухал.',
       },
       {
-        title: 'Drum programming in FL Studio',
+        title: 'FL Studio дээр drum programming хийх',
         minutes: 12,
         youtubeId: 'bSrR-6BCGy4',
         summary:
-          'Build a stronger beat by changing rhythm, velocity, and drum placement.',
+          'Rhythm, velocity, drum placement ашиглаад beat-ээ илүү амьд сонсгох аргыг үзнэ.',
         exercise:
-          'Make two versions of the same drum loop: one straight and one with a small variation.',
+          'Нэг drum loop-оо хоёр хувилбараар хий: нэг нь straight, нөгөө нь бага зэрэг variation-тэй.',
         takeaway:
-          'Small timing and velocity changes make beginner drums feel more alive.',
+          'Timing болон velocity дээр ажиллавал beginner drum ч илүү мэргэжлийн сонсогдоно.',
       },
       {
-        title: 'Export your first idea',
+        title: 'Эхний санаагаа export хийх',
         minutes: 8,
         youtubeId: '0rEnGUUJ5oA',
         summary:
-          'Export a short demo so you can listen outside FL Studio and track your progress.',
+          'Богино demo export хийж, FL Studio дээр WAV болон MP3 файл гаргах үндсийг сурна.',
         exercise:
-          'Export your 8-bar idea as WAV or MP3 and write one thing to improve next time.',
+          '8 bar санаагаа WAV болон MP3 хэлбэрээр export хийгээд чанарын ялгааг сонс.',
         takeaway:
-          'Finishing tiny ideas builds confidence faster than endlessly tweaking one loop.',
+          'Санаагаа export хийж сонсох нь loop-оо бодит дуу шиг үнэлэх хамгийн сайн арга.',
       },
     ],
   },
   {
     id: '1',
-    title: 'Groove Foundations',
+    title: 'Groove-ийн суурь',
     description:
-      'Rhythm, pulse, bar structure, and movement for learners who want to stop guessing and start building steady grooves.',
+      'Rhythm, pulse, bar structure, movement-ийг ойлгож, тогтвортой groove бүтээж сурахад зориулсан анхан шатны курс.',
     thumbnail: '/images/courses/electronic.jpg',
     price: 0,
     teacherId: '1',
@@ -274,7 +274,7 @@ const courseSeeds: CourseSeed[] = [
         takeaway: 'Жижиг rhythmic detail-ууд track-ийг flat биш, хөдөлгөөнтэй болгож өгдөг.',
       },
       {
-        title: 'Tempo, swing, feel',
+        title: 'Tempo, swing ба feel',
         minutes: 11,
         youtubeId: 'rgaTLrZGlk0',
         summary:
@@ -289,15 +289,15 @@ const courseSeeds: CourseSeed[] = [
         summary:
           'Өмнөх хичээлүүдийн санааг ашиглаад богино groove sketch бүтээх урсгалыг нэгтгэнэ.',
         exercise: '8 bar loop дотор intro feel, full groove, жижиг variation гэсэн 3 үе хий.',
-        takeaway: 'Simple structure нэмэхэд loop илүү “track-like” болж эхэлдэг.',
+        takeaway: 'Simple structure нэмэхэд loop илүү "track-like" болж эхэлдэг.',
       },
     ],
   },
   {
     id: '2',
-    title: 'Melody Sketchbook',
+    title: 'Melody бичих дэвтэр',
     description:
-      'Simple note movement, motif building, and hook writing for turning ideas into memorable lead lines.',
+      'Энгийн note movement, motif, hook бичих аргаар санаагаа тогтоцтой melody болгон хөгжүүлэх курс.',
     thumbnail: '/images/courses/sound-design.jpg',
     price: 0,
     teacherId: '1',
@@ -306,7 +306,7 @@ const courseSeeds: CourseSeed[] = [
     slug: 'melody-sketchbook',
     lessons: [
       {
-        title: 'Single-note shapes',
+        title: '3 note-ийн хөдөлгөөн',
         minutes: 8,
         youtubeId: 'rgaTLrZGlk0',
         summary:
@@ -332,11 +332,11 @@ const courseSeeds: CourseSeed[] = [
         takeaway: 'Mood нь зөвхөн sound-аас биш, note choice-оос бас хүчтэй хамаардаг.',
       },
       {
-        title: 'Call and response',
+        title: 'Асуулт ба хариулт phrase',
         minutes: 10,
         youtubeId: 'rgaTLrZGlk0',
         summary: 'Melody-г нэг урт шугам биш, асуулт-хариултын жижиг хэсгүүдээр бодох аргыг заана.',
-        exercise: '2 bar “call” бичээд дараагийн 2 bar-т нь shorter “response” бич.',
+        exercise: '2 bar "call" бичээд дараагийн 2 bar-т нь shorter "response" бич.',
         takeaway: 'Phrase thinking хийснээр melody илүү хүний яриа шиг урсгалтай болдог.',
       },
       {
@@ -352,9 +352,9 @@ const courseSeeds: CourseSeed[] = [
   },
   {
     id: '3',
-    title: 'Chord Movement Lab',
+    title: 'Chord хөдөлгөөний лаборатори',
     description:
-      'A practical harmony path for building stable progressions, stronger voicings, and emotional movement.',
+      'Тогтвортой progression, илүү хүчтэй voicing, сэтгэл хөдлөлийн хөдөлгөөнтэй harmony бүтээх практик курс.',
     thumbnail: '/images/courses/mixing.jpg',
     price: 45000,
     freePreviewLessons: 2,
@@ -364,7 +364,7 @@ const courseSeeds: CourseSeed[] = [
     slug: 'chord-movement-lab',
     lessons: [
       {
-        title: 'Triad thinking',
+        title: 'Triad-ийн суурь',
         minutes: 9,
         youtubeId: 'rgaTLrZGlk0',
         summary:
@@ -379,16 +379,16 @@ const courseSeeds: CourseSeed[] = [
         summary:
           'Stable chord ба unstable chord-ийн мэдрэмжийг ялгаж, resolution үүсгэх логикийг үзнэ.',
         exercise:
-          '4 chord loop дотор one “tension” момент оруулж, дараагийн chord-оор resolve хий.',
+          '4 chord loop дотор нэг "tension" момент оруулж, дараагийн chord-оор resolve хий.',
         takeaway: 'Сонсогчийг урагш татах хүч нь tension-release-ээс үүсдэг.',
       },
       {
-        title: 'Voicing spacing',
+        title: 'Voicing-ийн өнгө',
         minutes: 11,
         youtubeId: 'rgaTLrZGlk0',
-        summary: 'Ижил chord different spacing дээр ямар өнгөтэй сонсогддгийг жишээгээр харуулна.',
+        summary: 'Ижил chord өөр spacing дээр ямар өнгөтэй сонсогддгийг жишээгээр харуулна.',
         exercise: 'Нэг progression-ээ close voicing, open voicing гэж 2 янзаар тогло.',
-        takeaway: 'Voicing choice нь harmony-г more lush эсвэл more tight болгодог.',
+        takeaway: 'Voicing choice нь harmony-г илүү өргөн эсвэл илүү tight сонсогдуулдаг.',
       },
       {
         title: 'Progression loop-оос section хийх',
@@ -400,7 +400,7 @@ const courseSeeds: CourseSeed[] = [
         takeaway: 'Progression нэг хэвийн байхаа болиход section feeling төрж эхэлдэг.',
       },
       {
-        title: 'Emotional rewrite',
+        title: 'Сэтгэл хөдлөлийн хувилбарууд',
         minutes: 12,
         youtubeId: 'rgaTLrZGlk0',
         summary:
@@ -412,9 +412,9 @@ const courseSeeds: CourseSeed[] = [
   },
   {
     id: '4',
-    title: 'Bassline Builder',
+    title: 'Bassline бүтээх',
     description:
-      'Low-end line writing for locking with drums, supporting chords, and creating forward motion.',
+      'Drum-тэй түгжигдэх, chord-ийг дэмжих, track-ийг урагш хөдөлгөх low-end line бичих курс.',
     thumbnail: '/images/courses/electronic.jpg',
     price: 39000,
     freePreviewLessons: 2,
@@ -424,7 +424,7 @@ const courseSeeds: CourseSeed[] = [
     slug: 'bassline-builder',
     lessons: [
       {
-        title: 'Root note anchoring',
+        title: 'Root note-ийн тулгуур',
         minutes: 8,
         youtubeId: 'rgaTLrZGlk0',
         summary:
@@ -433,10 +433,10 @@ const courseSeeds: CourseSeed[] = [
         takeaway: 'Strong low-end ихэнхдээ root awareness-аас эхэлдэг.',
       },
       {
-        title: 'Rhythmic lock',
+        title: 'Rhythm-тэй түгжих',
         minutes: 9,
         youtubeId: 'bSrR-6BCGy4',
-        summary: 'Bass ба drums rhythm дээрээ таарах эсвэл intentionally contrast хийх аргыг үзнэ.',
+        summary: 'Bass ба drums rhythm дээрээ таарах эсвэл санаатайгаар contrast хийх аргыг үзнэ.',
         exercise: 'Нэг bassline-аа kick-тэй unison, нөгөөг нь offbeat accent-тэй хий.',
         takeaway: 'Bassline-ийн rhythm нь note choice шигээ чухал.',
       },
@@ -458,7 +458,7 @@ const courseSeeds: CourseSeed[] = [
         takeaway: 'Space үлдээсэн bassline ихэвчлэн илүү musical сонсогддог.',
       },
       {
-        title: 'Low-end glue pass',
+        title: 'Low-end-ийн цэвэрлэх pass',
         minutes: 11,
         youtubeId: 'f1wVqmhLxUc',
         summary:
@@ -470,9 +470,9 @@ const courseSeeds: CourseSeed[] = [
   },
   {
     id: '5',
-    title: 'Arrangement Flow',
+    title: 'Arrangement-ийн урсгал',
     description:
-      'Turn loops into sections, shape energy, and learn how to finish a track with clear movement.',
+      'Loop-оо section болгон хөгжүүлж, energy-г хэлбэржүүлэн, track-ээ дуусгах дарааллыг сурах курс.',
     thumbnail: '/images/courses/mixing.jpg',
     price: 49000,
     freePreviewLessons: 2,
@@ -491,7 +491,7 @@ const courseSeeds: CourseSeed[] = [
         takeaway: 'Arrangement бол шинэ idea нэмэхээс илүү existing idea-г ухаалгаар тараах ажил.',
       },
       {
-        title: 'Energy staircase',
+        title: 'Energy-г шатлуулж харах',
         minutes: 10,
         youtubeId: 'TkTZLblecPM',
         summary: 'Track energy-г шатаар өсгөх сэтгэлгээгээр section order харах арга өгнө.',
@@ -499,16 +499,16 @@ const courseSeeds: CourseSeed[] = [
         takeaway: 'Хэтэрхий flat arrangement сонсогчийг track дотор авч явахад хэцүү болгодог.',
       },
       {
-        title: 'Contrast moments',
+        title: 'Contrast section оруулах',
         minutes: 9,
         youtubeId: 'TkTZLblecPM',
         summary:
           'Everything-on feel-ээс зайлсхийж, contrast section оруулах нь яагаад чухал болохыг үзнэ.',
-        exercise: 'Main section-ийхээ өмнө 2 bar “pull-back” хэсэг хий.',
+        exercise: 'Main section-ийхээ өмнө 2 bar "pull-back" хэсэг хий.',
         takeaway: 'Energy өсгөх хамгийн сайн арга нь заримдаа түр бууруулах байдаг.',
       },
       {
-        title: 'Transition language',
+        title: 'Transition-ийн арга',
         minutes: 11,
         youtubeId: 'aBzQ5KV4glE',
         summary:
@@ -517,7 +517,7 @@ const courseSeeds: CourseSeed[] = [
         takeaway: 'Transitions section-үүдийг наах биш, хөдөлгөөнтэй болгодог.',
       },
       {
-        title: 'Finish pass',
+        title: 'Дуусгах pass',
         minutes: 12,
         youtubeId: '0rEnGUUJ5oA',
         summary:
@@ -529,9 +529,9 @@ const courseSeeds: CourseSeed[] = [
   },
   {
     id: '6',
-    title: 'Mix Clarity Basics',
+    title: 'Цэвэр mix-ийн суурь',
     description:
-      'A clean introduction to balance, EQ space, depth, and simple decision-making that helps mixes translate better.',
+      'Balance, EQ space, depth болон энгийн mix decision ашиглаж илүү цэвэр сонсогдох mix хийх суурь курс.',
     thumbnail: '/images/courses/sound-design.jpg',
     price: 55000,
     freePreviewLessons: 2,
@@ -541,7 +541,7 @@ const courseSeeds: CourseSeed[] = [
     slug: 'mix-clarity-basics',
     lessons: [
       {
-        title: 'Balance first',
+        title: 'Fader balance',
         minutes: 8,
         youtubeId: 'f1wVqmhLxUc',
         summary: 'Plugin-гүйгээр зөв level balance хийх нь mix-ийн эхний том ялгаа болохыг үзнэ.',
@@ -549,7 +549,7 @@ const courseSeeds: CourseSeed[] = [
         takeaway: 'Сайн balance хийсний дараа л processing-ийн утга илүү гарч ирдэг.',
       },
       {
-        title: 'Frequency space',
+        title: 'Frequency-д зай гаргах',
         minutes: 10,
         youtubeId: 'f1wVqmhLxUc',
         summary:
@@ -558,7 +558,7 @@ const courseSeeds: CourseSeed[] = [
         takeaway: 'Mix clarity нь бүгдийг чангаруулах биш, зай гаргахаас эхэлдэг.',
       },
       {
-        title: 'Dynamics with intent',
+        title: 'Dynamics-ийг зорилготой ашиглах',
         minutes: 10,
         youtubeId: 'Zl-uG5oIUdg',
         summary: 'Compression-ийг louder хийх хэрэгсэл биш, movement control гэж харах өнцөг өгнө.',
@@ -566,7 +566,7 @@ const courseSeeds: CourseSeed[] = [
         takeaway: 'Processing бүр тодорхой зорилготой байх үед mix decision илүү цэвэр болно.',
       },
       {
-        title: 'Depth and front-to-back',
+        title: 'Depth ба зайны мэдрэмж',
         minutes: 9,
         youtubeId: 'f1wVqmhLxUc',
         summary:
@@ -575,7 +575,7 @@ const courseSeeds: CourseSeed[] = [
         takeaway: 'Space design хийснээр mix flat plane биш scene болж сонсогдоно.',
       },
       {
-        title: 'Final clarity checklist',
+        title: 'Эцсийн mix шалгах checklist',
         minutes: 11,
         youtubeId: '0rEnGUUJ5oA',
         summary: 'Mix-ээ экспортлохоос өмнө сонсох ёстой гол асуултуудыг нэгтгэнэ.',

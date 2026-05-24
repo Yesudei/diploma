@@ -11,8 +11,8 @@
   \item Next.js App Router дээр суурилсан веб аппликейшн;
   \item курсийн каталог, хичээлийн тоглуулагч, төлбөртэй хандалт, сорил, хяналтын самбар;
   \item Supabase Auth, PostgreSQL schema, Row Level Security бодлого;
-  \item \texttt{/api/chat} зам дээр ажиллах RAG суурьтай AI туслах;
-  \item \texttt{rag-dataset-builder} дамжлага болон бэлэн JSONL/CSV өгөгдлийн багц;
+  \item \texttt{/api/ai-chat} зам дээр ажиллах локал RAG суурьтай сургалтын туслах;
+  \item Ollama, Qdrant, ingestion/generation script болон JSON/JSONL өгөгдлийн багц;
   \item локал хөгжүүлэлтийн буюу гэрийн компьютер дээр ажиллуулах тохиргоо.
 \end{itemize}
 
@@ -54,19 +54,20 @@
 \end{figure}
 
 \section{Файлын бүтэц ба хэрэгжүүлэлтийн нэгж}
-Дипломын төсөл нь \texttt{Frontend}, \texttt{dataset}, \texttt{rag-dataset-builder}, \texttt{diplomapaper} гэсэн үндсэн хавтаснаас бүрдэнэ. Эдгээр нь тусдаа харагдавч нэг бүтээгдэхүүний өөр өөр давхаргыг илэрхийлнэ.
+Дипломын төсөл нь \texttt{Frontend}, \texttt{dataset}, \texttt{diplomapaper} болон \texttt{Frontend/data/rag}, \texttt{Frontend/scripts} доторх RAG дамжлагын файлуудаас бүрдэнэ. Эдгээр нь тусдаа харагдавч нэг бүтээгдэхүүний өөр өөр давхаргыг илэрхийлнэ.
 
 \begin{longtable}{|p{0.25\textwidth}|p{0.27\textwidth}|p{0.34\textwidth}|}
   \caption{Төслийн гол хавтас ба үүрэг}
   \label{tab:ch3-project-folders}\\
   \hline
   \textbf{Хавтас/файл} & \textbf{Үүрэг} & \textbf{Тайлбар} \\ \hline
-  \texttt{Frontend/src/app} & Зам ба API & Нүүр хуудас, курс, хяналтын самбар, админ, чат, төлбөр, \texttt{/api/chat} \\ \hline
+  \texttt{Frontend/src/app} & Зам ба API & Нүүр хуудас, курс, хяналтын самбар, админ, чат, төлбөр, \texttt{/api/ai-chat} \\ \hline
   \texttt{Frontend/src/components} & UI компонент & \texttt{CourseCard}, \texttt{LessonPlayer}, \texttt{ChatDrawer}, \texttt{Nav}, хяналтын самбарын layout \\ \hline
   \texttt{Frontend/src/hooks} & Клиент төлөв & \texttt{useAuth}, \texttt{usePurchases}, \texttt{useReveal} \\ \hline
   \texttt{Frontend/src/lib} & Хуваалцсан логик & Курсийн эх өгөгдөл, Supabase клиент, өгөгдлийн сангийн туслах функц, YouTube хэрэгсэл \\ \hline
-  \texttt{Frontend/supabase-schema.sql} & Өгөгдлийн сан & Хүснэгт, constraint, RLS policy, админы helper function \\ \hline
-  \texttt{rag-dataset-builder} & RAG дамжлага & Сэдэв ялгах, тайлбар үүсгэх, шалгах, бэлэн JSONL/CSV, Supabase seed \\ \hline
+  \texttt{Frontend/src/lib/rag} & RAG логик & Ollama embed/chat, Qdrant хайлт, query normalization, prompt, type тодорхойлолт \\ \hline
+  \texttt{Frontend/scripts} & RAG дамжлага & Өгөгдөл үүсгэх, JSONL шалгах, embedding үүсгэх, Qdrant collection-д upsert хийх \\ \hline
+  \texttt{Frontend/data/rag} & Мэдлэгийн сан & 20 seed document болон 2000 generated Mongolian music lesson chunk \\ \hline
   \texttt{dataset} & Нэмэлт зөвлөмжийн сан & FL Studio mixing/compression чиглэлийн 20000 бичлэгтэй JSON сан \\ \hline
   \texttt{diplomapaper} & Дипломын тайлан & LaTeX бүлгүүд, диаграм, зураг, ном зүй \\ \hline
 \end{longtable}
@@ -84,7 +85,7 @@
   \texttt{/courses/[slug]} & Курсийн дэлгэрэнгүй & Хичээлийн тоглуулагч, түгжээтэй хичээл, үнэгүй танилцах хэсэг, сорил, холбоотой курс \\ \hline
   \texttt{/dashboard} & Хяналтын самбар & Хэрэглэгчийн профайл, худалдан авалт, ахицын товч мэдээлэл \\ \hline
   \texttt{/checkout} & Төлбөрийн урсгал & Курс худалдан авах туршилтын урсгал, хандалтын эрх шинэчлэх \\ \hline
-  \texttt{/chat} & AI чат & Чатын UI, аудио оруулах чиглэл, \texttt{/api/chat} хүсэлт \\ \hline
+  \texttt{/chat} & Studio mentor чат & Чатын UI, эх сурвалжийн жижиг жагсаалт, \texttt{/api/ai-chat} хүсэлт \\ \hline
   \texttt{/admin} & Админ хэсэг & Курс, хичээл, хэрэглэгч, мэдлэгийн сан удирдах эхний интерфейс \\ \hline
 \end{longtable}
 
@@ -118,7 +119,7 @@ Supabase нь PostgreSQL өгөгдлийн сан, authentication, API боло
 Schema-д foreign key, unique constraint, RLS policy зэрэг хамгаалалт ашигласан. Жишээлбэл \texttt{purchased\_courses} дээр \texttt{unique(user\_id, course\_id)} тавьснаар нэг хэрэглэгч нэг курсийг давхар худалдан авсан бичлэг үүсгэхээс сэргийлнэ. \texttt{completed\_lessons} дээр \texttt{unique(user\_id, lesson\_id)} ашиглаж хичээл дуусгалтын бичлэг давхцахгүй байхаар зохион байгуулсан.
 
 \section{AI чатботын хэрэгжүүлэлт}
-AI туслах нь \texttt{Frontend/src/app/api/chat/route.ts} файлд байрлах Next.js route handler-ээр хэрэгжсэн. Энэ зам нь хэрэглэгчийн зурвасыг хүлээн авч, локал RAG өгөгдлийн багцаас контекст сонгож, зааварчилгаа бүрдүүлэн, сонгосон LLM үйлчилгээ үзүүлэгч рүү илгээнэ. Хариулт буцахдаа \texttt{answer}, \texttt{provider}, \texttt{model}, \texttt{sources} мета өгөгдлийг фронтенд рүү илгээдэг.
+Сургалтын туслах нь \texttt{Frontend/src/app/api/ai-chat/route.ts} файлд байрлах Next.js route handler-ээр хэрэгжсэн. Энэ зам нь хэрэглэгчийн зурвасыг хүлээн авч, Монгол кирилл болон латин бичлэгтэй асуултыг normalization хийж, Ollama-ийн \texttt{bge-m3} embedding model-оор vector үүсгэн, локал Qdrant collection-оос хамгийн ойр контекстуудыг хайна. Дараа нь retrieved context дээр тулгуурласан prompt үүсгээд Ollama дээр ажиллаж буй \texttt{qwen3:8b} загвар руу \texttt{/api/chat} endpoint-оор сервер талын дуудлага илгээнэ. Хариулт буцахдаа \texttt{answer} болон эх сурвалжийн \texttt{title}, \texttt{category}, \texttt{score} талбаруудыг фронтенд рүү илгээдэг.
 
 \begin{figure}[htbp]
   \centering
@@ -128,14 +129,14 @@ AI туслах нь \texttt{Frontend/src/app/api/chat/route.ts} файлд ба
 \end{figure}
 
 \begin{enumerate}
-  \item UI-аас зурвас \texttt{/api/chat} зам руу илгээгдэнэ.
-  \item API зам request body-г шалгаж, хоосон зурвасыг буцаана.
-  \item \texttt{rag\_ready\_mn.jsonl} өгөгдлийн багцыг санах ойн cache-д уншина.
-  \item Хайлтын token болон өгөгдлийн бичлэгийн title, question, content, category талбарыг үгийн оноолтоор харьцуулна.
-  \item Хамгийн өндөр оноотой контекстуудыг зааварчилгаанд нэгтгэнэ.
-  \item \texttt{CHAT\_PROVIDER} тохиргооноос хамаарч Ollama, Gemini эсвэл OpenAI-compatible үйлчилгээ үзүүлэгчийг дуудна.
-  \item Үйлчилгээ үзүүлэгч алдаа өгөх эсвэл локал загварын хариу чанар муу бол нөөц хариуны логик ажиллана.
-  \item Хариулт болон эх сурвалжийн мета өгөгдлийг фронтенд рүү буцаана.
+  \item UI-аас зурвас \texttt{/api/ai-chat} зам руу илгээгдэнэ.
+  \item API зам request body-г шалгаж, хоосон эсвэл хэт урт зурвасыг буцаана.
+  \item \texttt{normalizeMongolianQuery} функц латин Mongolian бичлэгийг хөгжмийн түлхүүр үгтэй баяжуулна.
+  \item Ollama-ийн \texttt{/api/embed} endpoint дээр \texttt{bge-m3} model ашиглан embedding үүсгэнэ.
+  \item Qdrant дээр cosine similarity ашиглан \texttt{music\_lessons\_rag} collection-оос top 5 chunk хайна.
+  \item Retrieved chunk-уудыг Mongolian-focused prompt-д нэгтгэнэ.
+  \item Ollama-ийн \texttt{/api/chat} endpoint дээр \texttt{qwen3:8b} model-оор хариу үүсгэнэ.
+  \item Контекст хүрэлцэхгүй үед загвар таамаглахгүй, ``Энэ асуултад хангалттай мэдээлэл миний сургалтын сангаас олдсонгүй.'' гэж буцаана.
 \end{enumerate}
 
 \begin{longtable}{|p{0.22\textwidth}|p{0.32\textwidth}|p{0.32\textwidth}|}
@@ -143,39 +144,38 @@ AI туслах нь \texttt{Frontend/src/app/api/chat/route.ts} файлд ба
   \label{tab:ch3-chatbot}\\
   \hline
   \textbf{Шийдэл} & \textbf{Хэрэгжилт} & \textbf{Ач холбогдол} \\ \hline
-  Сэргээн хайлт & Token давхцал, дэд тэмдэгт, ангиллын тохирол & MVP шатанд хурдан, ил тод, тайлбарлахад хялбар \\ \hline
-  Өгөгдлийн cache & JSONL-г хүсэлт бүрд дахин уншихгүй санах ойд хадгалах & Хариулах хугацааг бууруулах \\ \hline
-  Зааварчилгаа бүрдүүлэх & Контекст, эх сурвалжийн төрөл, persona, аюулгүй байдлын дүрэм нэгтгэх & Хариултыг сургалтын хүрээнд барих \\ \hline
-  Үйлчилгээ үзүүлэгчийн хийсвэрлэл & \texttt{ollama}, \texttt{gemini}, \texttt{openai-compatible} & Нэг үйлчилгээ үзүүлэгчээс хэт хамаарахгүй \\ \hline
-  Локал загварын тохиргоо & Ollama-аар дамжуулсан үндсэн \texttt{qwen3:0.6b} & Гэрийн компьютер дээр бага нөөцөөр туршилт хийх боломжтой \cite{ollama_qwen3} \\ \hline
-  Үүлэн хувилбар & Gemini үндсэн \texttt{gemini-2.5-flash}; OpenAI-compatible endpoint & Чанартай demo болон production хувилбарт уян хатан \cite{gemini_models} \\ \hline
-  Нөөц хариу & Limiter, muddy EQ, clipping зэрэг нийтлэг асуултад дүрэмд суурилсан хариу & Үйлчилгээ үзүүлэгч ажиллахгүй үед demo тасрах эрсдэлийг бууруулах \\ \hline
+  Сэргээн хайлт & Qdrant vector search, cosine similarity, top 5 chunk & Латин болон кирилл асуултад утгын ойролцоогоор контекст олох \\ \hline
+  Embedding & Ollama \texttt{bge-m3}, vector size-ийг runtime үед илрүүлэх & Загвар солигдсон ч collection-ийн хэмжээ зөв үүсэх \\ \hline
+  Зааварчилгаа бүрдүүлэх & Монгол хэлний багшийн persona, эх сурвалжийн context, татгалзах дүрэм & Хариултыг сургалтын хүрээнд барих, hallucination багасгах \\ \hline
+  Локал загварын тохиргоо & Ollama \texttt{qwen3:8b} & RTX 3060 12GB орчинд төлбөртэй API-гүй ажиллуулах \cite{ollama_qwen3} \\ \hline
+  Vector storage & Qdrant local REST service & Browser талд Ollama-г ил гаргахгүйгээр сервер талын сэргээн хайлт хийх \\ \hline
+  Access control & \texttt{x-rag-api-key} optional хамгаалалт & Гэрийн компьютероос гадна төхөөрөмжөөр ашиглах үед API-г хязгаарлах \\ \hline
 \end{longtable}
 
 \section{RAG өгөгдлийн багц}
-\texttt{rag-dataset-builder} нь AI туслахын мэдлэгийн санг фронтенд кодоос тусад нь бэлтгэдэг дамжлага юм. Энэ дамжлага нь эх сэдэв ялгах, Монгол тайлбар үүсгэх, баталгаажуулах, бэлэн JSONL/CSV файл үүсгэх, Supabase seed экспортлох гэсэн алхмуудтай.
+Одоогийн RAG мэдлэгийн сан нь \texttt{Frontend/data/rag/music-course-seed.json} болон \texttt{Frontend/data/rag/generated-music-course.jsonl} файлуудаас бүрдэнэ. Seed файл нь DAW, FL Studio, BPM, beat structure, drum pattern, kick, snare, hi-hat, 808 bass, melody, chord, scale, EQ, compression, reverb, delay, mixing, mastering, arrangement, export зэрэг 20 үндсэн сэдвийг Монгол хэлээр агуулна. Generated JSONL файл нь Gemma/Ollama ашиглан үүсгэсэн 2000 нэмэлт beginner-friendly chunk-ийг хадгална. \texttt{npm run rag:ingest} script эдгээрийг embedding болгон Qdrant-д оруулна.
 
 \begin{longtable}{|p{0.24\textwidth}|p{0.28\textwidth}|p{0.34\textwidth}|}
   \caption{RAG өгөгдлийн багцын одоогийн бүрэлдэхүүн}
   \label{tab:ch3-dataset}\\
   \hline
   \textbf{Үзүүлэлт} & \textbf{Төлөв} & \textbf{Тайлбар} \\ \hline
-  Бэлэн бичлэг & 4952 бичлэг & Чатботын сэргээн хайлтад ашиглах normalized JSONL \\ \hline
-  Ангилал & Mixing 4450, Mastering 500, FL Studio Basics 1, Music Theory 1 & Одоогийн өгөгдлийн багц mixing/mastering дээр төвлөрсөн \\ \hline
-  Эшлэлд ашиглах боломжтой & 2 бичлэг & Эх сурвалжид тулгуурласан бичлэг цөөн \\ \hline
-  Synthetic/internal guidance & 4950 бичлэг & Сургалтын зөвлөмжид хэрэгтэй ч official manual мэт харагдуулж болохгүй \\ \hline
-  Нэмэлт JSON сан & 20000 FL Studio tip & Compression/dynamics чиглэлийн том зөвлөмжийн сан \\ \hline
+  Seed бичлэг & 20 document & Сургалтын үндсэн сэдвүүдийг хүний бичсэн Монгол тайлбараар эхлүүлсэн \\ \hline
+  Generated бичлэг & 2000 JSONL chunk & Gemma/Ollama ашиглан өргөтгөсөн beginner-friendly сургалтын материал \\ \hline
+  Vector collection & \texttt{music\_lessons\_rag} & Qdrant дээр cosine similarity ашиглан хайдаг \\ \hline
+  Payload metadata & title, category, level, content, tags, source, language, createdAt & Эх сурвалж болон сэдвийг UI-д харуулах боломжтой \\ \hline
+  Хэлний хамрах хүрээ & Кирилл Монгол, латин Mongolian keyword tags & ``kick ee'', ``bpm yu ve'', ``808 murulduud bn'' зэрэг асуултад дэмжлэгтэй \\ \hline
 \end{longtable}
 
-Өгөгдлийн багцын чанарын гол анхаарах зүйл нь эх сурвалжийн мета өгөгдөл юм. \texttt{citation\_safe=false} бичлэгийг академик эх сурвалж мэт ашиглахгүй, зөвхөн чатботын дотоод зөвлөмжийн контекст байдлаар ашиглах ёстой. Цаашид Image-Line FL Studio manual зэрэг албан эх сурвалж \cite{flstudio_workflow} болон багшийн сонгож баталгаажуулсан сургалтын материал дээр тулгуурласан citation-safe бичлэг нэмэх шаардлагатай.
+Өгөгдлийн багцын чанарын гол анхаарах зүйл нь давхардал, хэлзүйн чанар, эх сурвалжийн мета өгөгдөл юм. Generated бичлэгийг official manual мэт харуулахгүй, харин сургалтын дотоод контекст байдлаар ашиглана. Цаашид Image-Line FL Studio manual зэрэг албан эх сурвалж \cite{flstudio_workflow} болон багшийн сонгож баталгаажуулсан сургалтын материал дээр тулгуурласан citation-safe бичлэг нэмэх шаардлагатай.
 
 \section{Нэвтрүүлэлт ба гэрийн компьютерийн тохиргоо}
-Платформыг гэрийн компьютер дээр локал хөгжүүлэлтийн орчинд ажиллуулахдаа Node.js 18+, npm, Next.js dev server, Supabase project болон нэмэлтээр Ollama ашигласан. Энэ тохиргоо нь дипломын demo-д интернетээс бүрэн хамаарахгүйгээр фронтенд, өгөгдлийн багц, локал AI үйлчилгээ үзүүлэгчийг шалгах боломж олгодог.
+Платформыг гэрийн компьютер дээр локал хөгжүүлэлтийн орчинд ажиллуулахдаа Node.js 18+, npm, Next.js dev server, Supabase project, Ollama болон Qdrant ашигласан. Энэ тохиргоо нь дипломын demo-д төлбөртэй API ашиглахгүйгээр фронтенд, өгөгдлийн багц, embedding, vector search, локал LLM хариуг шалгах боломж олгодог.
 
 \begin{figure}[htbp]
   \centering
   \resizebox{\textwidth}{!}{\input{Diagrams/tikz/ch4_deployment.tex}}
-  \caption[Нэвтрүүлэлтийн архитектур]{Хөтөч, Next.js, Supabase, RAG өгөгдлийн багц, LLM үйлчилгээ үзүүлэгчийн нэвтрүүлэлтийн зураг}
+  \caption[Нэвтрүүлэлтийн архитектур]{Хөтөч, Next.js, Supabase, Qdrant, Ollama бүхий локал RAG нэвтрүүлэлтийн зураг}
   \label{fig:ch3-deployment}
 \end{figure}
 
@@ -187,15 +187,16 @@ AI туслах нь \texttt{Frontend/src/app/api/chat/route.ts} файлд ба
   Node.js/npm & Node.js 18+, npm 9+ & Next.js project ажиллуулах \\ \hline
   Хөгжүүлэлтийн сервер & \texttt{npm run dev} & \texttt{localhost:3000} дээр demo нээх \\ \hline
   Supabase SQL & \texttt{supabase-schema.sql} & Хүснэгт, RLS, policy, админы helper үүсгэх \\ \hline
-  RAG зам & \texttt{rag\_ready\_mn.jsonl} & \texttt{rag-dataset-builder} хавтаснаас локал мэдлэгийн сан унших \\ \hline
-  Локал үйлчилгээ үзүүлэгч & \texttt{CHAT\_PROVIDER=ollama}, \texttt{OLLAMA\_MODEL=qwen3:0.6b} & Гэрийн компьютер дээр локал загварын demo хийх \\ \hline
-  Үүлэн үйлчилгээ үзүүлэгч & Gemini эсвэл OpenAI-compatible key & Чанартай production/demo хариу авах \\ \hline
+  RAG ingestion & \texttt{npm run rag:ingest} & Seed болон generated өгөгдлийг embedding болгож Qdrant-д хадгалах \\ \hline
+  Ollama & \texttt{qwen3:8b}, \texttt{bge-m3} & Хариу үүсгэх болон embedding үүсгэх локал загварууд \\ \hline
+  Qdrant & \texttt{http://localhost:6333} & Vector collection, cosine similarity search \\ \hline
+  RAG API & \texttt{/api/ai-chat} & Browser зөвхөн backend API-г дуудаж, Ollama/Qdrant-г шууд ил гаргахгүй \\ \hline
 \end{longtable}
 
-Нууц тохиргоог source code-д хадгалахгүй, \texttt{.env.local} файлд байрлуулах зарчим баримтална. \texttt{NEXT\_PUBLIC\_} prefix-тэй хувьсагч хөтөч талд ил гардаг тул LLM provider key, service role key зэрэг нууц утгыг зөвхөн сервер талын environment variable хэлбэрээр ашиглах шаардлагатай.
+Нууц тохиргоог source code-д хадгалахгүй, \texttt{.env.local} файлд байрлуулах зарчим баримтална. \texttt{NEXT\_PUBLIC\_} prefix-тэй хувьсагч хөтөч талд ил гардаг тул service role key болон сервер талын RAG тохиргоог зөвхөн backend environment variable хэлбэрээр ашиглах шаардлагатай.
 
 \section{Аюулгүй байдал ба өргөтгөх боломж}
-Платформын аюулгүй байдал нь клиент хамгаалалт, серверийн зам, өгөгдлийн сангийн бодлого гэсэн гурван түвшинд хэрэгжинэ. Клиент талд төлбөртэй хичээлийн түгжээ болон админ холбоосын харагдах байдал хянагдана. Сервер талд AI үйлчилгээ үзүүлэгчийн түлхүүр болон зааварчилгаа бүрдүүлэх логик байрлана. Өгөгдлийн сангийн түвшинд RLS policy нь ахиц, худалдан авалт, чат зэрэг хэрэглэгч эзэмшдэг өгөгдлийг хамгаална.
+Платформын аюулгүй байдал нь клиент хамгаалалт, серверийн зам, өгөгдлийн сангийн бодлого гэсэн гурван түвшинд хэрэгжинэ. Клиент талд төлбөртэй хичээлийн түгжээ болон админ холбоосын харагдах байдал хянагдана. Сервер талд Ollama/Qdrant холболт, retrieval, prompt бүрдүүлэх логик байрлана. Өгөгдлийн сангийн түвшинд RLS policy нь ахиц, худалдан авалт, чат зэрэг хэрэглэгч эзэмшдэг өгөгдлийг хамгаална.
 
 \begin{longtable}{|p{0.24\textwidth}|p{0.32\textwidth}|p{0.30\textwidth}|}
   \caption{Аюулгүй байдал ба өргөтгөлийн чиглэл}
@@ -205,12 +206,12 @@ AI туслах нь \texttt{Frontend/src/app/api/chat/route.ts} файлд ба
   Төлбөртэй хандалт & Худалдан авалтын төлөв, түгжээтэй хичээлийн UI, \texttt{purchased\_courses} & Төлбөрийн webhook, баримтын баталгаажуулалт \\ \hline
   Хэрэглэгчийн өгөгдөл & Эзэмшигчид суурилсан RLS policy & Policy test, audit log \\ \hline
   Админ хяналт & \texttt{is\_admin}, админ шалгах SQL function & CRUD validation, role management \\ \hline
-  RAG хайлт & Локал JSONL үгийн оноолт & pgvector, HNSW, hybrid retrieval \cite{supabase_vectors,pgvector_github} \\ \hline
-  AI үйлчилгээ үзүүлэгч & Environment variable-д суурилсан сонголт & Үйлчилгээ үзүүлэгчийн routing, timeout, response cache \\ \hline
+  RAG хайлт & Qdrant vector search ба \texttt{bge-m3} embedding & Hybrid retrieval, human-reviewed source expansion \cite{supabase_vectors,pgvector_github} \\ \hline
+  Хариу үүсгэх загвар & Локал Ollama \texttt{qwen3:8b} & Timeout, response cache, чанарын regression test \\ \hline
   Аудио шинжилгээ & Schema түвшний бэлтгэл & Файл оруулах дамжлага, source separation, mix feedback \\ \hline
 \end{longtable}
 
 \section{Бүлгийн дүгнэлт}
 Гуравдугаар бүлгээр платформын архитектур ба хэрэгжилтийг нэгтгэн тайлбарлав. Платформ нь курсийн каталог, хичээлийн тоглуулагч, төлбөртэй хандалт, сорил, хяналтын самбар, админ хэсэг, AI чатбот гэсэн хэрэглэгчийн үндсэн урсгалтай бөгөөд Next.js, React, TypeScript, Supabase PostgreSQL, RAG өгөгдлийн багцын дамжлага дээр тулгуурласан. Use case, activity, layered, ER, AI sequence, deployment диаграмуудаар системийн үндсэн холбоо, өгөгдлийн бүтэц, AI туслахын хүсэлтийн урсгал, локал тохиргоог харууллаа.
 
-AI туслахын хувьд \texttt{/api/chat} зам нь локал JSONL өгөгдлийн багц, үгийн сэргээн хайлт, зааварчилгаа бүрдүүлэх логик, Ollama/Gemini/OpenAI-compatible үйлчилгээ үзүүлэгчийн хийсвэрлэл болон нөөц хариуны логикоор хэрэгжсэн. Энэ нь дипломын MVP-д хангалттай ажиллах бүтэц боловч production түвшинд хүргэхийн тулд citation-safe өгөгдлийн бичлэг нэмэх, embedding search ашиглах, payment integration болон admin CRUD-г бүрэн болгох шаардлагатай.
+AI туслахын хувьд \texttt{/api/ai-chat} зам нь query normalization, Ollama \texttt{bge-m3} embedding, Qdrant vector search, grounded prompt, Ollama \texttt{qwen3:8b} answer generation гэсэн дамжлагатайгаар хэрэгжсэн. Энэ нь дипломын MVP-д төлбөртэй API-гүй ажиллах бүтэц боловч production түвшинд хүргэхийн тулд citation-safe өгөгдлийн бичлэг нэмэх, retrieval evaluation хийх, payment integration болон admin CRUD-г бүрэн болгох шаардлагатай.

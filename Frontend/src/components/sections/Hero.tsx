@@ -74,7 +74,7 @@ export default function Hero() {
           {...fadeUp(0.08)}
           className="font-display text-[clamp(52px,6vw,86px)] font-black leading-[1.06] tracking-tight mb-6"
         >
-          FL Studio-р
+          FL Studio-оор
           <br />
           хөгжим
           <br />
@@ -91,7 +91,7 @@ export default function Hero() {
           {...fadeUp(0.16)}
           className="text-[#7A7570] text-lg leading-[1.75] mb-12 max-w-[500px]"
         >
-          Мэргэжлийн продюсеруудаас Beat Making, Mixing, Mastering зэрэг FL Studio-н бүх нууцыг сур.
+          Мэргэжлийн продюсеруудаас beat making, mixing, mastering зэрэг FL Studio-ийн гол аргачлалыг сур.
           Гэрээсээ, хүссэн цагтаа.
         </motion.p>
 

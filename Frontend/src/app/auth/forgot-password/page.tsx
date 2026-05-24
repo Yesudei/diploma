@@ -28,7 +28,7 @@ export default function ForgotPasswordPage() {
       toast.error(error.message);
     } else {
       setHasSent(true);
-      toast.success('Password reset email sent.');
+      toast.success('Нууц үг сэргээх холбоос илгээгдлээ.');
     }
 
     setIsLoading(false);
@@ -47,15 +47,15 @@ export default function ForgotPasswordPage() {
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(201,168,76,0.35)] text-[#C9A84C]">
               M
             </span>
-            <span className="font-display text-2xl font-bold text-[#C9A84C]">melodex</span>
+            <span className="font-display text-2xl font-bold text-[#C9A84C]">Melodex</span>
           </Link>
 
           <h1 className="mt-12 font-display text-5xl font-black leading-[0.95] text-[#F5F0E8]">
-            Recover
-            <span className="block text-[#d9c38a]">your account</span>
+            Бүртгэлээ
+            <span className="block text-[#d9c38a]">сэргээх</span>
           </h1>
           <p className="mt-6 max-w-xs text-sm leading-7 text-[#b8ad93]">
-            Get a secure reset link and return to your courses with a fresh password.
+            Нууц үг сэргээх аюулгүй холбоос аваад хичээлээ үргэлжлүүлээрэй.
           </p>
         </aside>
 
@@ -70,15 +70,15 @@ export default function ForgotPasswordPage() {
           </div>
 
           <h2 className="font-display text-3xl font-black text-[#F5F0E8] sm:text-4xl">
-            Forgot password
+            Нууц үг мартсан
           </h2>
           <p className="mt-2 text-sm text-[#7A7570]">
-            Enter your email to receive a password reset link.
+            Нууц үг сэргээх холбоос авахын тулд имэйл хаягаа оруулна уу.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div>
-              <label className="mb-2 block text-sm font-medium text-[#F5F0E8]">Email</label>
+              <label className="mb-2 block text-sm font-medium text-[#F5F0E8]">Имэйл</label>
               <input
                 type="email"
                 name="email"
@@ -96,23 +96,23 @@ export default function ForgotPasswordPage() {
               disabled={isLoading}
               className="w-full rounded-xl bg-[#C9A84C] py-3.5 font-semibold text-black transition hover:bg-[#E8C96D] disabled:opacity-50"
             >
-              {isLoading ? 'Sending...' : 'Send reset link'}
+              {isLoading ? 'Илгээж байна...' : 'Сэргээх холбоос илгээх'}
             </button>
           </form>
 
           {hasSent && (
             <div className="mt-5 rounded-xl border border-[rgba(201,168,76,0.28)] bg-[rgba(201,168,76,0.08)] px-4 py-3 text-sm leading-6 text-[#d9c38a]">
-              Check your inbox for the reset link. It may take a moment to arrive.
+              Имэйлээ шалгана уу. Холбоос ирэхэд хэдэн хором шаардагдаж магадгүй.
             </div>
           )}
 
           <div className="mt-6 text-center text-sm text-[#7A7570]">
-            Remembered it?{' '}
+            Нууц үгээ санасан уу?{' '}
             <Link
               href="/auth/login"
               className="font-semibold text-[#C9A84C] transition hover:text-[#E8C96D]"
             >
-              Back to login
+              Нэвтрэх рүү буцах
             </Link>
           </div>
         </section>

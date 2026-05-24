@@ -21,7 +21,7 @@ const categoryLabel: Record<string, string> = {
   'melody-voice': 'MELODY-VOICE',
   'audio-engineering': 'AUDIO-ENGINEERING',
   basics: 'Үндэс',
-  beats: 'Битийн',
+  beats: 'Beat хийх',
   mixing: 'Миксинг',
   mastering: 'Мастеринг',
 };
@@ -186,9 +186,9 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
     > = {
       'music-production': {
         question:
-          'Rhythm pattern-уудыг хэсэг хэсгээр нь зохион байгуулж ажиллахын гол давуу тал юу вэ?',
+          'Rhythm pattern-уудаа хэсэг хэсгээр нь зохион байгуулахын гол давуу тал юу вэ?',
         options: [
-          'Arrange хийхэд бүтэц, workflow тодорхой болдог',
+          'Arrangement хийхэд бүтэц, ажлын урсгал тодорхой болдог',
           'CPU хэрэглээг 100% зогсоодог',
           'Mastering-ийг автоматаар хийдэг',
           'Вокалыг бүрэн устгадаг',
@@ -199,7 +199,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
         question: 'EQ-г зөв ашиглах үндсэн зорилго юу вэ?',
         options: [
           'Фреквенсийн зөрчлийг цэвэрлэж тэнцвэр гаргах',
-          'Бүх сувгийг ижил loud болгох',
+          'Бүх сувгийг ижил чанга болгох',
           'Pitch-ийг автоматаар засах',
           'Render хурдыг 2x болгох',
         ],
@@ -241,7 +241,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
       id: `lesson-quiz-${lesson.id}`,
       type: 'lesson',
       lessonId: lesson.id,
-      title: `${lessonIndex + 1}-р хичээлийн Self-check`,
+      title: `${lessonIndex + 1}-р хичээлийн өөрийгөө шалгах тест`,
       subtitle: lesson.title,
       passScore: 2,
       questions: [
@@ -250,9 +250,9 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
           question: 'Энэ хичээлийн гол сэдэв аль нь вэ?',
           options: [
             lesson.title,
-            `${course.title}-ийн course summary`,
-            'Final mastering checklist',
-            'Marketplace asset upload',
+            `${course.title}-ийн курсын товч агуулга`,
+            'Mastering-ийн эцсийн checklist',
+            'Маркетплейс рүү asset upload хийх',
           ],
           correctIndex: 0,
         },
@@ -282,15 +282,15 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
     const firstWrongCount = lessonCount + 1;
     const secondWrongCount = Math.max(1, lessonCount - 1);
     const firstTeacher =
-      teacher?.name || teachers.find((item) => item.id !== course.teacherId)?.name || 'Unknown';
+      teacher?.name || teachers.find((item) => item.id !== course.teacherId)?.name || 'Тодорхойгүй';
     const secondTeacher =
       teachers.find((item) => item.id !== course.teacherId && item.name !== firstTeacher)?.name ||
-      'Unknown';
+      'Тодорхойгүй';
 
     return {
       id: `course-quiz-${course.id}`,
       type: 'course',
-      title: 'Бүтэн курсийн Self-check',
+      title: 'Бүтэн курсын өөрийгөө шалгах тест',
       subtitle: `${course.title} - эцсийн шалгалт`,
       passScore: 4,
       questions: [
@@ -307,31 +307,31 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
         },
         {
           id: `${course.id}-cq-category`,
-          question: 'Энэ курсийн ангилал аль нь вэ?',
+          question: 'Энэ курсын ангилал аль нь вэ?',
           options: [
             categoryLabel[course.category] || course.category,
-            'AI Analysis',
-            'Marketplace Design',
-            'Audio Upload',
+            'Mix шинжилгээ',
+            'Маркетплейс дизайн',
+            'Аудио файл нэмэх',
           ],
           correctIndex: 0,
         },
         {
           id: `${course.id}-cq-teacher`,
           question: 'Курсийг хөтөлж буй ментор хэн бэ?',
-          options: [teacher?.name || 'Unknown Mentor', firstTeacher, secondTeacher, 'Guest Mentor'],
+          options: [teacher?.name || 'Тодорхойгүй ментор', firstTeacher, secondTeacher, 'Зочин ментор'],
           correctIndex: 0,
         },
         {
           id: `${course.id}-cq-pricing`,
-          question: 'Энэ курсийн төлбөрийн хэлбэр аль нь вэ?',
+          question: 'Энэ курсын төлбөрийн хэлбэр аль нь вэ?',
           options:
             course.price === 0
-              ? ['Үнэгүй', 'Сарын subscription', 'Нэг удаагийн $99', 'Enterprise only']
+              ? ['Үнэгүй', 'Сарын багц', 'Нэг удаагийн $99', 'Зөвхөн байгууллагад']
               : [
                   'Нэг удаагийн төлбөр',
                   'Үнэгүй',
-                  'Зөвхөн trial хэрэглэгчид',
+                  'Зөвхөн туршилтын хэрэглэгчид',
                   'Зөвхөн байгууллагад',
                 ],
           correctIndex: 0,
@@ -469,12 +469,12 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
     if (activeQuiz.type === 'lesson' && activeQuiz.lessonId) {
       const lessonId = activeQuiz.lessonId;
       setLessonQuizPassedIds((prev) => (prev.includes(lessonId) ? prev : [...prev, lessonId]));
-      toast.success(`Lesson self-check амжилттай (${correct}/${total})`);
+      toast.success(`Хичээлийн тест амжилттай (${correct}/${total})`);
       return;
     }
 
     setCourseQuizPassed(true);
-    toast.success(`Курсийн эцсийн тест амжилттай (${correct}/${total})`);
+    toast.success(`Курсын эцсийн тест амжилттай (${correct}/${total})`);
   };
 
   const handleCloseQuiz = () => {
@@ -500,7 +500,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
         <div className="mx-auto w-full max-w-[1320px] px-4 sm:px-8 lg:px-14">
           {showLockedModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-              <div className="w-full max-w-md rounded-2xl border border-[rgba(245,240,232,0.12)] bg-[#1A1A1A] p-7 sm:p-8">
+              <div className="studio-panel w-full max-w-md rounded-[28px] p-7 sm:p-8">
                 <div className="text-center">
                   <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#C9A84C]/20">
                     <svg
@@ -523,7 +523,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                   </p>
                   <button
                     onClick={handleBuy}
-                    className="mb-3 w-full rounded-xl bg-[#C9A84C] py-3 font-bold text-black transition hover:bg-[#E8C96D]"
+                    className="studio-button mb-3 w-full rounded-xl py-3 font-bold"
                   >
                     {`₮${course.price.toLocaleString()} - Худалдаж авах`}
                   </button>
@@ -540,11 +540,11 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
 
           {showQuizModal && activeQuiz && (
             <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4">
-              <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-[rgba(217,195,138,0.3)] bg-[linear-gradient(165deg,rgba(217,195,138,0.1),rgba(12,13,20,0.98)_48%)]">
+              <div className="studio-panel w-full max-w-2xl overflow-hidden rounded-[28px]">
                 <div className="flex items-start justify-between border-b border-[rgba(245,240,232,0.08)] px-5 py-4 sm:px-7">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a69262]">
-                      Self-check Test
+                      Өөрийгөө шалгах тест
                     </p>
                     <h3 className="mt-1 text-xl font-bold text-[#F5F0E8]">{activeQuiz.title}</h3>
                     <p className="mt-1 text-sm text-[#9c9077]">{activeQuiz.subtitle}</p>
@@ -636,14 +636,14 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
           {currentLesson && (currentLesson.free || alreadyOwned) && (
             <section
               id="active-player"
-              className="mb-8 overflow-hidden rounded-[24px] border border-[rgba(245,240,232,0.1)] bg-[#111118] p-4 sm:p-5"
+              className="studio-panel mb-8 overflow-hidden rounded-[28px] p-4 sm:p-5"
             >
               {!hasVideoCurrentLesson ? (
-                <div className="overflow-hidden rounded-[20px] border border-[rgba(217,195,138,0.22)] bg-[linear-gradient(145deg,rgba(217,195,138,0.12),rgba(12,13,19,0.98)_48%)] p-6 sm:p-7">
+                <div className="studio-card overflow-hidden rounded-[22px] p-6 sm:p-7">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#C9A84C]">
-                        Lesson brief
+                        Хичээлийн товч
                       </p>
                       <h2 className="mt-3 font-display text-[clamp(28px,4vw,44px)] font-black leading-[1.04] text-[#F5F0E8]">
                         {currentLesson.title}
@@ -657,43 +657,43 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                     </button>
                   </div>
                   <p className="mt-4 max-w-2xl text-sm leading-7 text-[#b8ad93] sm:text-base">
-                    Энэ бол Melodex-ийн дотоод lesson card. Гол санаа, хийх exercise, авч үлдэх
-                    takeaway-г эндээс уншаад шууд даалгавраа хийгээд ахицаа тэмдэглэж болно.
+                    Энэ хэсэгт хичээлийн гол санаа, хийх дадлага, авч үлдэх ойлголт байна.
+                    Уншаад даалгавраа хийж, ахицаа тэмдэглээрэй.
                   </p>
                   <div className="mt-6 grid gap-3 sm:grid-cols-3">
                     <div className="rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.04)] p-4">
                       <p className="text-xs uppercase tracking-[0.16em] text-[#8d836f]">Focus</p>
                       <p className="mt-2 text-sm leading-6 text-[#F5F0E8]">
                         {currentLesson.summary ||
-                          'Энэ lesson-ийн үндсэн ойлголтуудыг богино, төвлөрсөн байдлаар судална.'}
+                          'Энэ хичээлийн үндсэн ойлголтуудыг богино, төвлөрсөн байдлаар судална.'}
                       </p>
                     </div>
                     <div className="rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.04)] p-4">
-                      <p className="text-xs uppercase tracking-[0.16em] text-[#8d836f]">Exercise</p>
+                      <p className="text-xs uppercase tracking-[0.16em] text-[#8d836f]">Дадлага</p>
                       <p className="mt-2 text-sm leading-6 text-[#F5F0E8]">
                         {currentLesson.exercise || 'Сонсож, туршиж, өөрийн хувилбараа гарга.'}
                       </p>
                     </div>
                     <div className="rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.04)] p-4">
-                      <p className="text-xs uppercase tracking-[0.16em] text-[#8d836f]">Takeaway</p>
+                      <p className="text-xs uppercase tracking-[0.16em] text-[#8d836f]">Гол санаа</p>
                       <p className="mt-2 text-sm leading-6 text-[#F5F0E8]">
                         {currentLesson.takeaway ||
-                          'Хичээлийн дараа нэг тодорхой санааг авч үлдэнэ.'}
+                          'Хичээлийн дараа нэг тодорхой санаа авч үлдэнэ.'}
                       </p>
                     </div>
                   </div>
                   <div className="mt-6 flex flex-wrap gap-3">
                     <button
                       onClick={handleLessonCompleted}
-                      className="rounded-xl border border-[rgba(201,168,76,0.32)] bg-[rgba(201,168,76,0.12)] px-5 py-3 text-sm font-semibold text-[#E8C96D] transition hover:bg-[rgba(201,168,76,0.2)]"
+                      className="studio-ghost-button rounded-xl px-5 py-3 text-sm font-semibold"
                     >
                       Дууссан гэж тэмдэглэх
                     </button>
                     <button
                       onClick={() => openLessonQuiz(currentLesson)}
-                      className="rounded-xl border border-[rgba(245,240,232,0.14)] px-5 py-3 text-sm font-semibold text-[#d8ccb1] transition hover:border-[rgba(217,195,138,0.35)] hover:text-[#F5F0E8]"
+                      className="studio-ghost-button rounded-xl px-5 py-3 text-sm font-semibold"
                     >
-                      Self-check
+                      Тест өгөх
                     </button>
                   </div>
                 </div>
@@ -701,7 +701,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                 <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
                   <div className="min-w-0">
                     <VideoPlayer videoId={currentLesson.youtubeId || ''} onComplete={() => {}} />
-                    <div className="mt-4 rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[#0f1118] p-4 sm:p-5">
+                    <div className="studio-card mt-4 rounded-2xl p-4 sm:p-5">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a69262]">
@@ -727,20 +727,20 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                       <div className="mt-4 flex flex-wrap items-center gap-2">
                         <button
                           onClick={handleLessonCompleted}
-                          className="rounded-lg border border-[rgba(201,168,76,0.35)] bg-[rgba(201,168,76,0.14)] px-3 py-2 text-sm font-semibold text-[#E8C96D] transition hover:bg-[rgba(201,168,76,0.22)]"
+                          className="studio-ghost-button rounded-lg px-3 py-2 text-sm font-semibold"
                         >
                           Дууссан гэж тэмдэглэх
                         </button>
                         <button
                           onClick={() => openLessonQuiz(currentLesson)}
-                          className="rounded-lg border border-[rgba(245,240,232,0.14)] px-3 py-2 text-sm font-semibold text-[#d8ccb1] transition hover:border-[rgba(217,195,138,0.35)] hover:text-[#F5F0E8]"
+                          className="studio-ghost-button rounded-lg px-3 py-2 text-sm font-semibold"
                         >
-                          Self-check
+                          Тест өгөх
                         </button>
                         {nextLesson && (
                           <button
                             onClick={() => handleLessonClick(nextLesson)}
-                            className="rounded-lg border border-[rgba(245,240,232,0.14)] px-3 py-2 text-sm font-semibold text-[#d8ccb1] transition hover:border-[rgba(217,195,138,0.35)] hover:text-[#F5F0E8]"
+                            className="studio-ghost-button rounded-lg px-3 py-2 text-sm font-semibold"
                           >
                             Дараагийн хичээл →
                           </button>
@@ -749,7 +749,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                     </div>
                   </div>
 
-                  <aside className="h-fit self-start overflow-hidden rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[#0d0f15]">
+                  <aside className="studio-card h-fit self-start overflow-hidden rounded-2xl">
                     <div className="border-b border-[rgba(245,240,232,0.08)] px-4 py-3">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a69262]">
                         Playlist
@@ -801,8 +801,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
           )}
 
           {!hasActiveLesson && (
-            <section className="relative overflow-hidden rounded-[30px] border border-[rgba(217,195,138,0.22)] bg-[linear-gradient(165deg,rgba(217,195,138,0.12),rgba(17,17,24,0.95)_42%)] p-6 sm:p-8">
-              <div className="pointer-events-none absolute right-[-60px] top-[-80px] h-56 w-56 rounded-full bg-[rgba(217,195,138,0.14)] blur-3xl" />
+            <section className="studio-panel rounded-[32px] p-6 sm:p-8">
               <div className="relative grid gap-10 lg:grid-cols-[1fr_360px] lg:gap-12">
                 <div>
                 <div className="text-xs font-bold uppercase tracking-[0.2em] text-[#C9A84C]">
@@ -826,7 +825,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                       <button
                         type="button"
                         onClick={() => setShowTeacherPreview((v) => !v)}
-                        className="group flex flex-1 items-center justify-between rounded-xl border border-[rgba(245,240,232,0.08)] bg-[linear-gradient(135deg,rgba(17,17,24,0.96),rgba(14,15,21,0.96))] p-4 text-left"
+                        className="studio-card group flex flex-1 items-center justify-between rounded-2xl p-4 text-left"
                       >
                         <div className="flex items-center gap-3">
                           <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(201,168,76,0.26)] bg-gradient-to-br from-[#34270f] to-[#1a1406] font-display text-xl text-[#E8C96D]">
@@ -843,7 +842,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                     </div>
 
                     {showTeacherPreview && (
-                      <div className="z-30 mt-3 w-full rounded-2xl border border-[rgba(217,195,138,0.28)] bg-[#0d0f15] p-5 shadow-[0_24px_52px_rgba(0,0,0,0.5)] sm:max-w-[460px] lg:absolute lg:left-[calc(100%+16px)] lg:top-0 lg:mt-0 lg:w-[380px]">
+                      <div className="studio-panel z-30 mt-3 w-full rounded-2xl p-5 sm:max-w-[460px] lg:absolute lg:left-[calc(100%+16px)] lg:top-0 lg:mt-0 lg:w-[380px]">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start gap-3">
                             <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[rgba(217,195,138,0.4)] bg-gradient-to-br from-[#3a2b11] to-[#1a1408] font-display text-2xl text-[#E8C96D]">
@@ -915,14 +914,14 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                   <h2 className="font-display text-xl font-bold text-[#F5F0E8] sm:text-2xl">
                     Хичээлийн агуулга ({course.curriculum.length} хичээл)
                   </h2>
-                  <div className="mt-4 rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[#10121b] p-4">
+                  <div className="studio-card mt-4 rounded-2xl p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a69262]">
-                          Self-check setup
+                          Тестийн тохиргоо
                         </p>
                         <p className="mt-1 text-sm text-[#b8ad93]">
-                          Lesson бүр тест өгөх эсвэл бүтэн курсийн төгсгөлийн нэг тест сонгоно уу.
+                          Хичээл бүрийн тест эсвэл бүтэн курсын төгсгөлийн нэг тестээс сонгоно уу.
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -934,7 +933,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                               : 'border-[rgba(245,240,232,0.14)] text-[#b7aa8d] hover:border-[rgba(217,195,138,0.32)]'
                           }`}
                         >
-                          Lesson бүр
+                          Хичээл бүр
                         </button>
                         <button
                           onClick={() => setSelfCheckMode('final-only')}
@@ -944,35 +943,35 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                               : 'border-[rgba(245,240,232,0.14)] text-[#b7aa8d] hover:border-[rgba(217,195,138,0.32)]'
                           }`}
                         >
-                          Курсийн төгсгөлд
+                          Курсын төгсгөлд
                         </button>
                       </div>
                     </div>
                     <div className="mt-4 grid gap-2 text-sm text-[#c6bda8] sm:grid-cols-3">
                       <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#121522] px-3 py-2">
-                        Дуусгасан lesson: {lessonCompletedIds.length}/{course.curriculum.length}
+                        Дуусгасан хичээл: {lessonCompletedIds.length}/{course.curriculum.length}
                       </p>
                       <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#121522] px-3 py-2">
-                        Lesson тест: {lessonQuizPassedIds.length}/{course.curriculum.length}
+                        Хичээлийн тест: {lessonQuizPassedIds.length}/{course.curriculum.length}
                       </p>
                       <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#121522] px-3 py-2">
-                        Final test: {courseQuizPassed ? 'Тэнцсэн' : 'Өгөөгүй'}
+                        Эцсийн тест: {courseQuizPassed ? 'Тэнцсэн' : 'Өгөөгүй'}
                       </p>
                     </div>
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                       <p className="text-xs text-[#8c816b]">
                         {finalQuizUnlocked
-                          ? 'Final self-check тест нээгдсэн.'
+                          ? 'Эцсийн өөрийгөө шалгах тест нээгдсэн.'
                           : selfCheckMode === 'per-lesson'
-                            ? 'Final тест нээхийн тулд lesson бүрийн тестийг давна уу.'
-                            : 'Final тест нээхийн тулд бүх lesson-ээ дуусгасан гэж тэмдэглэнэ үү.'}
+                            ? 'Эцсийн тест нээхийн тулд хичээл бүрийн тестийг давна уу.'
+                            : 'Эцсийн тест нээхийн тулд бүх хичээлээ дуусгасан гэж тэмдэглэнэ үү.'}
                       </p>
                       <button
                         onClick={openCourseQuiz}
                         disabled={!finalQuizUnlocked}
-                        className="rounded-xl bg-[#C9A84C] px-4 py-2 text-sm font-bold text-[#0A0A0F] transition hover:bg-[#E8C96D] disabled:cursor-not-allowed disabled:opacity-40"
+                        className="studio-button rounded-xl px-4 py-2 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        Бүтэн курсийн тест эхлэх
+                        Бүтэн курсын тест эхлэх
                       </button>
                     </div>
                   </div>
@@ -982,7 +981,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                         <button
                           key={lesson.id}
                           onClick={() => handleLessonClick(lesson)}
-                          className="flex w-full items-center gap-3 rounded-xl border border-[rgba(245,240,232,0.06)] bg-[#111118] p-3.5 text-left transition hover:border-[rgba(201,168,76,0.22)]"
+                          className="flex w-full items-center gap-3 rounded-xl border border-[rgba(245,240,232,0.08)] bg-[rgba(8,9,12,0.36)] p-3.5 text-left transition hover:border-[rgba(201,168,76,0.28)]"
                         >
                           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#18181F] text-xs font-bold text-[#7A7570]">
                             {i + 1}
@@ -1038,7 +1037,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
 
               <aside className="h-fit lg:sticky lg:top-24" id="buy-section">
                 {course.price === 0 ? (
-                  <div className="rounded-2xl border border-[rgba(201,168,76,0.18)] bg-[#111118] p-6">
+                  <div className="studio-card rounded-2xl p-6">
                     <div className="text-center">
                       <div className="font-display text-4xl font-black text-[#C9A84C]">Үнэгүй</div>
                       <p className="mt-2 text-sm text-[#7A7570]">
@@ -1054,14 +1053,14 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                           }
                           if (course.curriculum[0]) setCurrentLesson(course.curriculum[0]);
                         }}
-                        className="mt-6 w-full rounded-xl bg-[#C9A84C] py-3.5 font-bold text-[#0A0A0F] transition hover:bg-[#E8C96D]"
+                        className="studio-button mt-6 w-full rounded-xl py-3.5 font-bold"
                       >
                         {hasActiveLesson ? 'Одоо үзэж байна' : 'Эхлэх'}
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-[rgba(201,168,76,0.18)] bg-[#111118] p-6">
+                  <div className="studio-card rounded-2xl p-6">
                     <div className="text-center">
                       <div className="font-display text-4xl font-black text-[#C9A84C]">
                         ₮{course.price.toLocaleString()}
@@ -1081,14 +1080,14 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                             }
                             if (course.curriculum[0]) setCurrentLesson(course.curriculum[0]);
                           }}
-                          className="w-full rounded-xl bg-[#C9A84C] py-3.5 font-bold text-[#0A0A0F] transition hover:bg-[#E8C96D]"
+                          className="studio-button w-full rounded-xl py-3.5 font-bold"
                         >
                           {hasActiveLesson ? 'Одоо үзэж байна' : 'Үзэж эхлэх'}
                         </button>
                       ) : (
                         <button
                           onClick={handleBuy}
-                          className="w-full rounded-xl bg-[#C9A84C] py-3.5 font-bold text-[#0A0A0F] transition hover:bg-[#E8C96D]"
+                          className="studio-button w-full rounded-xl py-3.5 font-bold"
                         >
                           Худалдаж авах
                         </button>
@@ -1109,7 +1108,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
 
                     <div className="mt-5 rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0f1118] p-4">
                       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#a69262]">
-                        Төлбөрийн хэсэг (Demo)
+                        Төлбөрийн хэсэг (туршилт)
                       </p>
                       <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[11px]">
                         <span className="rounded-lg border border-[rgba(245,240,232,0.12)] bg-[rgba(245,240,232,0.03)] px-2 py-1.5 text-[#d9cfb6]">
@@ -1125,15 +1124,15 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
 
                       <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-[#9c9077]">
                         <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#11141d] px-2.5 py-2">
-                          Үнэгүй preview: {freeLessonsCount}
+                          Үнэгүй урьдчилсан үзэлт: {freeLessonsCount}
                         </p>
                         <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#11141d] px-2.5 py-2">
-                          Төлбөртэй lesson: {paidLessonsCount}
+                          Төлбөртэй хичээл: {paidLessonsCount}
                         </p>
                       </div>
 
                       <p className="mt-3 text-xs leading-5 text-[#7f7564]">
-                        Сургалтын туршилтын горим: “Худалдаж авах” дармагц хандалт идэвхжинэ.
+                        Сургалтын туршилтын горимд худалдаж авах товч дармагц хандалт идэвхжинэ.
                       </p>
                     </div>
                   </div>
@@ -1144,11 +1143,11 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
           )}
 
           {hasActiveLesson && nextCourses.length > 0 && (
-            <section className="mt-8 rounded-[24px] border border-[rgba(245,240,232,0.1)] bg-[#111118] p-5 sm:p-6">
+            <section className="studio-panel mt-8 rounded-[28px] p-5 sm:p-6">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a69262]">
-                    Continue learning
+                    Үргэлжлүүлэн сурах
                   </p>
                   <h2 className="mt-2 font-display text-2xl font-bold text-[#F5F0E8]">
                     Дараагийн курсууд
@@ -1179,7 +1178,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                         {item.title}
                       </h3>
                       <p className="mt-2 text-xs text-[#8d836f]">
-                        {item.curriculum.length} хичээл • preview {previewCount}
+                        {item.curriculum.length} хичээл • урьдчилсан үзэлт {previewCount}
                       </p>
                       <p className="mt-3 font-semibold text-[#C9A84C]">
                         {item.price === 0 ? 'Үнэгүй' : `₮${item.price.toLocaleString()}`}

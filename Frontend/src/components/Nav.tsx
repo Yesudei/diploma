@@ -51,60 +51,50 @@ export default function Nav() {
 
   return (
     <nav
-      className="fixed left-0 top-0 z-[100] flex h-[72px] w-full items-center justify-between px-[60px]"
-      style={{
-        background: 'linear-gradient(to bottom, rgba(12,12,11,0.95) 60%, transparent)',
-        borderBottom: '0.5px solid rgba(201,169,78,0.08)',
-      }}
+      className="fixed left-0 top-0 z-[100] flex h-[76px] w-full items-center justify-center px-4 sm:px-6 lg:px-10"
     >
-      <Link href="/" className="flex items-center gap-3">
-        <span className="nav-logo-icon" aria-hidden />
-        <span
-          className="text-[22px] uppercase text-[var(--gold)]"
-          style={{ fontFamily: 'var(--font-bebas)', letterSpacing: '0.12em' }}
-        >
-          MELODEX
-        </span>
-      </Link>
-
-      <ul className="flex items-center gap-8">
-        {navItems.map((item) => (
-          <li key={item.href}>
-            <Link
-              href={item.href}
-              className="transition-colors duration-200 hover:text-[var(--gold)]"
-              style={{
-                fontSize: '13px',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'var(--text-muted)',
-              }}
-            >
-              {item.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      {user ? (
-        <Link
-          href="/dashboard"
-          aria-label="Миний самбар"
-          className="grid h-9 w-9 place-items-center rounded-full text-[13px] font-medium"
-          style={{ background: 'var(--gold)', color: '#0c0c0b', cursor: 'pointer' }}
-        >
-          {userInitial}
+      <div className="studio-panel flex h-14 w-full max-w-[1320px] items-center justify-between rounded-full px-3 pl-4 sm:px-4">
+        <Link href="/" className="group flex items-center gap-3">
+          <span className="nav-logo-icon transition-transform duration-200 group-hover:scale-105" aria-hidden />
+          <span
+            className="text-[22px] uppercase text-[var(--gold)]"
+            style={{ fontFamily: 'var(--font-bebas)', letterSpacing: '0.12em' }}
+          >
+            MELODEX
+          </span>
         </Link>
-      ) : (
-        <Link
-          href="/auth/login"
-          aria-label="Нэвтрэх"
-          className="inline-flex items-center justify-center px-4 py-2 text-[13px] font-medium uppercase"
-          style={{ background: 'var(--gold)', color: '#0c0c0b', letterSpacing: '0.08em' }}
-        >
-          Нэвтрэх
-        </Link>
-      )}
+
+        <ul className="hidden items-center rounded-full border border-[rgba(245,240,232,0.08)] bg-[rgba(8,9,12,0.48)] px-2 py-1 md:flex">
+          {navItems.map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className="block rounded-full px-4 py-2 text-[12px] uppercase tracking-[0.08em] text-[var(--text-muted)] transition-colors duration-200 hover:bg-[rgba(201,169,78,0.08)] hover:text-[var(--gold-light)]"
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        {user ? (
+          <Link
+            href="/dashboard"
+            aria-label="Миний самбар"
+            className="studio-button grid h-10 w-10 place-items-center rounded-full text-[13px] font-bold"
+          >
+            {userInitial}
+          </Link>
+        ) : (
+          <Link
+            href="/auth/login"
+            aria-label="Нэвтрэх"
+            className="studio-button inline-flex items-center justify-center rounded-full px-5 py-2 text-[12px] font-bold uppercase tracking-[0.08em]"
+          >
+            Нэвтрэх
+          </Link>
+        )}
+      </div>
     </nav>
   );
 }

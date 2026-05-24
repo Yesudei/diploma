@@ -954,7 +954,7 @@ export default function AdminPage() {
                             />
                           </div>
                           <div className="sm:col-span-2">
-                            <label className="mb-1 block text-xs text-[#8f8779]">Exercise</label>
+                            <label className="mb-1 block text-xs text-[#8f8779]">Дадлага</label>
                             <input
                               value={lesson.exercise}
                               onChange={(e) => updateLesson(index, 'exercise', e.target.value)}
@@ -963,7 +963,7 @@ export default function AdminPage() {
                             />
                           </div>
                           <div className="sm:col-span-2">
-                            <label className="mb-1 block text-xs text-[#8f8779]">Takeaway</label>
+                            <label className="mb-1 block text-xs text-[#8f8779]">Гол санаа</label>
                             <input
                               value={lesson.takeaway}
                               onChange={(e) => updateLesson(index, 'takeaway', e.target.value)}
@@ -976,7 +976,7 @@ export default function AdminPage() {
                     ))}
                     {lessons.length === 0 && (
                       <p className="py-6 text-center text-sm text-[#8f8779]">
-                        No lessons yet. Click "+ Add lesson" to start.
+                        Хичээл хараахан нэмэгдээгүй байна. + Хичээл нэмэх товчоор эхлээрэй.
                       </p>
                     )}
                   </div>

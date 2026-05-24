@@ -11,13 +11,13 @@
   \item нүүр хуудас, курсийн каталог, курсийн дэлгэрэнгүй, хичээлийн тоглуулагч;
   \item үнэгүй болон төлбөртэй хичээл ялгарах байдал;
   \item хяналтын самбар, төлбөрийн хуудас, админ чиглэлийн урсгал;
-  \item \texttt{/api/chat} зам болон чатботын UI;
-  \item RAG өгөгдлийн багцын бүтэц, хэмжээ, эх сурвалжийн мета өгөгдөл;
+  \item \texttt{/api/ai-chat} зам болон Studio mentor чатботын UI;
+  \item Qdrant-д хадгалсан RAG өгөгдлийн багцын бүтэц, хэмжээ, эх сурвалжийн мета өгөгдөл;
   \item локал хөгжүүлэлтийн тохиргооны давтагдах боломж.
 \end{itemize}
 
 \section{Туршилтын орчин}
-Платформыг гэрийн компьютер дээр локал хөгжүүлэлтийн хэлбэрээр ажиллуулж шалгасан. Фронтенд талд Next.js хөгжүүлэлтийн сервер ажиллаж, хөтчөөр \texttt{http://localhost:3000} хаягаар хандсан. AI чатбот нь локал JSONL өгөгдлийн багц уншиж, \texttt{CHAT\_PROVIDER} тохиргооноос хамааран Ollama, Gemini эсвэл OpenAI-compatible үйлчилгээ үзүүлэгч ашиглах боломжтой.
+Платформыг гэрийн компьютер дээр локал хөгжүүлэлтийн хэлбэрээр ажиллуулж шалгасан. Фронтенд талд Next.js хөгжүүлэлтийн сервер ажиллаж, хөтчөөр \texttt{http://localhost:3000} хаягаар хандсан. Studio mentor чатбот нь browser-оос зөвхөн \texttt{/api/ai-chat} замыг дуудаж, сервер талд Ollama болон Qdrant-тэй харилцана. Ингэснээр төлбөртэй API эсвэл үүлэн үйлчилгээ ашиглахгүйгээр RAG хариулт үүсгэх боломжтой болсон.
 
 \begin{longtable}{|p{0.24\textwidth}|p{0.34\textwidth}|p{0.28\textwidth}|}
   \caption{Туршилтын орчны тохиргоо}
@@ -27,9 +27,9 @@
   Фронтенд & Next.js хөгжүүлэлтийн сервер, Chrome хөтөч & UI болон хэрэглэгчийн урсгал шалгах \\ \hline
   Ажиллах орчин & Node.js, npm & Project build/dev script ажиллуулах \\ \hline
   Өгөгдлийн сан & Supabase schema SQL & Хүснэгт, RLS, худалдан авалт/ахицын бүтэц баталгаажуулах \\ \hline
-  AI зам & \texttt{/api/chat} & Чат хүсэлт, нөөц хариу, хариултын мета өгөгдөл шалгах \\ \hline
-  Өгөгдлийн багц & \texttt{rag\_ready\_mn.jsonl} & Сэргээн хайх контекст болон эх сурвалжийн мета өгөгдөл шалгах \\ \hline
-  Локал загварын хувилбар & Ollama + \texttt{qwen3:0.6b} & Интернэт эсвэл төлбөртэй API-гүй demo хийх боломж \\ \hline
+  AI зам & \texttt{/api/ai-chat} & Чат хүсэлт, эх сурвалжтай хариу, refusal behavior шалгах \\ \hline
+  Өгөгдлийн багц & Seed JSON + generated JSONL + Qdrant collection & Сэргээн хайх контекст болон эх сурвалжийн мета өгөгдөл шалгах \\ \hline
+  Локал загварын хувилбар & Ollama \texttt{qwen3:8b} + \texttt{bge-m3} & Интернэт эсвэл төлбөртэй API-гүй demo хийх боломж \\ \hline
 \end{longtable}
 
 \section{Шалгах арга}
@@ -43,9 +43,9 @@
   Нүүр хуудас & \texttt{/} нээж layout, navigation, CTA шалгах & Платформын үнэ цэнэ ойлгомжтой харагдана \\ \hline
   Курсийн каталог & Хайлт/шүүлт/эрэмбэ болон курсийн карт шалгах & Курс сонгох боломжтой байна \\ \hline
   Курсийн дэлгэрэнгүй & \texttt{/courses/[slug]} нээж хичээлийн жагсаалт, түгжээтэй төлөв шалгах & Үнэгүй/төлбөртэй хичээл ялгаатай харагдана \\ \hline
-  Чатботын UI & \texttt{/chat} дээр асуулт илгээх & AI туслах хариу харуулна \\ \hline
-  Чатын API & \texttt{/api/chat} POST хүсэлт илгээх & JSON хэлбэрээр хариулт, үйлчилгээ үзүүлэгч, загвар, эх сурвалж буцаана \\ \hline
-  Өгөгдлийн багц & Бэлэн тайлан, JSONL schema шалгах & 4952 бичлэг уншигдах боломжтой байна \\ \hline
+  Чатботын UI & \texttt{/chat} дээр асуулт илгээх & Studio mentor эх сурвалжтай хариу харуулна \\ \hline
+  Чатын API & \texttt{/api/ai-chat} POST хүсэлт илгээх & JSON хэлбэрээр \texttt{answer} болон \texttt{sources} буцаана \\ \hline
+  Өгөгдлийн багц & Seed JSON, generated JSONL, ingestion log шалгах & 2020 бичлэг Qdrant collection-д орох боломжтой байна \\ \hline
   Build quality & Type-check, build, LaTeX build ажиллуулах & Compile алдаа багасна \\ \hline
 \end{longtable}
 
@@ -86,16 +86,16 @@
 Зураг \ref{fig:ch4-course-detail}-д эхний хичээл идэвхтэй, дараагийн зарим хичээл түгжээтэй төлөвтэй харагдаж байна. Энэ нь үнэгүй танилцах хэсэг болон төлбөртэй хандалтыг ялгах шаардлагыг UI түвшинд харуулж байгаа бөгөөд цаашид Supabase худалдан авалтын бичлэг болон RLS бодлогоор өгөгдлийн сангийн түвшинд баталгаажих ёстой.
 
 \section{Чатботын туршилт}
-Чатботын фронтенд нь \texttt{/chat} зам дээр байрлаж, хэрэглэгчийн асуултыг \texttt{/api/chat} руу илгээдэг. API зам нь зурвас шалгах, RAG сэргээн хайлт хийх, зааварчилгаа бүрдүүлэх, үйлчилгээ үзүүлэгчийн хийсвэрлэл, нөөц хариуны логик гэсэн дарааллаар ажиллана. Туршилтад limiter-ийн dynamic range алдагдах тухай асуулт ашигласан.
+Чатботын фронтенд нь \texttt{/chat} зам дээр байрлаж, хэрэглэгчийн асуултыг \texttt{/api/ai-chat} руу илгээдэг. API зам нь зурвас шалгах, Монгол кирилл болон латин бичлэгийг normalization хийх, Ollama \texttt{bge-m3} embedding үүсгэх, Qdrant collection-оос top 5 chunk хайх, grounded prompt бүрдүүлэх, Ollama \texttt{qwen3:8b} загвараар хариу үүсгэх гэсэн дарааллаар ажиллана. Туршилтад \textit{``kick bolon 808 hoorondoo murulduud bn yaj zasah ve?''} гэсэн beginner production асуулт ашигласан.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\textwidth]{Figures/screenshots/chat-answer.png}
-  \caption[Чатботын хариуны дэлгэцийн зураг]{Чатботын limiter dynamic range асуултад өгсөн хариу}
+  \caption[Чатботын хариуны дэлгэцийн зураг]{Studio mentor-ийн kick болон 808 давхцах асуултад өгсөн хариу}
   \label{fig:ch4-chat-answer}
 \end{figure}
 
-Зураг \ref{fig:ch4-chat-answer}-д хэрэглэгчийн асуулт болон чатботын хариу харагдаж байна. Энэ жишээнд API замын дүрэмд суурилсан нөөц хариу ажиллаж, provider нь \texttt{local-rule}, model нь \texttt{rule-based-fallback} утгатай мета өгөгдөл буцаасан. Үүний давуу тал нь локал LLM үйлчилгээ үзүүлэгч түр ажиллахгүй үед ч нийтлэг mixing/mastering асуултад demo тасрахгүй хариу өгөх боломжтой юм.
+Зураг \ref{fig:ch4-chat-answer}-д хэрэглэгчийн асуулт болон чатботын хариу харагдаж байна. Энэ жишээнд латин бичлэгтэй асуулт normalization хийгдэж, Qdrant-аас \textit{808 bass ба kick давхцах үед}, \textit{Kick-ийг punchy болгох}, \textit{EQ гэж юу вэ} зэрэг ойролцоо chunk сэргээгдэнэ. Хариулт нь retrieved context-д тулгуурлан kick болон 808 хоёрын low frequency давхцах асуудлыг тайлбарлаж, EQ, sidechain compression, level balance зэрэг практик алхмыг Монгол хэлээр санал болгодог.
 
 \begin{table}[htbp]
   \centering
@@ -104,32 +104,31 @@
   \begin{tabular}{|p{0.26\textwidth}|p{0.58\textwidth}|}
     \hline
     \textbf{Талбар} & \textbf{Буцсан утга} \\ \hline
-    Асуулт & Master дээр limiter dynamic range алдагдуулаад байна \\ \hline
-    Provider & \texttt{local-rule} \\ \hline
-    Model & \texttt{rule-based-fallback} \\ \hline
-    Үр дүн & Threshold, gain reduction, output ceiling, attack/release, clipper/bus compression ашиглах талаар богино практик зөвлөгөө өгсөн \\ \hline
+    Асуулт & kick bolon 808 hoorondoo murulduud bn yaj zasah ve? \\ \hline
+    API & \texttt{/api/ai-chat} \\ \hline
+    Загварууд & \texttt{bge-m3} embedding, \texttt{qwen3:8b} chat \\ \hline
+    Үр дүн & 808 ба kick нэг low frequency хэсэгт давхцахыг тайлбарлаж, EQ cut, sidechain compression, level balance хийх алхам өгсөн \\ \hline
   \end{tabular}
 \end{table}
 
-Чатботын бүрэн үйлчилгээ үзүүлэгчийн зам нь Ollama, Gemini, OpenAI-compatible гэсэн гурван хувилбартай. Гэрийн компьютерийн demo-д \texttt{qwen3:0.6b} загвар бага нөөц ашиглан локал туршилт хийхэд зориулагдсан. Харин илүү тогтвортой чанартай хариу шаардлагатай үед Gemini эсвэл OpenAI-compatible үйлчилгээ үзүүлэгч ашиглах боломжтой.
+Контекст хангалтгүй үед чатбот нь өөрөө мэдэж байгаа мэт зохиож хариулахгүй байх дүрэмтэй. Prompt-д ``Энэ асуултад хангалттай мэдээлэл миний сургалтын сангаас олдсонгүй.'' гэсэн refusal өгүүлбэрийг зааж, сургалтын сангаас олдсон chunk-уудыг үндсэн эх сурвалж болгохоор хязгаарласан.
 
 \section{Өгөгдлийн багцын үр дүн}
-Бэлэн RAG өгөгдлийн багцын тайлангаар нийт 4952 бичлэг бэлтгэгдсэн. Үүнээс 4950 нь generated/internal guidance, 2 нь эх сурвалжид тулгуурласан буюу citation-safe бичлэг байна. Ангиллын хувьд өгөгдлийн багц нь одоогоор Mixing болон Mastering чиглэлд төвлөрсөн.
+Одоогийн RAG өгөгдлийн багц нь 20 seed chunk болон 2000 generated JSONL chunk буюу нийт 2020 сургалтын бичлэгээс бүрдэнэ. Seed өгөгдөл нь үндсэн 20 beginner topic-ийг баталгаатай хамрах зорилготой, харин generated бичлэг нь FL Studio, beat making, drums, 808, melody, harmony, EQ, compression, mixing, mastering зэрэг ангиллын асуултад илүү өргөн контекст өгөх зорилготой. \texttt{npm run rag:ingest} script эдгээр бичлэгийг \texttt{bge-m3} embedding болгон Qdrant-ийн \texttt{music\_lessons\_rag} collection-д хадгална.
 
 \begin{longtable}{|p{0.24\textwidth}|p{0.26\textwidth}|p{0.34\textwidth}|}
   \caption{RAG өгөгдлийн багцын туршилтын дүн}
   \label{tab:ch4-dataset-result}\\
   \hline
   \textbf{Үзүүлэлт} & \textbf{Дүн} & \textbf{Тайлбар} \\ \hline
-  Нийт бичлэг & 4952 & JSONL болон CSV хэлбэрээр экспортлогдсон \\ \hline
-  Mixing & 4450 & Өгөгдлийн багцын гол хэсэг \\ \hline
-  Mastering & 500 & Limiter, loudness, final chain зэрэг сэдэвт ашиглагдана \\ \hline
-  FL Studio Basics & 1 & Цаашид нэмэх шаардлагатай \\ \hline
-  Music Theory & 1 & Цаашид нэмэх шаардлагатай \\ \hline
-  Citation-safe & 2 & Академик эшлэлд шууд ашиглах боломжтой бичлэг цөөн \\ \hline
+  Нийт бичлэг & 2020 & 20 seed JSON бичлэг, 2000 generated JSONL бичлэг \\ \hline
+  Seed coverage & 20 topic & DAW, FL Studio, BPM, beat structure, drums, kick, snare, 808, melody, chord, scale, EQ, compression, reverb, delay, mixing, mastering, arrangement, export \\ \hline
+  Generated coverage & 2000 chunk & Beginner-friendly Монгол тайлбар, латин keyword tag-уудтай \\ \hline
+  Vector storage & Qdrant collection & Cosine similarity ашиглан top 5 context сэргээнэ \\ \hline
+  Citation-safe хяналт & Human review шаардлагатай & Generated guidance-ийг албан эх сурвалж мэт харуулахгүй \\ \hline
 \end{longtable}
 
-Энэ үр дүнгээс харахад чатботын домайн хамрах хүрээ mixing/mastering дээр боломжийн боловч FL Studio basics болон music theory хэсгийн эх сурвалжид тулгуурласан бичлэг хангалтгүй байна. Иймээс дараагийн сайжруулалтад Image-Line manual, хөгжмийн онолын найдвартай эх сурвалж, багшийн сонгож баталгаажуулсан хичээлийн тэмдэглэлээс богино citation-safe бичлэг нэмж, synthetic бичлэгийг тусад нь ялгаж хадгалах шаардлагатай.
+Энэ үр дүнгээс харахад чатботын домайн хамрах хүрээ өмнөх mixing/mastering төвтэй өгөгдлөөс илүү өргөн болж, beginner FL Studio болон beat-making асуултад тохирох контекст нэмэгдсэн. Гэхдээ production хэрэглээнд оруулахын өмнө generated бичлэгүүдийг багшийн review-д оруулж, Image-Line manual, хөгжмийн онолын найдвартай эх сурвалж, өөрийн курсийн баталгаажсан тэмдэглэлээс citation-safe chunk нэмж баяжуулах шаардлагатай.
 
 \section{Шаардлага ба үр дүнгийн уялдаа}
 Туршилтын үр дүнг нэгдүгээр бүлгийн шаардлагуудтай холбон нэгтгэв.
@@ -142,8 +141,8 @@
   Курс сонгох урсгал & Каталогийн дэлгэцийн зураг, замын шалгалт & Курсийн жагсаалт, карт, үнэ, түвшин харагдаж байна \\ \hline
   Хичээлийн хандалт & Курсийн дэлгэрэнгүй дэлгэцийн зураг & Үнэгүй/төлбөртэй хичээлийн түгжээтэй төлөв ялгарч байна \\ \hline
   Ахицын чиглэл & Дуусгах товч, хяналтын самбарын бүтэц & MVP түвшинд ахиц хадгалах урсгал бэлэн \\ \hline
-  AI зөвлөгч & Чатын дэлгэцийн зураг, API хариу & Нийтлэг mixing/mastering асуултад хариу өгч байна \\ \hline
-  Өгөгдлийн багцын дамжлага & Бэлэн тайлан & 4952 бичлэг бүхий RAG өгөгдлийн багц бэлтгэгдсэн \\ \hline
+  AI зөвлөгч & Чатын дэлгэцийн зураг, API хариу & Латин/кирилл Монгол асуултад эх сурвалжтай RAG хариу өгч байна \\ \hline
+  Өгөгдлийн багцын дамжлага & Seed/generation/ingestion script & 2020 бичлэг бүхий RAG өгөгдөл Qdrant-д орох боломжтой болсон \\ \hline
   Аюулгүй байдлын чиглэл & Supabase schema, RLS policy & Хэрэглэгч эзэмшдэг өгөгдлийг хамгаалах өгөгдлийн сангийн суурь бүрдсэн \\ \hline
 \end{longtable}
 
@@ -152,13 +151,13 @@
 \begin{itemize}
   \item курсийн өгөгдөл static seed болон Supabase table хоёрт зэрэг байрлаж байгаа тул нэг үндсэн эх сурвалжтай болгох;
   \item төлбөрийн урсгал simulation түвшинд байгаа тул бодит gateway, webhook, receipt validation нэмэх;
-  \item RAG retrieval нь lexical scoring ашиглаж байгаа тул semantic search буюу embedding/pgvector нэмэх;
-  \item citation-safe өгөгдлийн бичлэг цөөн тул албан болон багшийн баталгаажуулсан эх сурвалж нэмэх;
+  \item RAG retrieval нь semantic search болсон боловч ranking evaluation, hybrid search, regression test нэмэх;
+  \item generated өгөгдөл их тул албан болон багшийн баталгаажуулсан citation-safe эх сурвалж нэмэх;
   \item automated end-to-end test, security policy test, load test нэмэх;
-  \item локал LLM үйлчилгээ үзүүлэгч ажиллахгүй үед нөөц хариу ажиллах боловч бүх асуултад бүрэн хангалттай биш.
+  \item локал Ollama болон Qdrant service ажиллахгүй үед чатбот clean error буцаах боловч хариу үүсгэх боломжгүй.
 \end{itemize}
 
 \section{Бүлгийн дүгнэлт}
-Дөрөвдүгээр бүлгээр платформын гол ажиллагааг локал орчинд шалгаж, нүүр хуудас, курсийн каталог, хичээлийн дэлгэрэнгүй, чатботын хариу, өгөгдлийн багцын тайлан зэрэг үр дүнг баримтжууллаа. Туршилтаас харахад платформ нь FL Studio болон хөгжим боловсруулалт суралцагчдад зориулсан сургалтын үндсэн урсгалыг харуулж чадаж байна: хэрэглэгч курс сонгох, хичээл үзэх, төлбөртэй хандалтын ялгаа харах, AI туслахаас зөвлөгөө авах боломжтой.
+Дөрөвдүгээр бүлгээр платформын гол ажиллагааг локал орчинд шалгаж, нүүр хуудас, курсийн каталог, хичээлийн дэлгэрэнгүй, Studio mentor чатботын хариу, Qdrant RAG өгөгдлийн багцын үр дүнг баримтжууллаа. Туршилтаас харахад платформ нь FL Studio болон хөгжим боловсруулалт суралцагчдад зориулсан сургалтын үндсэн урсгалыг харуулж чадаж байна: хэрэглэгч курс сонгох, хичээл үзэх, төлбөртэй хандалтын ялгаа харах, RAG туслахаас эх сурвалжтай зөвлөгөө авах боломжтой.
 
-Үр дүнгийн хувьд фронтенд MVP, Supabase schema, RAG өгөгдлийн багц, chat API, локал тохиргоо бүрдсэн. Харин production түвшинд хүргэхийн тулд өгөгдлийн багцын эх сурвалжийн чанар, semantic retrieval, payment integration, automated testing болон admin CRUD-г дараагийн хөгжүүлэлтийн гол чиглэл болгох шаардлагатай.
+Үр дүнгийн хувьд фронтенд MVP, Supabase schema, локал Ollama/Qdrant RAG, \texttt{/api/ai-chat} API, өгөгдөл үүсгэх болон ingestion script, studio-style UI refresh бүрдсэн. Харин production түвшинд хүргэхийн тулд өгөгдлийн багцын эх сурвалжийн чанар, retrieval evaluation, payment integration, automated testing болон admin CRUD-г дараагийн хөгжүүлэлтийн гол чиглэл болгох шаардлагатай.

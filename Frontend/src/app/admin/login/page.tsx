@@ -224,7 +224,7 @@ export default function AdminLoginPage() {
                   href="/auth/forgot-password"
                   className="text-sm font-semibold text-[#C9A84C] transition hover:text-[#E8C96D]"
                 >
-                  Forgot password?
+                  Нууц үгээ мартсан уу?
                 </Link>
               </div>
             </div>

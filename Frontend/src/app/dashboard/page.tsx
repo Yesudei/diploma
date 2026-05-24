@@ -16,7 +16,7 @@ const tabs: Array<{ id: 'courses' | 'upload' | 'files' | 'analysis'; label: stri
   { id: 'courses', label: 'Миний хичээл' },
   { id: 'upload', label: 'Файл нэмэх' },
   { id: 'files', label: 'Миний файлууд' },
-  { id: 'analysis', label: 'AI анализ' },
+  { id: 'analysis', label: 'Mix шинжилгээ' },
 ];
 
 export default function DashboardPage() {
@@ -94,11 +94,11 @@ export default function DashboardPage() {
       const allowedFormats = ['.wav', '.mp3', '.flac', '.ogg', '.midi'];
       const fileExt = '.' + file.name.split('.').pop()?.toLowerCase();
       if (!allowedFormats.includes(fileExt)) {
-        toast.error(`Unsupported format. Allowed: ${allowedFormats.join(', ')}`);
+        toast.error(`Дэмжихгүй формат. Боломжтой: ${allowedFormats.join(', ')}`);
         return;
       }
       if (file.size > 50 * 1024 * 1024) {
-        toast.error('File size must be less than 50MB');
+        toast.error('Файлын хэмжээ 50MB-аас бага байх ёстой');
         return;
       }
       setSelectedFile(file);
@@ -107,20 +107,20 @@ export default function DashboardPage() {
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      toast.error('Please select a file');
+      toast.error('Файлаа сонгоно уу');
       return;
     }
 
     setIsUploading(true);
     try {
       await apiService.uploadAudio(selectedFile);
-      toast.success('Audio uploaded successfully!');
+      toast.success('Аудио файл нэмэгдлээ!');
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       await loadData();
       setActiveTab('files');
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Upload failed';
+      const message = error instanceof Error ? error.message : 'Файл нэмэхэд алдаа гарлаа';
       toast.error(message);
     } finally {
       setIsUploading(false);
@@ -129,20 +129,20 @@ export default function DashboardPage() {
 
   const handleAnalyze = async () => {
     if (!selectedAnalysisFileId) {
-      toast.error('Анализ хийх файлаа сонгоно уу');
+      toast.error('Шинжилгээ хийх файлаа сонгоно уу');
       return;
     }
 
     setIsAnalyzing(true);
     try {
-      toast.info('Analyzing audio...');
+      toast.info('Аудио шинжилж байна...');
       await apiService.analyzeAudio(selectedAnalysisFileId);
-      toast.success('Analysis complete!');
+      toast.success('Шинжилгээ дууслаа!');
       await loadData();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Analysis failed';
+      const message = error instanceof Error ? error.message : 'Шинжилгээ амжилтгүй боллоо';
       toast.error(message);
-} finally {
+    } finally {
       setIsAnalyzing(false);
     }
   };
@@ -158,48 +158,48 @@ export default function DashboardPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(201,168,76,0.08),transparent_35%),#0A0A0F] pb-16 pt-24 sm:pt-28">
+      <main className="min-h-screen bg-[#0A0A0F] pb-16 pt-24 sm:pt-28">
         <div className="mx-auto w-full max-w-[1320px] px-4 sm:px-8 lg:px-14">
-          <section className="grid items-start gap-7 lg:grid-cols-[1.1fr_0.9fr]">
+          <section className="studio-panel grid items-start gap-7 rounded-[32px] p-6 sm:p-8 lg:grid-cols-[1.1fr_0.9fr]">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#a49368]">
                 Таны самбар
               </p>
               <h1 className="mt-3 font-display text-[clamp(30px,4vw,48px)] font-black leading-[1.05] text-[#F5F0E8]">
-                Тавтай морил, {user.email?.split('@')[0]}
+                Тавтай морилно уу, {user.email?.split('@')[0]}
               </h1>
               <p className="mt-3 max-w-[620px] text-sm leading-7 text-[#b8ad93] sm:text-base">
-                Хичээлээ үргэлжлүүлж, аудио файлуудаа удирдаж, AI анализ болон ментортой чатаа нэг
+                Хичээлээ үргэлжлүүлж, аудио файлуудаа удирдаж, mix шинжилгээ болон ментортой чатаа нэг
                 дороос хянаарай.
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-              <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-4">
+              <div className="rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.04)] p-4">
                 <p className="font-display text-2xl font-black text-[#F5F0E8]">{courses.length}</p>
                 <p className="mt-1 text-xs text-[#8f8779]">Нийт курс</p>
               </div>
-              <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-4">
+              <div className="rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.04)] p-4">
                 <p className="font-display text-2xl font-black text-[#F5F0E8]">
                   {audioFiles.length}
                 </p>
                 <p className="mt-1 text-xs text-[#8f8779]">Аудио файл</p>
               </div>
-              <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-4">
+              <div className="rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.04)] p-4">
                 <p className="font-display text-2xl font-black text-[#F5F0E8]">
                   {analysisResults.length}
                 </p>
-                <p className="mt-1 text-xs text-[#8f8779]">AI анализ</p>
+                <p className="mt-1 text-xs text-[#8f8779]">Mix шинжилгээ</p>
               </div>
             </div>
           </section>
 
-          <section className="mt-8 border-b border-[rgba(245,240,232,0.08)] pb-3">
+          <section className="mt-8">
             <div className="sm:hidden">
               <select
                 value={activeTab}
                 onChange={(e) => setActiveTab(e.target.value as typeof activeTab)}
-                className="w-full rounded-lg border border-[rgba(245,240,232,0.12)] bg-[#111118] px-3 py-2 text-sm text-[#F5F0E8]"
+                className="studio-select w-full rounded-xl px-3 py-2 text-sm"
               >
                 {tabs.map((tab) => (
                   <option key={tab.id} value={tab.id}>
@@ -209,15 +209,15 @@ export default function DashboardPage() {
               </select>
             </div>
 
-            <div className="hidden gap-5 sm:flex">
+            <div className="studio-panel hidden gap-1 rounded-full p-1 sm:inline-flex">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`border-b-2 pb-2 text-sm font-medium transition ${
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                     activeTab === tab.id
-                      ? 'border-[#C9A84C] text-[#E8C96D]'
-                      : 'border-transparent text-[#8a857e] hover:text-[#F5F0E8]'
+                      ? 'bg-[rgba(201,168,76,0.16)] text-[#E8C96D]'
+                      : 'text-[#8a857e] hover:bg-white/[0.04] hover:text-[#F5F0E8]'
                   }`}
                 >
                   {tab.label}
@@ -228,13 +228,13 @@ export default function DashboardPage() {
 
           {activeTab === 'courses' && (
             <section className="mt-8">
-              <h2 className="font-display text-2xl font-bold text-[#F5F0E8]">Миний Хичээлүүд</h2>
+              <h2 className="font-display text-2xl font-bold text-[#F5F0E8]">Миний хичээлүүд</h2>
               <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {courses.map((course) => (
                   <Link
                     key={course.id}
                     href={`/courses/${course.slug}`}
-                    className="group rounded-xl border border-[rgba(245,240,232,0.06)] bg-[#111118] p-5 transition-all hover:-translate-y-1 hover:border-[rgba(201,168,76,0.3)]"
+                    className="studio-card group rounded-2xl p-5"
                   >
                     <div className="mb-2 text-xs font-bold uppercase tracking-wider text-[#9e8d63]">
                       {course.category}
@@ -255,10 +255,10 @@ export default function DashboardPage() {
           )}
 
           {activeTab === 'upload' && (
-            <section className="mx-auto mt-8 w-full max-w-2xl rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-6 sm:p-8">
+            <section className="studio-panel mx-auto mt-8 w-full max-w-2xl rounded-[28px] p-6 sm:p-8">
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="cursor-pointer rounded-xl border-2 border-dashed border-[rgba(245,240,232,0.12)] p-8 text-center transition-all hover:border-[#C9A84C] sm:p-12"
+                className="cursor-pointer rounded-2xl border-2 border-dashed border-[rgba(245,240,232,0.14)] bg-[rgba(8,9,12,0.38)] p-8 text-center transition-all hover:border-[#C9A84C] hover:bg-[rgba(201,168,76,0.05)] sm:p-12"
               >
                 <input
                   ref={fileInputRef}
@@ -284,7 +284,7 @@ export default function DashboardPage() {
               <button
                 onClick={handleUpload}
                 disabled={!selectedFile || isUploading}
-                className="mt-6 w-full rounded-xl bg-gradient-to-r from-[#C9A84C] to-[#A68940] py-3.5 font-bold text-black transition-all hover:opacity-90 disabled:opacity-50"
+                className="studio-button mt-6 w-full rounded-xl py-3.5 font-bold disabled:opacity-50"
               >
                 {isUploading ? 'Илгээж байна...' : 'Аудио файл нэмэх'}
               </button>
@@ -295,14 +295,14 @@ export default function DashboardPage() {
             <section className="mt-8">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {audioFiles.length === 0 ? (
-                  <div className="col-span-full rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] py-12 text-center text-[#7A7570]">
+                  <div className="studio-panel col-span-full rounded-[24px] py-12 text-center text-[#7A7570]">
                     Одоогоор аудио файл байхгүй байна
                   </div>
                 ) : (
                   audioFiles.map((file) => (
                     <div
                       key={file.id}
-                      className="rounded-xl border border-[rgba(245,240,232,0.06)] bg-[#111118] p-4"
+                      className="studio-card rounded-2xl p-4"
                     >
                       <div className="mb-3 flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[rgba(201,168,76,0.1)] text-xl font-bold text-[#C9A84C]">
@@ -324,13 +324,13 @@ export default function DashboardPage() {
 
           {activeTab === 'analysis' && (
             <section className="mt-8">
-              <div className="mb-6 rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-5 sm:p-6">
-                <h3 className="text-lg font-bold text-[#F5F0E8]">Шинэ анализ эхлүүлэх</h3>
+              <div className="studio-panel mb-6 rounded-[24px] p-5 sm:p-6">
+                <h3 className="text-lg font-bold text-[#F5F0E8]">Шинэ шинжилгээ эхлүүлэх</h3>
                 <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
                   <select
                     value={selectedAnalysisFileId}
                     onChange={(e) => setSelectedAnalysisFileId(e.target.value)}
-                    className="w-full rounded-lg border border-[rgba(245,240,232,0.12)] bg-[#0A0A0F] p-3 text-sm"
+                    className="studio-select w-full rounded-xl p-3 text-sm"
                   >
                     <option value="">Аудио файл сонгох...</option>
                     {audioFiles.map((file) => (
@@ -342,26 +342,26 @@ export default function DashboardPage() {
                   <button
                     onClick={handleAnalyze}
                     disabled={!selectedAnalysisFileId || isAnalyzing}
-                    className="rounded-lg bg-[rgba(201,168,76,0.14)] px-5 py-3 text-sm font-semibold text-[#E8C96D] transition hover:bg-[rgba(201,168,76,0.24)] disabled:opacity-50"
+                    className="studio-button rounded-xl px-5 py-3 text-sm font-bold disabled:opacity-50"
                   >
-                    {isAnalyzing ? 'Анализ хийж байна...' : 'Анализ хийх'}
+                    {isAnalyzing ? 'Шинжилж байна...' : 'Шинжилгээ хийх'}
                   </button>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {analysisResults.length === 0 ? (
-                  <div className="col-span-full rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[#111118] py-12 text-center text-[#7A7570]">
-                    Одоогоор анализ хийгдээгүй байна
+                  <div className="studio-panel col-span-full rounded-[24px] py-12 text-center text-[#7A7570]">
+                    Одоогоор шинжилгээ хийгдээгүй байна
                   </div>
                 ) : (
                   analysisResults.map((result) => (
                     <div
                       key={result.id}
-                      className="rounded-xl border border-[rgba(245,240,232,0.06)] bg-[#111118] p-6"
+                      className="studio-card rounded-2xl p-6"
                     >
                       <div className="mb-4 flex items-center justify-between">
-                        <h4 className="font-bold text-[#F5F0E8]">AI Mix Анализ</h4>
+                        <h4 className="font-bold text-[#F5F0E8]">Mix шинжилгээ</h4>
                         <span className="text-2xl font-bold text-[#C9A84C]">
                           {result.overall_score}/100
                         </span>
@@ -386,15 +386,15 @@ export default function DashboardPage() {
                         <div className="mt-4 border-t border-[rgba(245,240,232,0.06)] pt-4">
                           <p className="mb-2 text-sm text-[#7A7570]">Баланс</p>
                           <div className="grid grid-cols-3 gap-2 text-xs">
-                            <div className="rounded bg-[#0A0A0F] p-2 text-center">
+                            <div className="rounded-xl bg-[#0A0A0F] p-2 text-center">
                               <p className="text-[#7A7570]">Доод</p>
                               <p className="font-bold">{result.frequency_balance.low_presence}</p>
                             </div>
-                            <div className="rounded bg-[#0A0A0F] p-2 text-center">
+                            <div className="rounded-xl bg-[#0A0A0F] p-2 text-center">
                               <p className="text-[#7A7570]">Дунд</p>
                               <p className="font-bold">{result.frequency_balance.mid_presence}</p>
                             </div>
-                            <div className="rounded bg-[#0A0A0F] p-2 text-center">
+                            <div className="rounded-xl bg-[#0A0A0F] p-2 text-center">
                               <p className="text-[#7A7570]">Дээд</p>
                               <p className="font-bold">{result.frequency_balance.high_presence}</p>
                             </div>
@@ -404,7 +404,7 @@ export default function DashboardPage() {
 
                       {result.recommendations && result.recommendations.length > 0 && (
                         <div className="mt-4 border-t border-[rgba(245,240,232,0.06)] pt-4">
-                          <p className="mb-2 text-sm text-[#7A7570]">Саналууд</p>
+                          <p className="mb-2 text-sm text-[#7A7570]">Зөвлөмж</p>
                           <ul className="space-y-1 text-sm">
                             {result.recommendations.map((rec, i) => (
                               <li key={i} className="text-[#C9A84C]">
@@ -419,7 +419,7 @@ export default function DashboardPage() {
                 )}
               </div>
             </section>
-)}
+          )}
         </div>
       </main>
     </>

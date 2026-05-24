@@ -19,22 +19,22 @@ const cards: FeatureCard[] = [
   {
     num: '01',
     tag: 'Онцлох хичээл',
-    title: 'Товч модуль',
-    desc: 'Нэг модуль бүр нэг чадварт төвлөрнө. Илүү цэгцтэй, илүү ойлгомжтой аргаар сурна.',
+    title: 'Богино модуль',
+    desc: 'Модуль бүр нэг чадварт төвлөрнө. Ингэснээр ойлгомжтой, дараалалтай сурна.',
     link: '/courses',
   },
   {
     num: '02',
-    tag: 'Одоогийн сан',
+    tag: 'Сургалтын сан',
     title: 'Суурь хөтөлбөр',
-    desc: 'Rhythm, melody, harmony, arrangement, mix гэсэн гол сууриуд нэг урсгалд орсон.',
+    desc: 'Rhythm, melody, harmony, arrangement, mixing зэрэг суурь чадварууд нэг замналд багтсан.',
     link: '/courses',
   },
   {
     num: '03',
-    tag: 'Ментор дэмжлэг',
+    tag: 'Менторын дэмжлэг',
     title: 'Дараагийн шат',
-    desc: 'Цаашдаа менторын feedback, илүү баялаг lesson media, ахицын систем нэмэгдэнэ.',
+    desc: 'Цаашдаа менторын санал, баялаг хичээлийн материал, ахиц хянах систем нэмэгдэнэ.',
   },
 ];
 
@@ -58,47 +58,41 @@ export default function FeaturesSection({ id }: FeaturesSectionProps) {
               lineHeight: 0.95,
             }}
           >
-            Чиний хөгжмийн
-            <span className="block text-[var(--gold)]">замналыг тодорхойл</span>
+            Сурах
+            <span className="block text-[var(--gold)]">замналаа тодорхойл</span>
           </h2>
-          <p className="max-w-[360px] text-[14px] font-light leading-7 text-[var(--text-muted)]">
-            Юу санал болгох вэ
+          <p className="max-w-[400px] text-[14px] font-light leading-7 text-[var(--text-muted)]">
+            Хичээлүүдийг богино, сонсож туршихад амар хэсгүүдээр зохион байгуулсан.
           </p>
         </div>
 
-        <div
-          className="grid overflow-hidden"
-          style={{
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '1px',
-            background: 'var(--border-gold)',
-          }}
-        >
+        <div className="grid gap-4 md:grid-cols-3">
           {cards.map((card) => (
             <Link
               key={card.num}
               href={card.link || '#'}
-              className={`feature-card ${card.link ? 'cursor-pointer transition-colors hover:bg-[rgba(26,24,19,0.8)]' : ''}`}
-              style={{ background: 'var(--bg-card)', padding: '48px 40px' }}
+              className={`studio-card feature-card group rounded-[28px] p-8 sm:p-10 ${card.link ? 'cursor-pointer' : ''}`}
             >
-              <p
-                className="leading-none text-[var(--text-dim)]"
-                style={{
-                  fontFamily: 'var(--font-cormorant)',
-                  fontSize: '80px',
-                  fontWeight: 300,
-                }}
-              >
-                {card.num}
-              </p>
-              <p
-                className="mt-5 uppercase text-[var(--gold)]"
-                style={{ fontSize: '10px', letterSpacing: '0.18em' }}
-              >
-                {card.tag}
-              </p>
+              <div className="flex items-start justify-between gap-5">
+                <p
+                  className="leading-none text-[var(--text-dim)]"
+                  style={{
+                    fontFamily: 'var(--font-cormorant)',
+                    fontSize: '80px',
+                    fontWeight: 300,
+                  }}
+                >
+                  {card.num}
+                </p>
+                <div className="studio-wave-bars mt-2 h-12" aria-hidden>
+                  {[22, 38, 18, 46, 28, 34].map((height, index) => (
+                    <span key={index} style={{ height, width: 3 }} />
+                  ))}
+                </div>
+              </div>
+              <p className="studio-kicker mt-6">{card.tag}</p>
               <h3
-                className="mt-3 uppercase text-[var(--text)]"
+                className="mt-3 uppercase text-[var(--text)] transition-colors group-hover:text-[var(--gold-light)]"
                 style={{
                   fontFamily: 'var(--font-bebas)',
                   fontSize: '32px',
@@ -113,6 +107,12 @@ export default function FeaturesSection({ id }: FeaturesSectionProps) {
               >
                 {card.desc}
               </p>
+              <div className="mt-8 flex items-center justify-between border-t border-[rgba(245,240,232,0.08)] pt-4">
+                <span className="text-[11px] uppercase tracking-[0.14em] text-[var(--text-dim)]">
+                  module
+                </span>
+                <span className="text-[var(--gold)]">→</span>
+              </div>
             </Link>
           ))}
         </div>

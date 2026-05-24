@@ -11,16 +11,16 @@ const thumbColors: Record<string, string> = {
 };
 
 const categoryLabel: Record<string, string> = {
-  'music-production': 'Music Production',
-  'mixing-mastering': 'Mixing & Mastering',
+  'music-production': 'Production',
+  'mixing-mastering': 'Mix / Master',
   'sound-design': 'Sound Design',
-  'melody-voice': 'Melody & Voice',
+  'melody-voice': 'Melody',
   'audio-engineering': 'Audio Engineering',
 };
 
 const levelLabel: Record<string, string> = {
   beginner: 'Анхан шат',
-  intermediate: 'Дунд',
+  intermediate: 'Дунд шат',
   advanced: 'Ахисан',
 };
 
@@ -35,28 +35,34 @@ export default function CourseCard({ course }: { course: Course }) {
   return (
     <Link
       href={`/courses/${course.slug}`}
-      className="group block overflow-hidden rounded-[17px] border border-[rgba(245,240,232,0.06)] bg-[#111118] transition-all duration-300 hover:-translate-y-1.5 hover:border-[rgba(201,168,76,0.20)] hover:shadow-[0_20px_56px_rgba(0,0,0,0.5)]"
+      className="studio-card group block overflow-hidden rounded-[24px]"
     >
       <div
         className={`relative aspect-video flex items-center justify-center bg-gradient-to-br ${
           thumbColors[course.category] || 'from-[#1a1208] to-[#0f0d06]'
         }`}
       >
-        <span className="text-2xl font-bold uppercase text-[rgba(255,255,255,0.3)]">
-          {course.category.slice(0, 3)}
+        <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(245,240,232,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(245,240,232,0.04)_1px,transparent_1px)] [background-size:24px_24px]" />
+        <div className="studio-wave-bars h-24" aria-hidden>
+          {[28, 54, 34, 76, 44, 62, 24, 70, 38, 58, 32, 48, 22, 64].map((height, index) => (
+            <span key={index} style={{ height, width: 5 }} />
+          ))}
+        </div>
+        <span className="absolute bottom-4 left-4 font-display text-5xl font-black uppercase tracking-[0.02em] text-[rgba(245,240,232,0.16)]">
+          {categoryLabel[course.category]?.slice(0, 4) || course.category.slice(0, 4)}
         </span>
-        <span className="absolute left-2.5 top-2.5 rounded-full border border-[rgba(201,168,76,0.20)] bg-[rgba(10,10,15,0.85)] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#C9A84C] backdrop-blur-sm">
+        <span className="absolute left-3 top-3 rounded-full border border-[rgba(201,168,76,0.24)] bg-[rgba(10,10,15,0.78)] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#C9A84C] backdrop-blur-sm">
           {levelLabel[course.level]}
         </span>
         {course.price === 0 && (
-          <span className="absolute right-2.5 top-2.5 rounded-full bg-[#C9A84C] px-2.5 py-0.5 text-[10px] font-bold text-[#0A0A0F]">
+          <span className="absolute right-3 top-3 rounded-full bg-[#C9A84C] px-3 py-1 text-[10px] font-bold text-[#0A0A0F]">
             Үнэгүй
           </span>
         )}
       </div>
 
       <div className="p-5 pb-6">
-        <div className="mb-1.5 text-[10.5px] font-bold uppercase tracking-widest text-[#C9A84C]">
+        <div className="studio-kicker mb-2">
           {categoryLabel[course.category] || course.category}
         </div>
         <h3 className="mb-2 font-display text-[17px] font-bold leading-snug transition-colors group-hover:text-[#E8C96D]">
@@ -67,17 +73,17 @@ export default function CourseCard({ course }: { course: Course }) {
         </p>
 
         <div className="mb-3 grid grid-cols-3 gap-2 text-center text-[11px]">
-          <div className="rounded-lg border border-[rgba(245,240,232,0.06)] bg-[rgba(245,240,232,0.02)] p-2.5">
+          <div className="rounded-xl border border-[rgba(245,240,232,0.07)] bg-[rgba(245,240,232,0.035)] p-2.5">
             <p className="font-semibold text-[#F5F0E8]">{totalLessons}</p>
-            <p className="text-[#7A7570]">Lesson</p>
+            <p className="text-[#7A7570]">Хичээл</p>
           </div>
-          <div className="rounded-lg border border-[rgba(245,240,232,0.06)] bg-[rgba(245,240,232,0.02)] p-2.5">
+          <div className="rounded-xl border border-[rgba(245,240,232,0.07)] bg-[rgba(245,240,232,0.035)] p-2.5">
             <p className="font-semibold text-[#F5F0E8]">{Math.round(totalMinutes / 60)}ц</p>
-            <p className="text-[#7A7570]">Нийт цаг</p>
+            <p className="text-[#7A7570]">Нийт хугацаа</p>
           </div>
-          <div className="rounded-lg border border-[rgba(245,240,232,0.06)] bg-[rgba(245,240,232,0.02)] p-2.5">
+          <div className="rounded-xl border border-[rgba(245,240,232,0.07)] bg-[rgba(245,240,232,0.035)] p-2.5">
             <p className="font-semibold text-[#F5F0E8]">{freeLessons}</p>
-            <p className="text-[#7A7570]">Free</p>
+            <p className="text-[#7A7570]">Үнэгүй</p>
           </div>
         </div>
 
@@ -88,11 +94,8 @@ export default function CourseCard({ course }: { course: Course }) {
               {freeLessons}/{totalLessons}
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-[rgba(245,240,232,0.08)]">
-            <div
-              className="h-full rounded-full bg-[#C9A84C]"
-              style={{ width: `${Math.max(8, freeRatio)}%` }}
-            />
+          <div className="studio-meter">
+            <span style={{ width: `${Math.max(8, freeRatio)}%` }} />
           </div>
         </div>
 
@@ -109,8 +112,8 @@ export default function CourseCard({ course }: { course: Course }) {
           >
             {course.price === 0 ? 'Үнэгүй' : `₮${course.price.toLocaleString()}`}
           </span>
-          <button className="rounded-lg border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.13)] px-3.5 py-1.5 text-xs font-bold text-[#C9A84C] transition-all hover:bg-[#C9A84C] hover:text-[#0A0A0F]">
-            {course.price === 0 ? 'Судлах →' : 'Авах →'}
+          <button className="studio-ghost-button rounded-full px-3.5 py-1.5 text-xs font-bold">
+            {course.price === 0 ? 'Судлах →' : 'Худалдаж авах →'}
           </button>
         </div>
       </div>

@@ -43,7 +43,7 @@ export default function RegisterPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Бүртгэл амжилттай! Нэвтрэх хуудас руу шилжиж байна.');
+      toast.success('Бүртгэл амжилттай. Нэвтрэх хуудас руу шилжиж байна.');
       setTimeout(() => router.push('/auth/login'), 1200);
     }
     setIsLoading(false);
@@ -66,11 +66,11 @@ export default function RegisterPage() {
           </Link>
 
           <h1 className="mt-12 font-display text-5xl font-black leading-[0.95] text-[#F5F0E8]">
-            Create
-            <span className="block text-[#d9c38a]">your account</span>
+            Бүртгэлээ
+            <span className="block text-[#d9c38a]">үүсгээрэй</span>
           </h1>
           <p className="mt-6 max-w-xs text-sm leading-7 text-[#b8ad93]">
-            Шинэ профайл нээгээд курсууд, AI анализ зэрэг бүх хэрэгслийг ашиглаарай.
+            Шинэ профайл нээгээд курс, mix шинжилгээ зэрэг бүх хэрэгслийг ашиглаарай.
           </p>
         </aside>
 
@@ -88,7 +88,7 @@ export default function RegisterPage() {
             Бүртгүүлэх
           </h2>
           <p className="mt-2 text-sm text-[#7A7570]">
-            Хэдхэн алхмаар melodex аккаунтаа үүсгэнэ үү.
+            Хэдхэн алхмаар Melodex бүртгэлээ үүсгэнэ үү.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">

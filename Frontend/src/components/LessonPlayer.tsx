@@ -51,33 +51,33 @@ export default function LessonPlayer({
               href={`/courses/${course.slug}`}
               className="bg-[#C9A84C] text-[#0A0A0F] font-bold px-8 py-3 rounded-xl hover:bg-[#E8C96D] transition-all"
             >
-              ₮5,000 — Авах
+              ₮5,000 — Худалдаж авах
             </Link>
           </div>
         ) : !hasVideoLesson ? (
           <div className="aspect-video rounded-xl border border-[rgba(201,168,76,0.15)] bg-[linear-gradient(145deg,rgba(201,168,76,0.1),rgba(17,17,24,0.98)_52%)] p-6">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#C9A84C]">
-              Lesson brief
+              Хичээлийн товч
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold text-[#F5F0E8]">
               {currentLesson.title}
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-7 text-[#b8ad93]">
               {currentLesson.summary ||
-                'Энэ lesson доторх гол санаагаа уншаад богино exercise хийж ахицаа тэмдэглэж болно.'}
+                'Энэ хичээлийн гол санааг уншаад богино дадлага хийж, ахицаа тэмдэглэж болно.'}
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.03)] p-4">
-                <p className="text-xs uppercase tracking-[0.14em] text-[#8f8779]">Exercise</p>
+                <p className="text-xs uppercase tracking-[0.14em] text-[#8f8779]">Дадлага</p>
                 <p className="mt-2 text-sm leading-6 text-[#F5F0E8]">
                   {currentLesson.exercise ||
-                    'Өөрийн хувилбар, sketch, note-оо богино хугацаанд хий.'}
+                    'Өөрийн хувилбар, sketch, тэмдэглэлээ богино хугацаанд гарга.'}
                 </p>
               </div>
               <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.03)] p-4">
-                <p className="text-xs uppercase tracking-[0.14em] text-[#8f8779]">Takeaway</p>
+                <p className="text-xs uppercase tracking-[0.14em] text-[#8f8779]">Гол санаа</p>
                 <p className="mt-2 text-sm leading-6 text-[#F5F0E8]">
-                  {currentLesson.takeaway || 'Энэ lesson-оос нэг тодорхой санаа авч үлдээнэ.'}
+                  {currentLesson.takeaway || 'Энэ хичээлээс нэг тодорхой санаа авч үлдэнэ.'}
                 </p>
               </div>
             </div>
@@ -146,9 +146,9 @@ export default function LessonPlayer({
                 >
                   {lesson.title}
                 </span>
-                {locked && <span className="text-[#7A7570] text-xs">Locked</span>}
+                {locked && <span className="text-[#7A7570] text-xs">Түгжээтэй</span>}
                 <span className="text-[#7A7570] text-xs">
-                  {lessonDurations?.[lesson.id] || lesson.durationMinutes}мін
+                  {lessonDurations?.[lesson.id] || lesson.durationMinutes} мин
                 </span>
               </button>
             );

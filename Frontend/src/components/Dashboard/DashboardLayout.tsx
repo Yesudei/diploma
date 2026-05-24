@@ -20,17 +20,17 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
     await supabase.auth.signOut();
     localStorage.removeItem('sb-access-token');
     localStorage.removeItem('sb-refresh-token');
-    toast.success('Logged out successfully');
+    toast.success('Амжилттай гарлаа');
     router.push('/');
   };
 
   const navItems = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/dashboard/audio', label: 'My Audio' },
-    { href: '/dashboard/analysis', label: 'Analysis' },
-    { href: '/chat', label: 'AI Chat' },
-    { href: '/marketplace', label: 'Marketplace' },
-    { href: '/profile', label: 'Profile' },
+    { href: '/dashboard', label: 'Самбар' },
+    { href: '/dashboard/audio', label: 'Миний аудио' },
+    { href: '/dashboard/analysis', label: 'Шинжилгээ' },
+    { href: '/chat', label: 'AI чат' },
+    { href: '/marketplace', label: 'Маркетплейс' },
+    { href: '/profile', label: 'Профайл' },
   ];
 
   return (
@@ -42,14 +42,14 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
             <div className="w-8 h-8 bg-[#C9A84C] rounded-lg flex items-center justify-center font-bold text-black text-sm">
               M
             </div>
-            <span className="font-bold text-lg text-[#F5F0E8] hidden sm:inline">MusicAI</span>
+            <span className="font-bold text-lg text-[#F5F0E8] hidden sm:inline">Melodex</span>
           </div>
 
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="md:hidden text-[#7A7570] hover:text-[#C9A84C]"
           >
-            ☰
+            Цэс
           </button>
 
           <div className="hidden md:flex items-center gap-4">
@@ -63,7 +63,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
               onClick={handleLogout}
               className="px-4 py-2 bg-[#18181F] text-[#F5F0E8] rounded-lg border border-[rgba(245,240,232,0.1)] hover:bg-[#22222D] transition text-sm"
             >
-              Logout
+              Гарах
             </button>
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
               onClick={handleLogout}
               className="w-full py-2 bg-[#18181F] text-[#F5F0E8] rounded-lg border border-[rgba(245,240,232,0.1)] text-sm"
             >
-              Logout
+              Гарах
             </button>
           </div>
         </aside>

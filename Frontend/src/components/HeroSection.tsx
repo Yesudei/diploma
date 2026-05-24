@@ -29,7 +29,7 @@ export default function HeroSection({ id }: HeroSectionProps) {
               className="uppercase text-[var(--gold)]"
               style={{ fontSize: '11px', letterSpacing: '0.2em' }}
             >
-              Melodex Сургалт
+              Melodex сургалт
             </span>
           </div>
 
@@ -41,22 +41,22 @@ export default function HeroSection({ id }: HeroSectionProps) {
               letterSpacing: '0.02em',
             }}
           >
-            <span className="block text-[var(--text)]">Суурь.</span>
+            <span className="block text-[var(--text)]">Сур.</span>
             <span
               className="block text-transparent"
               style={{ WebkitTextStroke: '1.5px var(--gold)' }}
             >
-              Бүтээл.
+              Бүтээ.
             </span>
-            <span className="block text-[var(--gold)]">Гаралт.</span>
+            <span className="block text-[var(--gold)]">Дуусга.</span>
           </h1>
 
           <p
             className="mt-7 max-w-[360px] text-[var(--text-muted)]"
             style={{ fontSize: '15px', fontWeight: 300, lineHeight: 1.7 }}
           >
-            Rhythm, melody, arrangement, mix-ийг нэг цэгцтэй урсгалаар сурч, санаагаа бодит трэк
-            болго.
+            Rhythm, melody, arrangement, mixing-ийг дараалалтай сурч, санаагаа бодит track болгон
+            хөгжүүл.
           </p>
 
           <div className="mt-10 flex flex-wrap items-end gap-7">
@@ -71,14 +71,14 @@ export default function HeroSection({ id }: HeroSectionProps) {
                 letterSpacing: '0.08em',
               }}
             >
-              Хичээл Эхлэх
+              Хичээл эхлэх
             </Link>
             <Link
               href="#features"
               className="border-b border-[var(--text-dim)] pb-1 text-[13px] uppercase text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--gold)] hover:text-[var(--gold)]"
               style={{ letterSpacing: '0.08em' }}
             >
-              Модуль Үзэх
+              Модулиуд үзэх
             </Link>
           </div>
         </div>
@@ -89,7 +89,7 @@ export default function HeroSection({ id }: HeroSectionProps) {
             className="uppercase text-[var(--text-muted)]"
             style={{ fontSize: '11px', letterSpacing: '0.12em' }}
           >
-            Гүйлгэх
+            Доош гүйлгэх
           </span>
         </div>
       </div>

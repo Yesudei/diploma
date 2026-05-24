@@ -11,10 +11,10 @@ export default function CTA() {
             <h2 className="font-display text-[clamp(36px,4vw,54px)] font-black leading-[1.1] mb-5">
               Өнөөдөр л эхлээд
               <br />
-              <em className="not-italic text-[#C9A84C]">хөгжмийн аялал</em>д ор!
+              <em className="not-italic text-[#C9A84C]">хөгжмийн аялалдаа</em> ор!
             </h2>
             <p className="text-[#7A7570] text-base max-w-[420px] mx-auto leading-[1.7] mb-10">
-              500+ сурагчидтай болсон. Та ч бас оролцоорой.
+              500+ сурагч аль хэдийн эхэлсэн. Та ч бас нэгдээрэй.
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
               <Link

@@ -11,7 +11,7 @@ export default function Pricing() {
             Өөрт тохирох <em className="not-italic text-[#C9A84C]">төлөвлөгөө</em> сонгох
           </h2>
           <p className="text-[#7A7570] text-base max-w-[460px] mx-auto leading-[1.7]">
-            Хичээл тус бүрийг тусад нь авна. .FLP project файл хавсаргана.
+            Хичээлээ тус бүрээр нь авах боломжтой. .FLP project файл дагалдана.
           </p>
         </div>
 
@@ -32,12 +32,12 @@ export default function Pricing() {
             title="Pro"
             price="₮15,000"
             period="/сар"
-            description="Бүх хичээлүүдэд хандах, .FLP файлтой"
+            description="Бүх хичээлд хандах, .FLP файл авах"
             features={[
-              'Бүх хичээлүүд',
+              'Бүх хичээл',
               '.FLP project файл',
               'Багштай холбоо 24/7',
-              'Гэрчилгээ авнах',
+              'Гэрчилгээ авах',
               'Beat Making + Mixing',
             ]}
             highlighted

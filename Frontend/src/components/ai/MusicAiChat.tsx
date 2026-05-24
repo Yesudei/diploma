@@ -135,14 +135,14 @@ export default function MusicAiChat({ variant = 'page', onClose }: MusicAiChatPr
           : 'flex min-h-[calc(100vh-4rem)] flex-col bg-[#0A0A0F]'
       }
     >
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/10 bg-[rgba(245,240,232,0.02)] px-4">
         <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C9A84C] text-sm font-bold text-black">
-            AI
+          <span className="studio-button flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold">
+            M
           </span>
           <div>
-            <p className="text-sm font-semibold text-[#F5F0E8]">Music AI Mentor</p>
-            <p className="text-xs text-[#7A7570]">Course-grounded local AI</p>
+            <p className="text-sm font-semibold text-[#F5F0E8]">Studio mentor</p>
+            <p className="text-xs text-[#7A7570]">Сургалтын сангаас хариулна</p>
           </div>
         </div>
         {onClose && (
@@ -164,10 +164,10 @@ export default function MusicAiChat({ variant = 'page', onClose }: MusicAiChatPr
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[min(760px,88%)] rounded-lg px-4 py-3 ${
+              className={`max-w-[min(760px,88%)] rounded-2xl px-4 py-3 ${
                 message.role === 'user'
                   ? 'bg-[#C9A84C] text-[#0A0A0F]'
-                  : 'border border-white/10 bg-[#111118] text-[#F5F0E8]'
+                  : 'border border-white/10 bg-[#111118] text-[#F5F0E8] shadow-[0_14px_40px_rgba(0,0,0,0.18)]'
               }`}
             >
               <p className="whitespace-pre-wrap text-sm leading-6">{message.content}</p>
@@ -192,7 +192,7 @@ export default function MusicAiChat({ variant = 'page', onClose }: MusicAiChatPr
 
         {isLoading && (
           <div className="flex justify-start">
-            <div className="rounded-lg border border-white/10 bg-[#111118] px-4 py-3 text-sm text-[#A8A19A]">
+            <div className="rounded-2xl border border-white/10 bg-[#111118] px-4 py-3 text-sm text-[#A8A19A]">
               Бодож байна...
             </div>
           </div>
@@ -207,7 +207,7 @@ export default function MusicAiChat({ variant = 'page', onClose }: MusicAiChatPr
                 type="button"
                 onClick={() => void sendMessage(suggestion)}
                 disabled={isLoading}
-                className="w-full rounded-lg border border-white/10 px-3 py-2 text-left text-xs leading-5 text-[#CFC7BD] transition hover:border-[#C9A84C]/40 hover:bg-white/[0.03] disabled:cursor-not-allowed disabled:opacity-50"
+                className="studio-ghost-button w-full rounded-xl px-3 py-2 text-left text-xs leading-5 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {suggestion}
               </button>
@@ -225,7 +225,7 @@ export default function MusicAiChat({ variant = 'page', onClose }: MusicAiChatPr
             onChange={(event) => setApiKey(event.target.value)}
             type="password"
             placeholder="RAG API key"
-            className="mb-2 w-full rounded-lg border border-white/10 bg-[#111118] px-3 py-2 text-sm text-white outline-none transition placeholder:text-[#6F6862] focus:border-[#C9A84C]/60"
+            className="studio-input mb-2 w-full rounded-xl px-3 py-2 text-sm placeholder:text-[#6F6862]"
           />
         )}
         <div className="flex gap-2">
@@ -242,12 +242,12 @@ export default function MusicAiChat({ variant = 'page', onClose }: MusicAiChatPr
             rows={isDrawer ? 1 : 2}
             maxLength={2000}
             placeholder="Асуултаа бичнэ үү..."
-            className="min-h-11 flex-1 resize-none rounded-lg border border-white/10 bg-[#111118] px-3 py-2.5 text-sm leading-6 text-white outline-none transition placeholder:text-[#6F6862] focus:border-[#C9A84C]/60"
+            className="studio-input min-h-11 flex-1 resize-none rounded-xl px-3 py-2.5 text-sm leading-6 placeholder:text-[#6F6862]"
           />
           <button
             type="submit"
             disabled={!canSend}
-            className="h-11 shrink-0 rounded-lg bg-[#C9A84C] px-4 text-sm font-semibold text-[#0A0A0F] transition hover:bg-[#E8C96D] disabled:cursor-not-allowed disabled:opacity-50"
+            className="studio-button h-11 shrink-0 rounded-xl px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
           >
             Илгээх
           </button>

@@ -46,12 +46,12 @@ export default function ResetPasswordPage() {
     e.preventDefault();
 
     if (password.length < 6) {
-      toast.error('Password must be at least 6 characters.');
+      toast.error('Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой.');
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match.');
+      toast.error('Нууц үг таарахгүй байна.');
       return;
     }
 
@@ -65,7 +65,7 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    toast.success('Password updated. Please log in again.');
+    toast.success('Нууц үг шинэчлэгдлээ. Дахин нэвтэрнэ үү.');
     await supabase.auth.signOut();
     router.push('/auth/login');
   };
@@ -83,15 +83,15 @@ export default function ResetPasswordPage() {
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(201,168,76,0.35)] text-[#C9A84C]">
               M
             </span>
-            <span className="font-display text-2xl font-bold text-[#C9A84C]">melodex</span>
+            <span className="font-display text-2xl font-bold text-[#C9A84C]">Melodex</span>
           </Link>
 
           <h1 className="mt-12 font-display text-5xl font-black leading-[0.95] text-[#F5F0E8]">
-            Set a new
-            <span className="block text-[#d9c38a]">password</span>
+            Шинэ нууц
+            <span className="block text-[#d9c38a]">үг тохируулах</span>
           </h1>
           <p className="mt-6 max-w-xs text-sm leading-7 text-[#b8ad93]">
-            Choose a fresh password to keep your melodex account secure.
+            Melodex бүртгэлээ хамгаалахын тулд шинэ нууц үг тохируулна уу.
           </p>
         </aside>
 
@@ -106,21 +106,21 @@ export default function ResetPasswordPage() {
           </div>
 
           <h2 className="font-display text-3xl font-black text-[#F5F0E8] sm:text-4xl">
-            Reset password
+            Нууц үг шинэчлэх
           </h2>
           <p className="mt-2 text-sm text-[#7A7570]">
-            Enter your new password below.
+            Шинэ нууц үгээ доор оруулна уу.
           </p>
 
           {isCheckingSession ? (
             <div className="mt-8 rounded-xl border border-[rgba(245,240,232,0.12)] bg-[#0A0A0A] px-4 py-3 text-sm text-[#b8ad93]">
-              Checking reset link...
+              Сэргээх холбоосыг шалгаж байна...
             </div>
           ) : hasRecoverySession ? (
             <form onSubmit={handleSubmit} className="mt-8 space-y-5">
               <div>
                 <label className="mb-2 block text-sm font-medium text-[#F5F0E8]">
-                  New password
+                  Шинэ нууц үг
                 </label>
                 <input
                   type="password"
@@ -137,7 +137,7 @@ export default function ResetPasswordPage() {
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-[#F5F0E8]">
-                  Confirm password
+                  Нууц үг давтах
                 </label>
                 <input
                   type="password"
@@ -157,12 +157,12 @@ export default function ResetPasswordPage() {
                 disabled={isLoading}
                 className="w-full rounded-xl bg-[#C9A84C] py-3.5 font-semibold text-black transition hover:bg-[#E8C96D] disabled:opacity-50"
               >
-                {isLoading ? 'Updating...' : 'Update password'}
+                {isLoading ? 'Шинэчилж байна...' : 'Нууц үг шинэчлэх'}
               </button>
             </form>
           ) : (
             <div className="mt-8 rounded-xl border border-[rgba(245,240,232,0.12)] bg-[#0A0A0A] px-4 py-4 text-sm leading-6 text-[#b8ad93]">
-              This reset link is invalid or expired. Request a new password reset email.
+              Энэ сэргээх холбоос хүчингүй эсвэл хугацаа нь дууссан байна. Шинэ холбоос хүснэ үү.
             </div>
           )}
 
@@ -171,7 +171,7 @@ export default function ResetPasswordPage() {
               href="/auth/forgot-password"
               className="font-semibold text-[#C9A84C] transition hover:text-[#E8C96D]"
             >
-              Request a new link
+              Шинэ холбоос авах
             </Link>
           </div>
         </section>

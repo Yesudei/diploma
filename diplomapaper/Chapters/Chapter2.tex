@@ -10,7 +10,7 @@
 \begin{itemize}
   \item веб платформын клиент/сервер дүрслэл, замын зохион байгуулалт, компонентод суурилсан UI;
   \item хэрэглэгчийн бүртгэл, өгөгдлийн сан, мөрийн түвшний хамгаалалт, төлбөр ба явцын өгөгдөл;
-  \item AI туслахын сэргээн хайлт, зааварчилгаа бүрдүүлэлт, үйлчилгээ үзүүлэгчийн хийсвэрлэл, нөөц хариуны логик;
+  \item AI туслахын сэргээн хайлт, prompt бүрдүүлэлт, Ollama/Qdrant локал холболт, refusal behavior-ийн логик;
   \item хөгжим болон аудио AI-ийн үндсэн чиглэлүүд;
   \item RAG өгөгдлийн багцын бүтэц, эх сурвалжийн найдвартай байдал, ёс зүй ба зохиогчийн эрхийн эрсдэл.
 \end{itemize}
@@ -93,25 +93,25 @@ RAG-ийн үндсэн алхам:
 \subsection{Сийрэг, үгийн ба утгын сэргээн хайлт}
 Сэргээн хайлт хийхэд lexical буюу үгийн давхцалд суурилсан арга, dense embedding-д суурилсан арга гэсэн хоёр ерөнхий хандлага байдаг. Lexical арга нь хэрэгжүүлэхэд хялбар, ил тод, жижиг өгөгдлийн багцад тохиромжтой. Харин ижил утгатай үг, өөр хэлбэрээр илэрхийлэх, үгийн хувирал ихтэй үед recall буурч болно. Dense Passage Retrieval нь асуулт ба контекстийг embedding орон зайд оруулж, утгын ойролцоогоор хайдаг \cite{dpr_karpukhin_2020}. Sentence-BERT, SimCSE, ColBERT зэрэг ажлууд нь semantic similarity retrieval-ийн өөр өөр чиглэлийг төлөөлдөг \cite{sbert_reimers_2019,simcse_gao_2022,colbert_khattab_2020}.
 
-Одоогийн дипломын хэрэгжилт lexical scoring ашиглаж байгаа нь MVP шатанд тохиромжтой. Харин цаашид Supabase vector column, pgvector, HNSW индекс, embedding model ашиглан dense retrieval рүү шилжих боломжтой \cite{hnsw_malkov_2018,supabase_vectors,pgvector_github}.
+Одоогийн дипломын хэрэгжилт dense embedding-д суурилсан retrieval ашиглаж байна. Хэрэглэгчийн асуултыг Ollama-ийн \texttt{bge-m3} embedding model-оор vector болгон хувиргаж, Qdrant дээр cosine similarity ашиглан ойролцоо сургалтын chunk-уудыг хайна. Цаашид hybrid retrieval, HNSW tuning болон Supabase pgvector руу шилжүүлэх боломжтой \cite{hnsw_malkov_2018,supabase_vectors,pgvector_github}.
 
-\section{AI үйлчилгээний хийсвэрлэл}
-AI үйлчилгээ үзүүлэгчийн хийсвэрлэл гэдэг нь платформыг нэг л LLM үйлчилгээтэй хатуу холбохгүй, Ollama, Gemini, OpenAI-compatible API зэрэг олон үйлчилгээ үзүүлэгчийг сонгох боломжтойгоор зохиомжлохыг хэлнэ. Энэ нь зардал, хариулах хугацаа, хүртээмж, нууцлал, чанарын хувьд уян хатан байдал өгдөг. Энэ төслийн локал demo-д Ollama дээр \texttt{qwen3:0.6b} ашиглах боломжтой, харин үүлэн хувилбарт Gemini model-ууд эсвэл OpenAI-compatible endpoint ашиглаж болно \cite{ollama_qwen3,gemini_models}.
+\section{Локал LLM үйлчилгээний зохион байгуулалт}
+Энэ төслийн одоогийн AI хэрэгжилт нь төлбөртэй API болон үүлэн үйлчилгээ шаарддаггүй, харин гэрийн компьютер дээр ажиллах Ollama болон Qdrant-д тулгуурлана. Ollama нь \texttt{qwen3:8b} загварыг хариу үүсгэхэд, \texttt{bge-m3} загварыг embedding үүсгэхэд ашиглана. Qdrant нь embedding vector-уудыг хадгалж, хэрэглэгчийн асуултад хамгийн ойр сургалтын chunk-уудыг хайна. Энэ сонголт нь нууцлал, зардал, demo давтагдах боломжийн хувьд дипломын төслийн нөхцөлд тохиромжтой \cite{ollama_qwen3}.
 
 \begin{table}[htbp]
   \centering
-  \caption{AI үйлчилгээ үзүүлэгчийн сонголтын харьцуулалт}
+  \caption{Локал RAG бүрэлдэхүүнүүдийн үүрэг}
   \label{tab:provider-comparison}
   \begin{tabular}{|p{0.18\textwidth}|p{0.25\textwidth}|p{0.25\textwidth}|p{0.20\textwidth}|}
     \hline
-    \textbf{Үйлчилгээ үзүүлэгчийн төрөл} & \textbf{Давуу тал} & \textbf{Сул тал} & \textbf{Төслийн байр суурь} \\ \hline
-    Ollama/local & Өгөгдөл локал, туршихад зардал бага & Жижиг загварын чанар тогтворгүй, hardware хамааралтай & Хөгжүүлэлт ба offline demo-д тохиромжтой \\ \hline
-    Gemini & Үүлэн загвар, чанар ба хурд сайн & API key, зардал, хүртээмжээс хамааралтай & Чанартай demo болон production candidate \\ \hline
-    OpenAI-compatible & OpenAI, OpenRouter, Groq зэрэг олон API-д холбогдох боломжтой & Үйлчилгээ үзүүлэгч бүрийн загвар, үнэ, policy ялгаатай & Vendor lock-in бууруулах архитектур \\ \hline
+    \textbf{Бүрэлдэхүүн} & \textbf{Давуу тал} & \textbf{Сул тал} & \textbf{Төслийн байр суурь} \\ \hline
+    Ollama \texttt{qwen3:8b} & Төлбөргүй, локал, Монгол хэлээр хариулах боломжтой & GPU/VRAM болон model latency-ээс хамаарна & Үндсэн answer generation model \\ \hline
+    Ollama \texttt{bge-m3} & Олон хэлний embedding, Mongolian/English term холимог асуултад тохиромжтой & Embedding үүсгэх үед model memory ашиглана & Query болон document embedding үүсгэнэ \\ \hline
+    Qdrant & Vector хайлт хурдан, collection удирдах API энгийн & Тусдаа service ажиллуулах шаардлагатай & Локал vector database \\ \hline
   \end{tabular}
 \end{table}
 
-AI үйлчилгээ үзүүлэгчийн хийсвэрлэл нь платформын архитектурын хувьд чухал. Учир нь сургалтын платформын үнэ цэнэ зөвхөн нэг загварт хэт хамаарвал үйлчилгээ үзүүлэгч ажиллахгүй болох, үнэ өөрчлөгдөх, чанар тогтворгүй болох үед платформын үндсэн хэрэглээ саатна. Иймээс үйлчилгээ үзүүлэгчийн сонголтыг environment variable-аар удирдах, хариултын чанарыг шалгах, нөөц хариу хэрэглэх нь практик инженерчлэлийн зөв шийдэл юм.
+Локал LLM зохион байгуулалтын гол давуу тал нь хэрэглэгчийн асуулт болон сургалтын өгөгдөл гадаад API руу дамжихгүй байх явдал юм. Гэхдээ локал орчинд Ollama service, Qdrant container, GPU memory зэрэг ажиллагааны нөхцөлийг зөв тохируулах шаардлагатай. Иймээс \texttt{.env.example}, ingestion script, error message, API validation зэрэг нь хэрэглэгчийн орчны алдааг ойлгомжтой болгоход чухал.
 
 \section{Хөгжим ба аудио AI}
 \subsection{Хөгжмийн ангилал ба аудио төлөөлөл}
@@ -127,7 +127,7 @@ Jukebox, AudioLM, MusicLM, MusicGen зэрэг ажлууд нь raw audio, audi
 Whisper, wav2vec 2.0 зэрэг ажлууд нь speech/audio representation суралцахад хүчтэй үр дүн үзүүлсэн \cite{whisper_radford_2022,wav2vec2_baevski_2020}. MuLan нь music audio болон natural language-ийг хам embedding орон зайд байрлуулах боломжийг харуулсан \cite{mulan_huang_2022}. Эдгээр чиглэлүүд нь цаашид “хэрэглэгч өөрийн beat-ийг оруулаад AI-аар тайлбар авах” төрлийн функцэд суурь өгнө.
 
 \section{Өгөгдлийн чанарын судалгаа}
-RAG платформын чанар нь зөвхөн LLM загвараас бус, мэдлэгийн сангийн чанараас шууд хамаарна. Энэ төслийн \texttt{rag-dataset-builder} нь FL Studio, music theory, mixing, mastering зэрэг сэдвийн Монгол тайлбаруудыг JSONL/CSV хэлбэрээр бэлтгэх зорилготой. Өгөгдлийн багцын дамжлага нь эх сурвалжаас бүтэн текст хуулбарлахгүй, харин мета өгөгдөл болон богино сэдвийн чиглүүлэг ашиглан өөрийн үгээр боловсруулсан тайлбар үүсгэх зарчимтай.
+RAG платформын чанар нь зөвхөн LLM загвараас бус, мэдлэгийн сангийн чанараас шууд хамаарна. Энэ төслийн \texttt{Frontend/data/rag} хавтас болон \texttt{Frontend/scripts} дахь generation/ingestion script-үүд нь FL Studio, music theory, beat-making, mixing, mastering зэрэг сэдвийн Монгол тайлбаруудыг seed JSON болон generated JSONL хэлбэрээр бэлтгэх зорилготой. Өгөгдлийн багцын дамжлага нь эх сурвалжаас бүтэн текст хуулбарлахгүй, харин богино сэдвийн чиглүүлэг, keyword tag, beginner-friendly тайлбар ашиглан өөрийн сургалтын сан үүсгэх зарчимтай.
 
 \begin{table}[htbp]
   \centering
@@ -136,11 +136,11 @@ RAG платформын чанар нь зөвхөн LLM загвараас б�
   \begin{tabular}{|p{0.32\textwidth}|p{0.42\textwidth}|}
     \hline
     \textbf{Үзүүлэлт} & \textbf{Одоогийн өгөгдлийн багцын төлөв} \\ \hline
-    Бэлэн өгөгдлийн бичлэг & 4990 орчим JSONL бичлэг \\ \hline
-    Гол ангилал & Mixing, Mastering, FL Studio Basics, Music Theory \\ \hline
-    Citation-safe бичлэг & Цөөн; эх сурвалжид тулгуурласан бичлэгийг тусад нь ялгах шаардлагатай \\ \hline
-    Synthetic/internal guidance & Ихэнх бичлэг нь локал/generated зөвлөмж хэлбэртэй \\ \hline
-    Production хэрэглээний анхаарах зүйл & Generated guidance-ийг албан ёсны эх сурвалж мэт харуулахгүй байх \\ \hline
+    Seed өгөгдөл & 20 Монгол сургалтын chunk \\ \hline
+    Generated өгөгдөл & 2000 JSONL chunk \\ \hline
+    Гол ангилал & FL Studio basics, beat making, drums, 808, melody, harmony, EQ, compression, mixing, mastering \\ \hline
+    Retrieval storage & Qdrant collection \texttt{music\_lessons\_rag} \\ \hline
+    Production хэрэглээний анхаарах зүйл & Generated guidance-ийг албан ёсны эх сурвалж мэт харуулахгүй, human review хийх \\ \hline
   \end{tabular}
 \end{table}
 
@@ -157,17 +157,17 @@ RAG платформын чанар нь зөвхөн LLM загвараас б�
   Олон хуудаст сургалтын урсгал & Зам, layout, динамик хуудас, сервер талын логик & Next.js App Router & Курсийн каталог, хичээлийн дэлгэрэнгүй, админ, чат, API замууд нэг framework-д багтана. \\ \hline
   UI төлөв ба компонент дахин ашиглалт & Компонентын model, typed props, клиент төлөв & React ба TypeScript & \texttt{CourseCard}, \texttt{LessonPlayer}, \texttt{ChatDrawer} зэрэг UI-г тусгаарлахад тохиромжтой. \\ \hline
   Хэрэглэгчийн бүртгэл ба өгөгдөл хамгаалалт & Authentication, authorization, row-level policy & Supabase Auth ба RLS & Хэрэглэгч эзэмшдэг ахиц, худалдан авалт, чатын түүхийг өгөгдлийн сангийн түвшинд хамгаална. \\ \hline
-  AI туслахын контексттэй хариулт & Сэргээн хайлт, зааварчилгаа бүрдүүлэх, үйлчилгээ үзүүлэгч дуудах & RAG + LLM provider layer & Хичээл болон FL Studio мэдлэгийн сантай холбоотой хариулт үүсгэнэ. \\ \hline
+  AI туслахын контексттэй хариулт & Сэргээн хайлт, prompt бүрдүүлэх, Ollama дуудах & Local RAG layer & Хичээл болон FL Studio мэдлэгийн сантай холбоотой хариулт үүсгэнэ. \\ \hline
   Өгөгдлийн багц хөгжүүлэлт & Эх сурвалж ялгах, үүсгэх, баталгаажуулах, импортлох & RAG өгөгдлийн багц бэлтгэх scripts & AI мэдлэгийн санг фронтенд кодоос тусад нь сайжруулах боломжтой. \\ \hline
   Цаашдын аудио шинжилгээ & Файл оруулах, шинжилгээний хүснэгт, model API & Supabase schema ба service layer & Одоогийн MVP-д бүрэн ашиглаагүй ч архитектурын өргөтгөлийн суурь болно. \\ \hline
 \end{longtable}
 
 \section{Клиент-сервер ба дүрслэл}
-Орчин үеийн веб аппликейшнд бүх логикийг хөтөч дээр ажиллуулах эсвэл бүх логикийг сервер дээр ажиллуулах хоёр туйлын аль нь ч дангаар хангалттай биш. Сургалтын платформд хэрэглэгчийн харилцан үйлдэл ихтэй хэсэг, өгөгдөл хамгаалах хэсэг, AI үйлчилгээ үзүүлэгчтэй харилцах хэсэг тус бүр өөр boundary шаарддаг.
+Орчин үеийн веб аппликейшнд бүх логикийг хөтөч дээр ажиллуулах эсвэл бүх логикийг сервер дээр ажиллуулах хоёр туйлын аль нь ч дангаар хангалттай биш. Сургалтын платформд хэрэглэгчийн харилцан үйлдэл ихтэй хэсэг, өгөгдөл хамгаалах хэсэг, локал AI үйлчилгээтэй харилцах хэсэг тус бүр өөр boundary шаарддаг.
 
-Клиент талд курсийн картын hover, хичээлийн таб, чат цонхны нээлттэй төлөв, сорилын хариултын төлөв зэрэг шууд харилцан үйлдэл байрлах нь хэрэглэгчийн мэдрэмжийг хурдан болгоно. Харин AI API key, үйлчилгээ үзүүлэгчийн сонголт, өгөгдлийн багцын зам, зааварчилгаа бүрдүүлэх зэрэг эмзэг логик сервер талын API замд байх ёстой. Ийм хуваарилалт нь аюулгүй байдал болон засварлахад хялбар байдлыг сайжруулна.
+Клиент талд курсийн картын hover, хичээлийн таб, чат цонхны нээлттэй төлөв, сорилын хариултын төлөв зэрэг шууд харилцан үйлдэл байрлах нь хэрэглэгчийн мэдрэмжийг хурдан болгоно. Харин Ollama endpoint, Qdrant URL, өгөгдлийн багцын зам, prompt бүрдүүлэх зэрэг эмзэг логик сервер талын API замд байх ёстой. Ийм хуваарилалт нь аюулгүй байдал болон засварлахад хялбар байдлыг сайжруулна.
 
-Next.js App Router-ийн хувьд page, layout, route handler гэсэн ойлголтуудыг ялгах нь чухал. Page нь хэрэглэгчийн харах UI-г тодорхойлно. Layout нь навигаци болон нийтлэг visual structure-ийг тогтвортой хадгална. Route handler нь HTTP endpoint байдлаар ажиллаж, AI, YouTube metadata, payment webhook зэрэг сервер талын логикт ашиглагдана. Энэ төсөлд \texttt{/api/chat} зам нь ийм boundary-ийн гол жишээ болно.
+Next.js App Router-ийн хувьд page, layout, route handler гэсэн ойлголтуудыг ялгах нь чухал. Page нь хэрэглэгчийн харах UI-г тодорхойлно. Layout нь навигаци болон нийтлэг visual structure-ийг тогтвортой хадгална. Route handler нь HTTP endpoint байдлаар ажиллаж, AI, YouTube metadata, payment webhook зэрэг сервер талын логикт ашиглагдана. Энэ төсөлд \texttt{/api/ai-chat} зам нь ийм boundary-ийн гол жишээ болно.
 
 \begin{table}[htbp]
   \centering
@@ -249,7 +249,7 @@ LLM ашигласан сургалтын платформын гол эрсдэ
   TypeScript & Type definition хуучрах эсвэл any ихдэх & Shared type, strict checking, reusable interface \\ \hline
   Supabase & RLS policy алдаа, migration drift & SQL review, admin helper function, test user scenario \\ \hline
   RAG өгөгдлийн багц & Synthetic content чанар жигд бус, citation асуудал & Validation script, эх сурвалжийн төрөл, citation-safe flag \\ \hline
-  LLM үйлчилгээ үзүүлэгч & Зардал, хариулах хугацаа, quota, нууцлал & Үйлчилгээ үзүүлэгчийн хийсвэрлэл, локал загварын хувилбар, нөөц хариуны дүрэм \\ \hline
+  LLM үйлчилгээ & GPU memory, Ollama service унтрах, model latency & Локал model сонголт, clean error message, ingestion/test script \\ \hline
   Ирээдүйн аудио AI & Тооцооллын зардал, загварын тайлбарлагдах байдал & Feature-based MVP, human-readable feedback, staged rollout \\ \hline
 \end{longtable}
 
@@ -308,9 +308,9 @@ AI туслахыг үнэлэхдээ зөвхөн “хариулт өгсөн
 \end{longtable}
 
 \section{Нэвтрүүлэлт ба тохиргоо}
-Веб платформ хөгжүүлэхэд локал хөгжүүлэлт, demo, production орчны ялгаа тодорхой байх шаардлагатай. Локал орчинд environment variable, Supabase project URL, anon key, LLM provider key, локал Ollama endpoint зэрэг тохиргоо ашиглагдана. Demo орчинд зарим үйлчилгээ үзүүлэгч ажиллахгүй байж болох тул нөөц хариуны логик хэрэгтэй. Production орчинд key rotation, deployment log, error monitoring, HTTPS, domain, backup, migration control шаардлагатай.
+Веб платформ хөгжүүлэхэд локал хөгжүүлэлт, demo, production орчны ялгаа тодорхой байх шаардлагатай. Локал орчинд environment variable, Supabase project URL, anon key, локал Ollama endpoint, Qdrant URL болон collection нэр зэрэг тохиргоо ашиглагдана. Demo орчинд Ollama эсвэл Qdrant service ажиллахгүй байж болох тул clean error message болон setup guide хэрэгтэй. Production орчинд key rotation, deployment log, error monitoring, HTTPS, domain, backup, migration control шаардлагатай.
 
-Тохиргооны удирдлагын гол зарчим нь нууц утгыг source code-д хадгалахгүй байх явдал юм. \texttt{.env.example} нь ямар хувьсагч шаардлагатайг баримтжуулахад хэрэгтэй боловч бодит key хадгалах ёсгүй. Next.js build-time болон runtime environment-ийн ялгааг зөв ойлгохгүй бол үйлчилгээ үзүүлэгчийн key client bundle-д алдагдах эрсдэлтэй. Иймээс AI үйлчилгээ үзүүлэгчийг дуудах логик сервер талын API замд байрлах нь зөв шийдэл болно.
+Тохиргооны удирдлагын гол зарчим нь нууц утгыг source code-д хадгалахгүй байх явдал юм. \texttt{.env.example} нь ямар хувьсагч шаардлагатайг баримтжуулахад хэрэгтэй боловч бодит key хадгалах ёсгүй. Next.js build-time болон runtime environment-ийн ялгааг зөв ойлгохгүй бол сервер талд байх ёстой тохиргоо client bundle-д алдагдах эрсдэлтэй. Иймээс Ollama болон Qdrant-ийг дуудах логик сервер талын API замд байрлах нь зөв шийдэл болно.
 
 \begin{longtable}{|p{0.22\textwidth}|p{0.32\textwidth}|p{0.32\textwidth}|}
   \caption{Нэвтрүүлэлтийн тохиргооны үндсэн ангилал}
@@ -318,9 +318,9 @@ AI туслахыг үнэлэхдээ зөвхөн “хариулт өгсөн
   \hline
   \textbf{Тохиргоо} & \textbf{Зориулалт} & \textbf{Анхаарах зүйл} \\ \hline
   Supabase URL, anon key & Фронтенд client болон Auth холболт & Public key ба service key-г ялгах \\ \hline
-  LLM provider key & Gemini/OpenAI-compatible provider call & Зөвхөн сервер талд ашиглах \\ \hline
-  Ollama endpoint & Локал загварын demo & Сүлжээ болон загварын хүртээмж шалгах \\ \hline
-  Dataset path & Локал JSONL сэргээн хайлт & Production үед DB/vector store руу шилжих \\ \hline
+  Ollama endpoint & Локал chat болон embedding service & Browser-д шууд ил гаргахгүй, backend API-аар дуудах \\ \hline
+  Qdrant URL/collection & Vector storage болон retrieval & Collection size, vector dimension зөв үүссэн эсэхийг шалгах \\ \hline
+  Dataset path & Seed JSON болон generated JSONL & Ingestion хийхээс өмнө JSON/JSONL schema шалгах \\ \hline
   Payment config future & Gateway webhook, secret & Signature verification хэрэгтэй \\ \hline
   Build command & Фронтенд болон дипломын build & CI/CD-д давтагдах боломжтой болгох \\ \hline
 \end{longtable}
@@ -337,11 +337,11 @@ AI туслахыг үнэлэхдээ зөвхөн “хариулт өгсөн
   Загварчлал & Tailwind CSS & Prototype хурдан, responsive UI хийхэд хялбар & Utility class уртсах → UI component салгах \\ \hline
   Бекенд/API & Next.js API routes & Фронтендтэй нэг codebase-д chatbot, YouTube duration route удирдах & API logic томрох → route-level separation \\ \hline
   Өгөгдлийн сан & Supabase PostgreSQL & Auth, relational schema, RLS, vector extension боломжтой & Policy алдаа → RLS review, admin function \\ \hline
-  AI & RAG + LLM provider abstraction & Контекстэд тулгуурласан хариу, үйлчилгээ үзүүлэгчийн уян хатан байдал & Өгөгдлийн багцын чанар, hallucination → эх сурвалжийн мета өгөгдөл, нөөц хариу \\ \hline
-  Өгөгдлийн багц & JSONL/CSV pipeline & Embedding, Supabase import, human review-д тохиромжтой & Synthetic content их → citation-safe ялгах \\ \hline
+  AI & Local RAG + Ollama & Контекстэд тулгуурласан хариу, төлбөргүй локал demo & Өгөгдлийн багцын чанар, hallucination → эх сурвалжийн мета өгөгдөл, refusal prompt \\ \hline
+  Өгөгдлийн багц & Seed JSON + generated JSONL pipeline & Embedding, Qdrant import, human review-д тохиромжтой & Synthetic content их → citation-safe ялгах \\ \hline
 \end{longtable}
 
 \section{Бүлгийн дүгнэлт}
-Хоёрдугаар бүлгээр төслийн технологийн болон AI үндсийг судаллаа. Судалгаанаас Next.js, React, TypeScript, Tailwind CSS нь сургалтын веб интерфейсийг модульчлан хөгжүүлэхэд тохиромжтой; Supabase PostgreSQL нь хэрэглэгч, курс, хичээл, ахиц, чат, мэдлэгийн сан зэрэг өгөгдлийг найдвартай удирдах боломжтой; RAG болон үйлчилгээ үзүүлэгчийн хийсвэрлэл нь AI туслахыг үндсэн сургалтын контентыг орлохгүйгээр, харин контексттэй дэмжлэг хэлбэрээр хэрэгжүүлэхэд зохистой болох нь харагдлаа.
+Хоёрдугаар бүлгээр төслийн технологийн болон AI үндсийг судаллаа. Судалгаанаас Next.js, React, TypeScript, Tailwind CSS нь сургалтын веб интерфейсийг модульчлан хөгжүүлэхэд тохиромжтой; Supabase PostgreSQL нь хэрэглэгч, курс, хичээл, ахиц зэрэг өгөгдлийг найдвартай удирдах боломжтой; Ollama, Qdrant, \texttt{bge-m3}, \texttt{qwen3:8b}-д суурилсан локал RAG нь AI туслахыг үндсэн сургалтын контентыг орлохгүйгээр, харин контексттэй дэмжлэг хэлбэрээр хэрэгжүүлэхэд зохистой болох нь харагдлаа.
 
 Мөн аудио AI-ийн судалгаанууд нь ирээдүйн өргөтгөлийн чиглэлийг тодорхойлж байгаа боловч одоогийн дипломын хүрээнд AI-г бүрэн автомат хөгжмийн генераци бус, сургалтын зөвлөгчийн үүргээр ашиглах нь илүү найдвартай гэж дүгнэв. Энэ бүлгийн технологийн сонголт нь гуравдугаар бүлгийн платформын дизайн ба хэрэгжилтийн тайлбарт шууд суурь болно.

@@ -21,8 +21,8 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata = {
-  title: 'AI Шийдэл — Хөгжим Боловсруулалтын Платформ',
-  description: 'Design and Development of AI-Insisted Music Producing Website',
+  title: 'Melodex — Хөгжим продакшны сургалтын платформ',
+  description: 'FL Studio, beat making, mixing, mastering сурах AI дэмжлэгтэй сургалтын вебсайт',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

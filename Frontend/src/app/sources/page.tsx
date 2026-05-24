@@ -8,7 +8,7 @@ type SourceItem = {
 
 const sources: SourceItem[] = [
   {
-    label: 'YouTube Lesson Videos',
+    label: 'YouTube хичээлийн видеонууд',
     url: 'https://www.youtube.com/',
     note: 'Курсын видео хичээлүүдийн үндсэн эх сурвалж.',
   },
@@ -65,4 +65,3 @@ export default function SourcesPage() {
     </main>
   );
 }
-
