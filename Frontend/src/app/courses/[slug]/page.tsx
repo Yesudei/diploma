@@ -27,12 +27,40 @@ const categoryLabel: Record<string, string> = {
 };
 
 type SelfCheckMode = 'per-lesson' | 'final-only';
+type LessonPanelTab = 'overview' | 'practice' | 'takeaway' | 'quiz';
+
+const lessonPanelTabs: Array<{ id: LessonPanelTab; label: string }> = [
+  { id: 'overview', label: 'Тайлбар' },
+  { id: 'practice', label: 'Дадлага' },
+  { id: 'takeaway', label: 'Гол санаа' },
+  { id: 'quiz', label: 'Тест' },
+];
 
 interface SelfCheckQuestion {
   id: string;
   question: string;
   options: string[];
   correctIndex: number;
+}
+
+function LessonPanelBlock({
+  kicker,
+  title,
+  body,
+}: {
+  kicker: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div>
+      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#a69262]">
+        {kicker}
+      </p>
+      <h3 className="mt-2 font-display text-2xl font-black text-[#F5F0E8]">{title}</h3>
+      <p className="mt-3 max-w-3xl text-sm leading-7 text-[#b8ad93] sm:text-base">{body}</p>
+    </div>
+  );
 }
 
 interface SelfCheckQuiz {
@@ -61,6 +89,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   const [mentorMessages, setMentorMessages] = useState<ChatMessage[]>([]);
   const [sendingMentorMessage, setSendingMentorMessage] = useState(false);
   const [selfCheckMode, setSelfCheckMode] = useState<SelfCheckMode>('per-lesson');
+  const [lessonPanelTab, setLessonPanelTab] = useState<LessonPanelTab>('overview');
   const [lessonCompletedIds, setLessonCompletedIds] = useState<string[]>([]);
   const [lessonQuizPassedIds, setLessonQuizPassedIds] = useState<string[]>([]);
   const [courseQuizPassed, setCourseQuizPassed] = useState(false);
@@ -108,6 +137,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
     setShowQuizModal(false);
     setQuizAnswers({});
     setQuizScore(null);
+    setLessonPanelTab('overview');
   }, [slug]);
 
   useEffect(() => {
@@ -353,6 +383,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   const handleLessonClick = (lesson: Lesson) => {
     if (lesson.free || alreadyOwned) {
       setCurrentLesson(lesson);
+      setLessonPanelTab('overview');
       setShowLockedModal(false);
     } else {
       setShowLockedModal(true);
@@ -404,7 +435,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
 
       setMentorMessages((prev) => [...prev, assistantMessage]);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Message failed';
+      const message = error instanceof Error ? error.message : 'Зурвас илгээхэд алдаа гарлаа';
       toast.error(message);
     } finally {
       setSendingMentorMessage(false);
@@ -492,6 +523,17 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
     currentLessonIndex >= 0 && currentLessonIndex < course.curriculum.length - 1
       ? course.curriculum[currentLessonIndex + 1]
       : null;
+  const currentLessonDuration = currentLesson
+    ? lessonDurations[currentLesson.id] || currentLesson.durationMinutes
+    : 0;
+  const currentLessonNumber = currentLessonIndex >= 0 ? currentLessonIndex + 1 : 0;
+  const courseProgressPercent = Math.round(
+    (lessonCompletedIds.length / Math.max(course.curriculum.length, 1)) * 100
+  );
+  const currentLessonDone = currentLesson ? lessonCompletedIds.includes(currentLesson.id) : false;
+  const currentLessonQuizDone = currentLesson
+    ? lessonQuizPassedIds.includes(currentLesson.id)
+    : false;
 
   return (
     <>
@@ -636,167 +678,251 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
           {currentLesson && (currentLesson.free || alreadyOwned) && (
             <section
               id="active-player"
-              className="studio-panel mb-8 overflow-hidden rounded-[28px] p-4 sm:p-5"
+              className="mb-8 overflow-hidden rounded-[34px] border border-[rgba(245,240,232,0.08)] bg-[linear-gradient(145deg,rgba(245,240,232,0.05),rgba(8,9,12,0.96)_48%),#0B0C10] p-3 shadow-[0_28px_90px_rgba(0,0,0,0.42)] sm:p-4"
             >
-              {!hasVideoCurrentLesson ? (
-                <div className="studio-card overflow-hidden rounded-[22px] p-6 sm:p-7">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#C9A84C]">
-                        Хичээлийн товч
-                      </p>
-                      <h2 className="mt-3 font-display text-[clamp(28px,4vw,44px)] font-black leading-[1.04] text-[#F5F0E8]">
-                        {currentLesson.title}
-                      </h2>
-                    </div>
-                    <button
-                      onClick={() => setCurrentLesson(null)}
-                      className="rounded-full border border-[rgba(245,240,232,0.1)] px-3 py-1.5 text-sm text-[#8f8779] transition hover:border-[rgba(217,195,138,0.32)] hover:text-[#F5F0E8]"
-                    >
-                      Close
-                    </button>
-                  </div>
-                  <p className="mt-4 max-w-2xl text-sm leading-7 text-[#b8ad93] sm:text-base">
-                    Энэ хэсэгт хичээлийн гол санаа, хийх дадлага, авч үлдэх ойлголт байна.
-                    Уншаад даалгавраа хийж, ахицаа тэмдэглээрэй.
-                  </p>
-                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.04)] p-4">
-                      <p className="text-xs uppercase tracking-[0.16em] text-[#8d836f]">Focus</p>
-                      <p className="mt-2 text-sm leading-6 text-[#F5F0E8]">
-                        {currentLesson.summary ||
-                          'Энэ хичээлийн үндсэн ойлголтуудыг богино, төвлөрсөн байдлаар судална.'}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.04)] p-4">
-                      <p className="text-xs uppercase tracking-[0.16em] text-[#8d836f]">Дадлага</p>
-                      <p className="mt-2 text-sm leading-6 text-[#F5F0E8]">
-                        {currentLesson.exercise || 'Сонсож, туршиж, өөрийн хувилбараа гарга.'}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.04)] p-4">
-                      <p className="text-xs uppercase tracking-[0.16em] text-[#8d836f]">Гол санаа</p>
-                      <p className="mt-2 text-sm leading-6 text-[#F5F0E8]">
-                        {currentLesson.takeaway ||
-                          'Хичээлийн дараа нэг тодорхой санаа авч үлдэнэ.'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <button
-                      onClick={handleLessonCompleted}
-                      className="studio-ghost-button rounded-xl px-5 py-3 text-sm font-semibold"
-                    >
-                      Дууссан гэж тэмдэглэх
-                    </button>
-                    <button
-                      onClick={() => openLessonQuiz(currentLesson)}
-                      className="studio-ghost-button rounded-xl px-5 py-3 text-sm font-semibold"
-                    >
-                      Тест өгөх
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
-                  <div className="min-w-0">
-                    <VideoPlayer videoId={currentLesson.youtubeId || ''} onComplete={() => {}} />
-                    <div className="studio-card mt-4 rounded-2xl p-4 sm:p-5">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a69262]">
-                            Одоо үзэж байна
+              <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+                <div className="min-w-0">
+                  <div className="overflow-hidden rounded-[28px] border border-[rgba(245,240,232,0.08)] bg-[#050609]">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[rgba(245,240,232,0.08)] px-4 py-3 sm:px-5">
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-10 w-10 place-items-center rounded-full border border-[rgba(201,168,76,0.28)] bg-[rgba(201,168,76,0.08)] text-xs font-black text-[#E8C96D]">
+                          {String(currentLessonNumber).padStart(2, '0')}
+                        </span>
+                        <div>
+                          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#a69262]">
+                            Студи сесс
                           </p>
-                          <h2 className="mt-1 text-lg font-bold text-white sm:text-xl">
+                          <h2 className="mt-1 line-clamp-1 font-display text-xl font-black text-[#F5F0E8] sm:text-2xl">
                             {currentLesson.title}
                           </h2>
-                          <p className="text-sm text-[#7A7570]">
-                            {lessonDurations[currentLesson.id] || currentLesson.durationMinutes} мин
-                          </p>
                         </div>
-                        <button
-                          onClick={() => setCurrentLesson(null)}
-                          className="rounded-md px-2 py-1 text-[#7A7570] transition hover:text-white"
-                        >
-                          ✕
-                        </button>
                       </div>
-                      {currentLesson.summary && (
-                        <p className="mt-3 text-sm leading-7 text-[#b8ad93]">{currentLesson.summary}</p>
+                      <button
+                        onClick={() => setCurrentLesson(null)}
+                        className="rounded-full border border-[rgba(245,240,232,0.1)] px-3 py-1.5 text-sm text-[#8f8779] transition hover:border-[rgba(217,195,138,0.32)] hover:text-[#F5F0E8]"
+                      >
+                        Хаах
+                      </button>
+                    </div>
+
+                    <div className="relative">
+                      {hasVideoCurrentLesson ? (
+                        <VideoPlayer videoId={currentLesson.youtubeId || ''} onComplete={() => {}} />
+                      ) : (
+                        <div className="relative flex min-h-[360px] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,rgba(201,169,78,0.12),transparent_42%),#08090D] p-8 text-center">
+                          <div className="absolute inset-x-8 bottom-10 flex h-24 items-end justify-center gap-2 opacity-70">
+                            {[42, 70, 38, 104, 62, 130, 86, 118, 54, 78, 44].map((height, index) => (
+                              <span
+                                key={index}
+                                className="w-3 rounded-full bg-[linear-gradient(180deg,#E8C96D,#7FA4A8)]"
+                                style={{ height }}
+                              />
+                            ))}
+                          </div>
+                          <div className="relative z-10 max-w-[560px]">
+                            <p className="text-xs font-black uppercase tracking-[0.2em] text-[#E8C96D]">
+                              Хичээлийн товч
+                            </p>
+                            <h3 className="mt-4 font-display text-[clamp(34px,6vw,68px)] font-black leading-[0.92]">
+                              Унш. Турш. Тэмдэглэ.
+                            </h3>
+                            <p className="mx-auto mt-4 max-w-[460px] text-sm leading-7 text-[#b8ad93]">
+                              Видео байхгүй хичээл дээр гол санаа, дадлага, шалгах тестээ нэг дор
+                              ажиллуулна.
+                            </p>
+                          </div>
+                        </div>
                       )}
-                      <div className="mt-4 flex flex-wrap items-center gap-2">
-                        <button
-                          onClick={handleLessonCompleted}
-                          className="studio-ghost-button rounded-lg px-3 py-2 text-sm font-semibold"
-                        >
-                          Дууссан гэж тэмдэглэх
-                        </button>
-                        <button
-                          onClick={() => openLessonQuiz(currentLesson)}
-                          className="studio-ghost-button rounded-lg px-3 py-2 text-sm font-semibold"
-                        >
-                          Тест өгөх
-                        </button>
-                        {nextLesson && (
-                          <button
-                            onClick={() => handleLessonClick(nextLesson)}
-                            className="studio-ghost-button rounded-lg px-3 py-2 text-sm font-semibold"
-                          >
-                            Дараагийн хичээл →
-                          </button>
-                        )}
+                    </div>
+
+                    <div className="border-t border-[rgba(245,240,232,0.08)] p-4 sm:p-5">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap gap-2">
+                          <span className="studio-chip rounded-full px-3 py-1 text-xs font-bold">
+                            {currentLessonDuration} мин
+                          </span>
+                          <span className="studio-chip rounded-full px-3 py-1 text-xs font-bold">
+                            {currentLessonDone ? 'Дууссан' : 'Явагдаж байна'}
+                          </span>
+                          <span className="studio-chip rounded-full px-3 py-1 text-xs font-bold">
+                            {currentLessonQuizDone ? 'Тест давсан' : 'Тест хүлээгдэж байна'}
+                          </span>
+                        </div>
+                        <div className="min-w-[180px]">
+                          <div className="mb-1 flex justify-between text-[11px] font-bold uppercase tracking-[0.12em] text-[#8f8779]">
+                            <span>Курсын ахиц</span>
+                            <span>{courseProgressPercent}%</span>
+                          </div>
+                          <div className="studio-meter">
+                            <span style={{ width: `${courseProgressPercent}%` }} />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <aside className="studio-card h-fit self-start overflow-hidden rounded-2xl">
-                    <div className="border-b border-[rgba(245,240,232,0.08)] px-4 py-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a69262]">
-                        Playlist
-                      </p>
-                      <p className="mt-1 text-sm text-[#b8ad93]">
-                        {course.curriculum.length} хичээл
-                      </p>
+                  <div className="mt-4 rounded-[28px] border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.035)] p-3 sm:p-4">
+                    <div className="grid gap-2 rounded-2xl bg-[#090A0D]/60 p-1 sm:grid-cols-4">
+                      {lessonPanelTabs.map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setLessonPanelTab(tab.id)}
+                          className={`rounded-xl px-3 py-2.5 text-sm font-bold transition ${
+                            lessonPanelTab === tab.id
+                              ? 'bg-[rgba(201,169,78,0.16)] text-[#E8C96D]'
+                              : 'text-[#8f8779] hover:bg-white/[0.04] hover:text-[#F5F0E8]'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
                     </div>
-                    <div className="max-h-[520px] space-y-2 overflow-y-auto p-2.5">
-                      {course.curriculum.map((lesson, i) => {
-                        const isActiveLesson = currentLesson.id === lesson.id;
-                        const isCompletedLesson = lessonCompletedIds.includes(lesson.id);
-                        const isLockedLesson = !lesson.free && !alreadyOwned;
-                        const lessonDuration = lessonDurations[lesson.id] || lesson.durationMinutes;
 
-                        return (
+                    <div className="mt-4 rounded-2xl border border-[rgba(245,240,232,0.07)] bg-[#090A0D]/44 p-5">
+                      {lessonPanelTab === 'overview' && (
+                        <LessonPanelBlock
+                          kicker="Гол анхаарах зүйл"
+                          title={currentLesson.title}
+                          body={
+                            currentLesson.summary ||
+                            'Энэ хичээлийн үндсэн ойлголтуудыг богино, төвлөрсөн байдлаар судална.'
+                          }
+                        />
+                      )}
+                      {lessonPanelTab === 'practice' && (
+                        <LessonPanelBlock
+                          kicker="Дадлага"
+                          title="Өөрийн project дээр турших"
+                          body={currentLesson.exercise || 'Сонсож, туршиж, өөрийн хувилбараа гарга.'}
+                        />
+                      )}
+                      {lessonPanelTab === 'takeaway' && (
+                        <LessonPanelBlock
+                          kicker="Авч үлдэх санаа"
+                          title="Дараагийн beat дээр ашиглах"
+                          body={
+                            currentLesson.takeaway ||
+                            'Хичээлийн дараа нэг тодорхой санаа авч үлдэнэ.'
+                          }
+                        />
+                      )}
+                      {lessonPanelTab === 'quiz' && (
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <LessonPanelBlock
+                            kicker="Өөрийгөө шалгах"
+                            title="Ойлгосноо баталгаажуулах"
+                            body="Хичээлийн дараа богино тест өгч, цааш явахад бэлэн эсэхээ шалгаарай."
+                          />
                           <button
-                            key={lesson.id}
-                            onClick={() => handleLessonClick(lesson)}
-                            className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left transition ${
-                              isActiveLesson
-                                ? 'border-[rgba(217,195,138,0.45)] bg-[rgba(201,168,76,0.14)]'
-                                : 'border-[rgba(245,240,232,0.08)] bg-[#11131b] hover:border-[rgba(217,195,138,0.28)]'
-                            }`}
+                            onClick={() => openLessonQuiz(currentLesson)}
+                            className="studio-button rounded-full px-5 py-3 text-sm font-black"
                           >
-                            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#181a24] text-[11px] font-bold text-[#8b816f]">
-                              {i + 1}
-                            </span>
-                            <span className="min-w-0 flex-1">
-                              <span className="line-clamp-2 block text-sm font-semibold text-[#F5F0E8]">
-                                {lesson.title}
-                              </span>
-                              <span className="mt-1 block text-xs text-[#7A7570]">{lessonDuration} мин</span>
-                            </span>
-                            {isLockedLesson && (
-                              <span className="text-xs font-semibold text-[#a99771]">🔒</span>
-                            )}
-                            {isCompletedLesson && !isLockedLesson && (
-                              <span className="text-xs font-semibold text-[#C9A84C]">✓</span>
-                            )}
+                            Тест эхлэх
                           </button>
-                        );
-                      })}
+                        </div>
+                      )}
                     </div>
-                  </aside>
+
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <button
+                        onClick={handleLessonCompleted}
+                        className="studio-button rounded-full px-5 py-3 text-sm font-black"
+                      >
+                        Дууссан гэж тэмдэглэх
+                      </button>
+                      {nextLesson && (
+                        <button
+                          onClick={() => handleLessonClick(nextLesson)}
+                          className="studio-ghost-button rounded-full px-5 py-3 text-sm font-bold"
+                        >
+                          Дараагийн хичээл
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
+
+                <aside className="h-fit overflow-hidden rounded-[28px] border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.035)] xl:sticky xl:top-24">
+                  <div className="border-b border-[rgba(245,240,232,0.08)] p-4">
+                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#a69262]">
+                      Хичээлийн дараалал
+                    </p>
+                    <div className="mt-3 flex items-end justify-between gap-4">
+                      <p className="font-display text-3xl font-black text-[#F5F0E8]">
+                        {currentLessonNumber}/{course.curriculum.length}
+                      </p>
+                      <p className="text-right text-xs leading-5 text-[#8f8779]">
+                        {lessonCompletedIds.length} дууссан
+                      </p>
+                    </div>
+                  </div>
+                  <div className="max-h-[650px] overflow-y-auto p-3">
+                    {course.curriculum.map((lesson, i) => {
+                      const isActiveLesson = currentLesson.id === lesson.id;
+                      const isCompletedLesson = lessonCompletedIds.includes(lesson.id);
+                      const isLockedLesson = !lesson.free && !alreadyOwned;
+                      const lessonDuration = lessonDurations[lesson.id] || lesson.durationMinutes;
+
+                      return (
+                        <button
+                          key={lesson.id}
+                          onClick={() => handleLessonClick(lesson)}
+                          className={`relative flex w-full gap-3 rounded-2xl border p-3 text-left transition ${
+                            isActiveLesson
+                              ? 'border-[rgba(217,195,138,0.45)] bg-[rgba(201,168,76,0.14)]'
+                              : isLockedLesson
+                                ? 'border-[rgba(245,240,232,0.06)] bg-[#0b0d12]/70 opacity-70 hover:border-[rgba(217,195,138,0.2)]'
+                                : 'border-[rgba(245,240,232,0.08)] bg-[#11131b] hover:border-[rgba(217,195,138,0.28)]'
+                          }`}
+                        >
+                          <span className="relative flex flex-col items-center">
+                            <span
+                              className={`grid h-8 w-8 place-items-center rounded-full border text-[11px] font-black ${
+                                isActiveLesson
+                                  ? 'border-[rgba(201,169,78,0.55)] text-[#E8C96D]'
+                                  : isCompletedLesson
+                                    ? 'border-[rgba(125,211,168,0.4)] text-[#7DD3A8]'
+                                    : 'border-[rgba(245,240,232,0.1)] text-[#8b816f]'
+                              }`}
+                            >
+                              {isCompletedLesson ? '✓' : i + 1}
+                            </span>
+                            {i < course.curriculum.length - 1 && (
+                              <span className="mt-2 h-8 w-px bg-[rgba(245,240,232,0.1)]" />
+                            )}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="line-clamp-2 block text-sm font-bold text-[#F5F0E8]">
+                              {lesson.title}
+                            </span>
+                            <span className="mt-2 flex flex-wrap items-center gap-2">
+                              <span className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[11px] font-bold text-[#8f8779]">
+                                {lessonDuration} мин
+                              </span>
+                              {lesson.free && (
+                                <span className="rounded-full bg-[rgba(201,169,78,0.1)] px-2 py-0.5 text-[11px] font-bold text-[#E8C96D]">
+                                  Үнэгүй
+                                </span>
+                              )}
+                              {lesson.contentType === 'brief' && (
+                                <span className="rounded-full bg-[rgba(127,164,168,0.12)] px-2 py-0.5 text-[11px] font-bold text-[#9BC7CC]">
+                                  Товч
+                                </span>
+                              )}
+                              {lessonQuizPassedIds.includes(lesson.id) && (
+                                <span className="rounded-full bg-[rgba(125,211,168,0.12)] px-2 py-0.5 text-[11px] font-bold text-[#7DD3A8]">
+                                  Тест ✓
+                                </span>
+                              )}
+                            </span>
+                          </span>
+                          {isLockedLesson && <span className="text-sm text-[#a99771]">Түгжээтэй</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </aside>
+              </div>
             </section>
           )}
 
@@ -850,7 +976,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                             </div>
                             <div>
                               <p className="text-[11px] uppercase tracking-[0.18em] text-[#9f8f67]">
-                                Producer Profile
+                                Менторын танилцуулга
                               </p>
                               <h3 className="mt-1 text-xl font-bold text-[#F5F0E8]">
                                 {teacher.name}
@@ -865,7 +991,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
 
                         <div className="mt-4 rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#11131b] p-3.5">
                           <p className="text-xs uppercase tracking-[0.12em] text-[#8f8779]">
-                            Specialty
+                            Чиглэл
                           </p>
                           <p className="mt-1 text-sm font-medium text-[#d9cba8]">
                             {teacher.specialty}
@@ -876,7 +1002,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                         {teacher.instruments && teacher.instruments.length > 0 && (
                           <div className="mt-4">
                             <p className="text-xs uppercase tracking-[0.12em] text-[#8f8779]">
-                              Uses
+                              Ашигладаг хэрэгсэл
                             </p>
                             <div className="mt-2 flex flex-wrap gap-2">
                               {teacher.instruments.map((tool) => (
@@ -996,12 +1122,12 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                               )}
                               {lesson.contentType === 'brief' && (
                                 <span className="rounded-full border border-[rgba(88,130,216,0.32)] bg-[rgba(49,74,122,0.24)] px-2 py-0.5 text-[10px] font-semibold text-[#cfe0ff]">
-                                  LESSON NOTE
+                                  Товч хичээл
                                 </span>
                               )}
                               {lessonQuizPassedIds.includes(lesson.id) && (
                                 <span className="rounded-full border border-[rgba(217,195,138,0.35)] bg-[rgba(217,195,138,0.12)] px-2 py-0.5 text-[10px] font-semibold text-[#E8C96D]">
-                                  SELF-CHECK ✓
+                                  Тест ✓
                                 </span>
                               )}
                             </div>
@@ -1199,10 +1325,10 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
               <div className="flex items-center justify-between border-b border-[rgba(245,240,232,0.08)] px-4 py-3">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] text-xs font-bold text-[#E8C96D]">
-                    AI
+                    M
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-[#F5F0E8]">AI Assistant</p>
+                    <p className="text-sm font-semibold text-[#F5F0E8]">Studio mentor</p>
                     <p className="text-xs text-[#8f8779]">Онлайн</p>
                   </div>
                 </div>
@@ -1262,7 +1388,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                     disabled={!mentorChatInput.trim() || sendingMentorMessage}
                     className="rounded-lg bg-[rgba(201,168,76,0.14)] px-3 py-2 text-sm font-semibold text-[#E8C96D] transition hover:bg-[rgba(201,168,76,0.24)] disabled:opacity-50"
                   >
-                    {sendingMentorMessage ? '...' : 'Send'}
+                    {sendingMentorMessage ? '...' : 'Илгээх'}
                   </button>
                 </div>
               )}
