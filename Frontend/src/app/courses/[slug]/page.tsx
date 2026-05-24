@@ -4,7 +4,7 @@ import { courses, teachers } from '@/lib/data';
 import { useAuth } from '@/hooks/useAuth';
 import { usePurchases } from '@/hooks/usePurchases';
 import apiService from '@/services/api';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 import type { ChatMessage } from '@/types';
@@ -75,6 +75,7 @@ interface SelfCheckQuiz {
 }
 
 export default function CourseDetailPage({ params }: { params: { slug: string } }) {
+  const routeParams = useParams<{ slug?: string | string[] }>();
   const [slug, setSlug] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [dbCourse, setDbCourse] = useState<Course | null>(null);
@@ -110,11 +111,18 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   const mentorChatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (params?.slug) {
-      setSlug(params.slug);
+    const nextSlug =
+      typeof routeParams?.slug === 'string'
+        ? routeParams.slug
+        : Array.isArray(routeParams?.slug)
+          ? routeParams.slug[0] || ''
+          : params?.slug || '';
+
+    if (nextSlug) {
+      setSlug(nextSlug);
       setLoading(false);
     }
-  }, [params]);
+  }, [params, routeParams]);
 
   useEffect(() => {
     if (!slug || staticCourse) {
