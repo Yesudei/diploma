@@ -21,6 +21,8 @@ lib64/
 Frontend/src/lib/*
 !Frontend/src/lib/dashboard-audio.ts
 !Frontend/src/lib/db-courses.ts
+!Frontend/src/lib/course-list.ts
+!Frontend/src/lib/course-list.test.ts
 !Frontend/src/lib/rag/
 !Frontend/src/lib/rag/**
 !Frontend/src/lib/supabase-errors.ts
@@ -148,3 +150,5 @@ cache/
 .history/
 .DS_Store
 Frontend/tf
+.vercel
+.env*

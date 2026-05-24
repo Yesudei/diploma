@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { courses } from '@/lib/data';
 import { fetchDbCourses } from '@/lib/db-courses';
+import { mergeCourses } from '@/lib/course-list';
 import type { Course } from '@/lib/types';
 
 const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
@@ -84,7 +85,7 @@ function CoursesPageContent() {
     };
   }, []);
 
-  const allCourses = useMemo(() => [...courses, ...dbCourses], [dbCourses]);
+  const allCourses = useMemo(() => mergeCourses(courses, dbCourses), [dbCourses]);
   const totalLessonsAll = useMemo(
     () =>
       allCourses.reduce(

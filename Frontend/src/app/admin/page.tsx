@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { getIsAdmin } from '@/lib/admin';
 import { courses } from '@/lib/data';
 import { fetchDbCourses } from '@/lib/db-courses';
+import { mergeCourses } from '@/lib/course-list';
 import { getSupabaseSetupMessage, isMissingTableError } from '@/lib/supabase-errors';
 import { normalizeYouTubeVideoId } from '@/lib/youtube';
 import type { Course } from '@/lib/types';
@@ -182,6 +183,7 @@ export default function AdminPage() {
   const [courseTeacherName, setCourseTeacherName] = useState('');
   const [lessons, setLessons] = useState<LessonForm[]>([]);
   const [savingCourse, setSavingCourse] = useState(false);
+  const allCourses = useMemo(() => mergeCourses(courses, dbCourses), [dbCourses]);
 
   const totalLessons = useMemo(
     () => courses.reduce((sum, course) => sum + course.curriculum.length, 0),
@@ -524,6 +526,8 @@ export default function AdminPage() {
       setCourseSlug('');
       setCourseTeacherName('');
       setLessons([]);
+      await loadAdminData();
+      setActiveTab('courses');
     } finally {
       setSavingCourse(false);
     }
@@ -775,7 +779,7 @@ export default function AdminPage() {
 
           {activeTab === 'courses' && (
             <section className="mt-7 grid gap-5 lg:grid-cols-2">
-              {[...courses, ...dbCourses].map((course) => {
+              {allCourses.map((course) => {
                 const videoCount = course.curriculum.filter((lesson) => lesson.youtubeId).length;
                 return (
                   <article

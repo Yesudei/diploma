@@ -12,6 +12,9 @@ import {
 } from '@/lib/dashboard-audio';
 import type { AudioFile, MixingAnalysisResult } from '@/types';
 import { courses, teachers } from '@/lib/data';
+import { fetchDbCourses } from '@/lib/db-courses';
+import { mergeCourses } from '@/lib/course-list';
+import type { Course } from '@/lib/types';
 
 type DashboardTab = 'courses' | 'upload' | 'files' | 'analysis';
 
@@ -44,6 +47,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<DashboardTab>('courses');
   const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
   const [analysisResults, setAnalysisResults] = useState<MixingAnalysisResult[]>([]);
+  const [dbCourses, setDbCourses] = useState<Course[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedAnalysisFileId, setSelectedAnalysisFileId] = useState('');
@@ -102,32 +106,52 @@ export default function DashboardPage() {
     }
   }, [user?.id, loadData]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    fetchDbCourses()
+      .then((loadedCourses) => {
+        if (mounted) {
+          setDbCourses(loadedCourses);
+        }
+      })
+      .catch((error) => {
+        console.error('Could not load dashboard courses:', error);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const displayName = useMemo(() => {
     const name = user?.email?.split('@')[0] || 'producer';
     return name.charAt(0).toUpperCase() + name.slice(1);
   }, [user?.email]);
 
+  const allCourses = useMemo(() => mergeCourses(courses, dbCourses), [dbCourses]);
+
   const totalLessons = useMemo(
-    () => courses.reduce((sum, course) => sum + (course.curriculum?.length || 0), 0),
-    []
+    () => allCourses.reduce((sum, course) => sum + (course.curriculum?.length || 0), 0),
+    [allCourses]
   );
 
   const totalMinutes = useMemo(
     () =>
-      courses.reduce(
+      allCourses.reduce(
         (sum, course) =>
           sum + course.curriculum.reduce((lessonSum, lesson) => lessonSum + lesson.durationMinutes, 0),
         0
       ),
-    []
+    [allCourses]
   );
 
   const studioScore = Math.min(
     96,
-    48 + Math.min(courses.length, 12) * 2 + audioFiles.length * 3 + analysisResults.length * 4
+    48 + Math.min(allCourses.length, 12) * 2 + audioFiles.length * 3 + analysisResults.length * 4
   );
 
-  const featuredCourses = courses.slice(0, 3);
+  const featuredCourses = allCourses.slice(0, 3);
   const mentorList = teachers.slice(0, 3);
 
   const handleLogout = async () => {
@@ -338,7 +362,7 @@ export default function DashboardPage() {
               </section>
 
               <div className="grid gap-3 sm:grid-cols-3">
-                <MetricCard label="Нийт курс" value={courses.length.toString()} detail={`${totalLessons} хичээл`} />
+                <MetricCard label="Нийт курс" value={allCourses.length.toString()} detail={`${totalLessons} хичээл`} />
                 <MetricCard label="Суралцах цаг" value={`${Math.round(totalMinutes / 60)}ц`} detail="хичээлийн сан" />
                 <MetricCard label="Mix файл" value={audioFiles.length.toString()} detail={`${analysisResults.length} шинжилгээ`} />
               </div>
@@ -538,7 +562,7 @@ export default function DashboardPage() {
             <p className="mt-1 text-xs text-[#8f8779]">{user.email}</p>
 
             <div className="mt-5 grid grid-cols-3 gap-2">
-              <MiniStat value={courses.length} label="курс" />
+              <MiniStat value={allCourses.length} label="курс" />
               <MiniStat value={audioFiles.length} label="файл" />
               <MiniStat value={analysisResults.length} label="mix" />
             </div>
