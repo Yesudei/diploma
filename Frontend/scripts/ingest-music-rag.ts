@@ -42,6 +42,22 @@ async function main() {
   const dataPath = path.join(process.cwd(), 'data', 'rag', 'music-course-seed.json');
   const raw = await readFile(dataPath, 'utf-8');
   const documents = JSON.parse(raw) as RagDocument[];
+  const generatedPath = path.join(process.cwd(), 'data', 'rag', 'generated-music-course.jsonl');
+
+  try {
+    const generatedRaw = await readFile(generatedPath, 'utf-8');
+    const generatedDocuments = generatedRaw
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as RagDocument);
+
+    documents.push(...generatedDocuments);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error;
+    }
+  }
 
   if (!Array.isArray(documents) || documents.length === 0) {
     throw new Error('Seed data must be a non-empty JSON array.');
