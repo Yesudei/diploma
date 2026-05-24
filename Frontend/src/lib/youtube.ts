@@ -5,10 +5,45 @@ interface YouTubeDurationResponse {
   durationMinutes?: number | null;
 }
 
+export function normalizeYouTubeVideoId(value: string): string {
+  const normalizedValue = value.trim();
+
+  if (!normalizedValue) {
+    return '';
+  }
+
+  if (VIDEO_ID_REGEX.test(normalizedValue)) {
+    return normalizedValue;
+  }
+
+  try {
+    const url = new URL(normalizedValue);
+
+    if (url.hostname.includes('youtu.be')) {
+      const shortId = url.pathname.replace(/^\/+/, '').split('/')[0] || '';
+      return VIDEO_ID_REGEX.test(shortId) ? shortId : normalizedValue;
+    }
+
+    if (url.hostname.includes('youtube.com')) {
+      const watchId = url.searchParams.get('v') || '';
+      if (VIDEO_ID_REGEX.test(watchId)) {
+        return watchId;
+      }
+
+      const pathId = url.pathname.split('/').filter(Boolean).pop() || '';
+      return VIDEO_ID_REGEX.test(pathId) ? pathId : normalizedValue;
+    }
+  } catch {
+    return normalizedValue;
+  }
+
+  return normalizedValue;
+}
+
 export async function getYouTubeDuration(
   videoId: string
 ): Promise<number | null> {
-  const normalizedVideoId = videoId.trim();
+  const normalizedVideoId = normalizeYouTubeVideoId(videoId);
 
   if (!VIDEO_ID_REGEX.test(normalizedVideoId)) {
     return null;

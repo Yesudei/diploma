@@ -5,7 +5,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
-import apiService from '@/services/api';
+import {
+  listUserAnalysisResults,
+  listUserAudioFiles,
+  uploadUserAudioFile,
+} from '@/lib/dashboard-audio';
 import type { AudioFile, MixingAnalysisResult } from '@/types';
 import { courses, teachers } from '@/lib/data';
 
@@ -80,13 +84,15 @@ export default function DashboardPage() {
   const loadData = useCallback(async () => {
     if (!user?.id) return;
     try {
-      const files = await apiService.listAudioFiles({ page: 1, limit: 20 });
-      setAudioFiles(files.data);
-
-      const analyses = await apiService.listAnalysisResults({ page: 1, limit: 10 });
-      setAnalysisResults(analyses.data);
+      const [files, analyses] = await Promise.all([
+        listUserAudioFiles(user.id),
+        listUserAnalysisResults(user.id),
+      ]);
+      setAudioFiles(files);
+      setAnalysisResults(analyses);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+      toast.error('Dashboard мэдээллийг Supabase-с ачаалж чадсангүй.');
     }
   }, [user?.id]);
 
@@ -150,14 +156,14 @@ export default function DashboardPage() {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) {
+    if (!selectedFile || !user?.id) {
       toast.error('Файлаа сонгоно уу');
       return;
     }
 
     setIsUploading(true);
     try {
-      await apiService.uploadAudio(selectedFile);
+      await uploadUserAudioFile(user.id, selectedFile);
       toast.success('Аудио файл нэмэгдлээ');
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -179,10 +185,9 @@ export default function DashboardPage() {
 
     setIsAnalyzing(true);
     try {
-      toast.info('Аудио шинжилж байна...');
-      await apiService.analyzeAudio(selectedAnalysisFileId);
-      toast.success('Шинжилгээ дууслаа');
-      await loadData();
+      toast.info(
+        'Cloud mix analysis одоогоор холбогдоогүй байна. Demo-д зориулж upload болон file sync нь Supabase дээр ажиллаж байгаа.'
+      );
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Шинжилгээ амжилтгүй боллоо';
       toast.error(message);
@@ -497,6 +502,11 @@ export default function DashboardPage() {
                     {isAnalyzing ? 'Шинжилж байна...' : 'Шинжилгээ хийх'}
                   </button>
                 </div>
+                <p className="mt-3 text-sm leading-6 text-[#8f8779]">
+                  Cloud demo дээр audio upload болон file history нь Supabase-р sync хийгдэнэ. Mix
+                  analysis engine-г тусад нь холбох хүртэл энэ хэсэг өмнөх тайлангуудыг л
+                  харуулна.
+                </p>
               </div>
 
               {analysisResults.length === 0 ? (

@@ -3,7 +3,7 @@ import { Suspense, useMemo, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { courses } from '@/lib/data';
-import { supabase } from '@/lib/supabase';
+import { fetchDbCourses } from '@/lib/db-courses';
 import type { Course } from '@/lib/types';
 
 const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
@@ -67,27 +67,21 @@ function CoursesPageContent() {
   }, [searchParams]);
 
   useEffect(() => {
-    supabase
-      .from('courses')
-      .select('*')
-      .then(({ data }) => {
-        if (!data) return;
-        const mapped: Course[] = data.map((row) => ({
-          id: row.course_id,
-          title: row.title,
-          description: row.description || '',
-          thumbnail: row.thumbnail || '',
-          price: row.price || 0,
-          teacherId: row.teacher_id || '',
-          category: row.category,
-          level: row.level,
-          duration: '',
-          lessonsCount: 0,
-          slug: row.slug,
-          curriculum: [],
-        }));
-        setDbCourses(mapped);
+    let mounted = true;
+
+    fetchDbCourses()
+      .then((loadedCourses) => {
+        if (mounted) {
+          setDbCourses(loadedCourses);
+        }
+      })
+      .catch((error) => {
+        console.error('Could not load database courses:', error);
       });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const allCourses = useMemo(() => [...courses, ...dbCourses], [dbCourses]);

@@ -1,7 +1,6 @@
 ﻿'use client';
 import { useState, useEffect, useRef } from 'react';
-import { courses, Lesson } from '@/lib/data';
-import { teachers } from '@/lib/data';
+import { courses, teachers } from '@/lib/data';
 import { useAuth } from '@/hooks/useAuth';
 import { usePurchases } from '@/hooks/usePurchases';
 import apiService from '@/services/api';
@@ -9,7 +8,9 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 import type { ChatMessage } from '@/types';
+import { fetchDbCourseBundleBySlug } from '@/lib/db-courses';
 import { getYouTubeDuration } from '@/lib/youtube';
+import type { Course, Lesson, Teacher } from '@/lib/types';
 
 const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
 const VideoPlayer = dynamic(() => import('@/components/VideoPlayer'), { ssr: false });
@@ -76,9 +77,15 @@ interface SelfCheckQuiz {
 export default function CourseDetailPage({ params }: { params: { slug: string } }) {
   const [slug, setSlug] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [dbCourse, setDbCourse] = useState<Course | null>(null);
+  const [dbTeacher, setDbTeacher] = useState<Teacher | null>(null);
+  const [dbCourseLoading, setDbCourseLoading] = useState(false);
   const [showLockedModal, setShowLockedModal] = useState(false);
-  const course = courses.find((c) => c.slug === slug);
-  const teacher = course ? teachers.find((t) => t.id === course.teacherId) : null;
+  const staticCourse = courses.find((c) => c.slug === slug);
+  const course = staticCourse || dbCourse;
+  const teacher = staticCourse
+    ? teachers.find((t) => t.id === staticCourse.teacherId) || null
+    : dbTeacher;
   const { user } = useAuth();
   const { canWatch } = usePurchases();
   const router = useRouter();
@@ -107,6 +114,40 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
       setLoading(false);
     }
   }, [params]);
+
+  useEffect(() => {
+    if (!slug || staticCourse) {
+      setDbCourse(null);
+      setDbTeacher(null);
+      setDbCourseLoading(false);
+      return;
+    }
+
+    let mounted = true;
+    setDbCourseLoading(true);
+
+    fetchDbCourseBundleBySlug(slug)
+      .then((bundle) => {
+        if (!mounted) return;
+        setDbCourse(bundle?.course || null);
+        setDbTeacher(bundle?.teacher || null);
+      })
+      .catch((error) => {
+        console.error('Could not load course from Supabase:', error);
+        if (!mounted) return;
+        setDbCourse(null);
+        setDbTeacher(null);
+      })
+      .finally(() => {
+        if (mounted) {
+          setDbCourseLoading(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [slug, staticCourse]);
 
   useEffect(() => {
     if (!showTeacherPreview) return;
@@ -176,7 +217,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
     }
   }, [canWatch, course, currentLesson]);
 
-  if (loading || !slug) {
+  if (loading || !slug || dbCourseLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0A0A0F]">
         <div className="text-[#7A7570]">Ачаалж байна...</div>

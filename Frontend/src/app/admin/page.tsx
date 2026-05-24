@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { getIsAdmin } from '@/lib/admin';
 import { courses } from '@/lib/data';
+import { getSupabaseSetupMessage, isMissingTableError } from '@/lib/supabase-errors';
+import { normalizeYouTubeVideoId } from '@/lib/youtube';
 
 const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
 
@@ -145,6 +147,9 @@ const getCount = async (table: string) => {
   if (error) throw error;
   return count ?? 0;
 };
+
+const getCourseSetupErrorMessage = () =>
+  getSupabaseSetupMessage('Course болон lesson нэмэх');
 
 export default function AdminPage() {
   const router = useRouter();
@@ -474,7 +479,11 @@ export default function AdminPage() {
       });
 
       if (courseError) {
-        toast.error(courseError.message);
+        toast.error(
+          isMissingTableError(courseError, 'courses')
+            ? getCourseSetupErrorMessage()
+            : courseError.message
+        );
         return;
       }
 
@@ -482,12 +491,12 @@ export default function AdminPage() {
         course_id: courseId,
         lesson_id: `${courseId}-${index + 1}`,
         title: lesson.title.trim(),
-        youtube_id: lesson.youtubeId.trim() || null,
+        youtube_id: normalizeYouTubeVideoId(lesson.youtubeId) || null,
         duration_minutes: lesson.durationMinutes || 0,
         summary: lesson.summary.trim() || null,
         exercise: lesson.exercise.trim() || null,
         takeaway: lesson.takeaway.trim() || null,
-        content_type: lesson.youtubeId.trim() ? 'video' : 'brief',
+        content_type: normalizeYouTubeVideoId(lesson.youtubeId) ? 'video' : 'brief',
         free: false,
         sort_order: index,
       }));
@@ -496,7 +505,11 @@ export default function AdminPage() {
 
       if (lessonsError) {
         await supabase.from('courses').delete().eq('course_id', courseId);
-        toast.error(lessonsError.message);
+        toast.error(
+          isMissingTableError(lessonsError, 'lessons')
+            ? getCourseSetupErrorMessage()
+            : lessonsError.message
+        );
         return;
       }
 
@@ -925,11 +938,11 @@ export default function AdminPage() {
                             />
                           </div>
                           <div>
-                            <label className="mb-1 block text-xs text-[#8f8779]">YouTube ID</label>
+                            <label className="mb-1 block text-xs text-[#8f8779]">YouTube ID or URL</label>
                             <input
                               value={lesson.youtubeId}
                               onChange={(e) => updateLesson(index, 'youtubeId', e.target.value)}
-                              placeholder="Video ID"
+                              placeholder="https://youtu.be/... эсвэл 11 тэмдэгттэй ID"
                               className="w-full rounded-lg border border-[rgba(245,240,232,0.12)] bg-[#111118] px-3 py-2 text-sm outline-none focus:border-[rgba(201,168,76,0.35)]"
                             />
                           </div>
@@ -1131,8 +1144,8 @@ export default function AdminPage() {
                 <h2 className="font-display text-xl font-bold">Admin setup checklist</h2>
                 <div className="mt-5 space-y-3 text-sm leading-6 text-[#a9a091]">
                   <p>1. Register your owner account normally from the app.</p>
-                  <p>2. Run the SQL in supabase-admin-setup.sql inside Supabase SQL Editor.</p>
-                  <p>3. Replace admin@example.com with your owner email in the final promote query.</p>
+                  <p>2. Run Frontend/supabase-schema.sql inside Supabase SQL Editor.</p>
+                  <p>3. Run Frontend/supabase-admin-setup.sql and replace admin@example.com with your owner email.</p>
                   <p>4. Sign out and sign in again, then open /admin.</p>
                 </div>
               </div>

@@ -76,5 +76,8 @@ supabase-schema.sql
 supabase-admin-setup.sql
 ```
 
+`supabase-schema.sql` also creates the `audio-files` storage bucket used by the
+dashboard upload flow.
+
 Also add your deployed site URL in Supabase Authentication URL settings so login,
 register, and password reset redirects use the production domain.
