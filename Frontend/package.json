@@ -13,6 +13,8 @@
     "test:rag": "tsx --test src/lib/rag/*.test.ts",
     "rag:generate": "tsx scripts/generate-music-rag.ts",
     "rag:ingest": "tsx scripts/ingest-music-rag.ts",
+    "rag:convert": "tsx scripts/convert-dataset.ts",
+    "rag:convert-ingest": "tsx scripts/convert-dataset.ts && tsx scripts/ingest-music-rag.ts",
     "test:watch": "jest --watch",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\""

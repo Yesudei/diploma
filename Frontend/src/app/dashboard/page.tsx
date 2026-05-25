@@ -13,7 +13,11 @@ import {
 import type { AudioFile, MixingAnalysisResult } from '@/types';
 import { courses, teachers } from '@/lib/data';
 import { fetchDbCourses } from '@/lib/db-courses';
-import { mergeCourses } from '@/lib/course-list';
+import {
+  buildCourseRealtimeChannelName,
+  dashboardRealtimeTables,
+  mergeCourses,
+} from '@/lib/course-list';
 import type { Course } from '@/lib/types';
 
 type DashboardTab = 'courses' | 'upload' | 'files' | 'analysis';
@@ -100,6 +104,15 @@ export default function DashboardPage() {
     }
   }, [user?.id]);
 
+  const loadCourses = useCallback(async () => {
+    try {
+      const loadedCourses = await fetchDbCourses();
+      setDbCourses(loadedCourses);
+    } catch (error) {
+      console.error('Could not load dashboard courses:', error);
+    }
+  }, []);
+
   useEffect(() => {
     if (user?.id) {
       loadData();
@@ -107,22 +120,41 @@ export default function DashboardPage() {
   }, [user?.id, loadData]);
 
   useEffect(() => {
-    let mounted = true;
+    void loadCourses();
+  }, [loadCourses]);
 
-    fetchDbCourses()
-      .then((loadedCourses) => {
-        if (mounted) {
-          setDbCourses(loadedCourses);
-        }
-      })
-      .catch((error) => {
-        console.error('Could not load dashboard courses:', error);
-      });
+  useEffect(() => {
+    if (!user?.id) return;
+
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleDashboardRefresh = () => {
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+
+      refreshTimer = setTimeout(() => {
+        void loadData();
+        void loadCourses();
+      }, 300);
+    };
+
+    const channel = supabase.channel(buildCourseRealtimeChannelName('dashboard'));
+    dashboardRealtimeTables.forEach((table) => {
+      channel.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table },
+        scheduleDashboardRefresh
+      );
+    });
+    channel.subscribe();
 
     return () => {
-      mounted = false;
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+      void supabase.removeChannel(channel);
     };
-  }, []);
+  }, [loadCourses, loadData, user?.id]);
 
   const displayName = useMemo(() => {
     const name = user?.email?.split('@')[0] || 'producer';
@@ -140,7 +172,8 @@ export default function DashboardPage() {
     () =>
       allCourses.reduce(
         (sum, course) =>
-          sum + course.curriculum.reduce((lessonSum, lesson) => lessonSum + lesson.durationMinutes, 0),
+          sum +
+          course.curriculum.reduce((lessonSum, lesson) => lessonSum + lesson.durationMinutes, 0),
         0
       ),
     [allCourses]
@@ -207,11 +240,32 @@ export default function DashboardPage() {
       return;
     }
 
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData?.session;
+    if (!session?.access_token) {
+      toast.error('Нэвтрэх шаардлагатай');
+      return;
+    }
+
     setIsAnalyzing(true);
     try {
-      toast.info(
-        'Cloud mix analysis одоогоор холбогдоогүй байна. Demo-д зориулж upload болон file sync нь Supabase дээр ажиллаж байгаа.'
-      );
+      const res = await fetch('/api/audio-analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ audio_file_id: selectedAnalysisFileId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const message = data.error ?? 'Шинжилгээ амжилтгүй боллоо';
+        toast.error(message);
+        return;
+      }
+      toast.success('Шинжилгээ амжилттай дууслаа!');
+      await loadData();
+      setActiveTab('analysis');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Шинжилгээ амжилтгүй боллоо';
       toast.error(message);
@@ -338,7 +392,10 @@ export default function DashboardPage() {
                     асуугаарай.
                   </p>
                   <div className="mt-6 flex flex-wrap gap-3">
-                    <Link href="/courses" className="studio-button rounded-full px-5 py-3 text-sm font-black">
+                    <Link
+                      href="/courses"
+                      className="studio-button rounded-full px-5 py-3 text-sm font-black"
+                    >
                       Курс сонгох
                     </Link>
                     <button
@@ -362,9 +419,21 @@ export default function DashboardPage() {
               </section>
 
               <div className="grid gap-3 sm:grid-cols-3">
-                <MetricCard label="Нийт курс" value={allCourses.length.toString()} detail={`${totalLessons} хичээл`} />
-                <MetricCard label="Суралцах цаг" value={`${Math.round(totalMinutes / 60)}ц`} detail="хичээлийн сан" />
-                <MetricCard label="Mix файл" value={audioFiles.length.toString()} detail={`${analysisResults.length} шинжилгээ`} />
+                <MetricCard
+                  label="Нийт курс"
+                  value={allCourses.length.toString()}
+                  detail={`${totalLessons} хичээл`}
+                />
+                <MetricCard
+                  label="Суралцах цаг"
+                  value={`${Math.round(totalMinutes / 60)}ц`}
+                  detail="хичээлийн сан"
+                />
+                <MetricCard
+                  label="Mix файл"
+                  value={audioFiles.length.toString()}
+                  detail={`${analysisResults.length} шинжилгээ`}
+                />
               </div>
 
               <section>
@@ -443,7 +512,9 @@ export default function DashboardPage() {
                 </button>
                 {selectedFile && (
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white/[0.04] px-4 py-3">
-                    <span className="text-sm text-[#c8bea8]">{formatFileSize(selectedFile.size)}</span>
+                    <span className="text-sm text-[#c8bea8]">
+                      {formatFileSize(selectedFile.size)}
+                    </span>
                     <button
                       onClick={handleUpload}
                       disabled={isUploading}
@@ -477,11 +548,17 @@ export default function DashboardPage() {
                 </button>
               </div>
               {audioFiles.length === 0 ? (
-                <EmptyPanel title="Одоогоор аудио файл байхгүй байна" action="Эхний demo файлаа нэмээд mix шинжилгээ туршаарай." />
+                <EmptyPanel
+                  title="Одоогоор аудио файл байхгүй байна"
+                  action="Эхний demo файлаа нэмээд mix шинжилгээ туршаарай."
+                />
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
                   {audioFiles.map((file) => (
-                    <div key={file.id} className="rounded-[24px] border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.035)] p-4">
+                    <div
+                      key={file.id}
+                      className="rounded-[24px] border border-[rgba(245,240,232,0.08)] bg-[rgba(245,240,232,0.035)] p-4"
+                    >
                       <div className="flex items-center gap-4">
                         <div className="studio-wave-bars h-14 w-20 rounded-2xl bg-[#090A0D]/60 px-3 py-2">
                           {[24, 36, 18, 44, 30, 52, 22].map((height, index) => (
@@ -491,7 +568,8 @@ export default function DashboardPage() {
                         <div className="min-w-0">
                           <p className="truncate font-bold">{file.filename}</p>
                           <p className="mt-1 text-xs text-[#8f8779]">
-                            {formatFileSize(file.file_size)} · {file.format} · {formatDate(file.uploaded_at)}
+                            {formatFileSize(file.file_size)} · {file.format} ·{' '}
+                            {formatDate(file.uploaded_at)}
                           </p>
                         </div>
                       </div>
@@ -527,14 +605,17 @@ export default function DashboardPage() {
                   </button>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-[#8f8779]">
-                  Cloud demo дээр audio upload болон file history нь Supabase-р sync хийгдэнэ. Mix
-                  analysis engine-г тусад нь холбох хүртэл энэ хэсэг өмнөх тайлангуудыг л
-                  харуулна.
+                  Файлаа сонгоод шинжилгээ хийх товч дарна уу. Qwen3 AI таны аудионы нэр, формат,
+                  хэмжээг үндэслэн mix зөвлөмж гаргана. OLLAMA_BASE_URL тохируулагдсан байх
+                  шаардлагатай.
                 </p>
               </div>
 
               {analysisResults.length === 0 ? (
-                <EmptyPanel title="Одоогоор шинжилгээ хийгдээгүй байна" action="Файл нэмээд loudness, peak, dynamic range-ээ шалгаарай." />
+                <EmptyPanel
+                  title="Одоогоор шинжилгээ хийгдээгүй байна"
+                  action="Файл нэмээд loudness, peak, dynamic range-ээ шалгаарай."
+                />
               ) : (
                 <div className="grid gap-4 xl:grid-cols-2">
                   {analysisResults.map((result) => (

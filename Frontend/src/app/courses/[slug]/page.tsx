@@ -9,6 +9,8 @@ import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 import type { ChatMessage } from '@/types';
 import { fetchDbCourseBundleBySlug } from '@/lib/db-courses';
+import { buildCourseRealtimeChannelName, courseRealtimeTables } from '@/lib/course-list';
+import { supabase } from '@/lib/supabase';
 import { getYouTubeDuration } from '@/lib/youtube';
 import type { Course, Lesson, Teacher } from '@/lib/types';
 
@@ -55,9 +57,7 @@ function LessonPanelBlock({
 }) {
   return (
     <div>
-      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#a69262]">
-        {kicker}
-      </p>
+      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#a69262]">{kicker}</p>
       <h3 className="mt-2 font-display text-2xl font-black text-[#F5F0E8]">{title}</h3>
       <p className="mt-3 max-w-3xl text-sm leading-7 text-[#b8ad93] sm:text-base">{body}</p>
     </div>
@@ -84,10 +84,9 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   const [dbCourseResolved, setDbCourseResolved] = useState(false);
   const [showLockedModal, setShowLockedModal] = useState(false);
   const staticCourse = courses.find((c) => c.slug === slug);
-  const course = staticCourse || dbCourse;
-  const teacher = staticCourse
-    ? teachers.find((t) => t.id === staticCourse.teacherId) || null
-    : dbTeacher;
+  const course = dbCourse || staticCourse;
+  const teacher =
+    dbTeacher || (course ? teachers.find((t) => t.id === course.teacherId) || null : null);
   const { user } = useAuth();
   const { canWatch } = usePurchases();
   const router = useRouter();
@@ -125,41 +124,71 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   }, [params, routeParams]);
 
   useEffect(() => {
-    if (!slug || staticCourse) {
+    if (!slug) {
       setDbCourse(null);
       setDbTeacher(null);
       setDbCourseLoading(false);
-      setDbCourseResolved(Boolean(staticCourse) || !slug);
+      setDbCourseResolved(false);
       return;
     }
 
     let mounted = true;
-    setDbCourseLoading(true);
-    setDbCourseResolved(false);
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 
-    fetchDbCourseBundleBySlug(slug)
-      .then((bundle) => {
+    const loadCourseBundle = async (showSpinner: boolean) => {
+      if (showSpinner) {
+        setDbCourseLoading(true);
+        setDbCourseResolved(false);
+      }
+
+      try {
+        const bundle = await fetchDbCourseBundleBySlug(slug);
         if (!mounted) return;
         setDbCourse(bundle?.course || null);
         setDbTeacher(bundle?.teacher || null);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error('Could not load course from Supabase:', error);
         if (!mounted) return;
         setDbCourse(null);
         setDbTeacher(null);
-      })
-      .finally(() => {
+      } finally {
         if (mounted) {
           setDbCourseLoading(false);
           setDbCourseResolved(true);
         }
-      });
+      }
+    };
+
+    void loadCourseBundle(true);
+
+    const scheduleCourseRefresh = () => {
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+
+      refreshTimer = setTimeout(() => {
+        void loadCourseBundle(false);
+      }, 300);
+    };
+
+    const channel = supabase.channel(buildCourseRealtimeChannelName(`detail-${slug}`));
+    courseRealtimeTables.forEach((table) => {
+      channel.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table },
+        scheduleCourseRefresh
+      );
+    });
+    channel.subscribe();
 
     return () => {
       mounted = false;
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+      void supabase.removeChannel(channel);
     };
-  }, [slug, staticCourse]);
+  }, [slug]);
 
   useEffect(() => {
     if (!showTeacherPreview) return;
@@ -229,7 +258,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
     }
   }, [canWatch, course, currentLesson]);
 
-  const waitingForDbCourse = !staticCourse && slug && (!dbCourseResolved || dbCourseLoading);
+  const waitingForDbCourse = slug && (!dbCourseResolved || dbCourseLoading);
 
   if (loading || !slug || waitingForDbCourse) {
     return (
@@ -270,8 +299,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
       { question: string; options: string[]; correctIndex: number }
     > = {
       'music-production': {
-        question:
-          'Rhythm pattern-уудаа хэсэг хэсгээр нь зохион байгуулахын гол давуу тал юу вэ?',
+        question: 'Rhythm pattern-уудаа хэсэг хэсгээр нь зохион байгуулахын гол давуу тал юу вэ?',
         options: [
           'Arrangement хийхэд бүтэц, ажлын урсгал тодорхой болдог',
           'CPU хэрэглээг 100% зогсоодог',
@@ -404,7 +432,12 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
         {
           id: `${course.id}-cq-teacher`,
           question: 'Курсийг хөтөлж буй ментор хэн бэ?',
-          options: [teacher?.name || 'Тодорхойгүй ментор', firstTeacher, secondTeacher, 'Зочин ментор'],
+          options: [
+            teacher?.name || 'Тодорхойгүй ментор',
+            firstTeacher,
+            secondTeacher,
+            'Зочин ментор',
+          ],
           correctIndex: 0,
         },
         {
@@ -432,7 +465,9 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
   };
 
   const handleBuy = () => {
-    router.push(`/checkout?courseId=${encodeURIComponent(course.id)}&slug=${encodeURIComponent(course.slug)}`);
+    router.push(
+      `/checkout?courseId=${encodeURIComponent(course.id)}&slug=${encodeURIComponent(course.slug)}`
+    );
   };
 
   const handleLessonClick = (lesson: Lesson) => {
@@ -762,17 +797,22 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
 
                     <div className="relative">
                       {hasVideoCurrentLesson ? (
-                        <VideoPlayer videoId={currentLesson.youtubeId || ''} onComplete={() => {}} />
+                        <VideoPlayer
+                          videoId={currentLesson.youtubeId || ''}
+                          onComplete={() => {}}
+                        />
                       ) : (
                         <div className="relative flex min-h-[360px] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,rgba(201,169,78,0.12),transparent_42%),#08090D] p-8 text-center">
                           <div className="absolute inset-x-8 bottom-10 flex h-24 items-end justify-center gap-2 opacity-70">
-                            {[42, 70, 38, 104, 62, 130, 86, 118, 54, 78, 44].map((height, index) => (
-                              <span
-                                key={index}
-                                className="w-3 rounded-full bg-[linear-gradient(180deg,#E8C96D,#7FA4A8)]"
-                                style={{ height }}
-                              />
-                            ))}
+                            {[42, 70, 38, 104, 62, 130, 86, 118, 54, 78, 44].map(
+                              (height, index) => (
+                                <span
+                                  key={index}
+                                  className="w-3 rounded-full bg-[linear-gradient(180deg,#E8C96D,#7FA4A8)]"
+                                  style={{ height }}
+                                />
+                              )
+                            )}
                           </div>
                           <div className="relative z-10 max-w-[560px]">
                             <p className="text-xs font-black uppercase tracking-[0.2em] text-[#E8C96D]">
@@ -848,7 +888,9 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                         <LessonPanelBlock
                           kicker="Дадлага"
                           title="Өөрийн project дээр турших"
-                          body={currentLesson.exercise || 'Сонсож, туршиж, өөрийн хувилбараа гарга.'}
+                          body={
+                            currentLesson.exercise || 'Сонсож, туршиж, өөрийн хувилбараа гарга.'
+                          }
                         />
                       )}
                       {lessonPanelTab === 'takeaway' && (
@@ -971,7 +1013,9 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                               )}
                             </span>
                           </span>
-                          {isLockedLesson && <span className="text-sm text-[#a99771]">Түгжээтэй</span>}
+                          {isLockedLesson && (
+                            <span className="text-sm text-[#a99771]">Түгжээтэй</span>
+                          )}
                         </button>
                       );
                     })}
@@ -985,272 +1029,249 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
             <section className="studio-panel rounded-[32px] p-6 sm:p-8">
               <div className="relative grid gap-10 lg:grid-cols-[1fr_360px] lg:gap-12">
                 <div>
-                <div className="text-xs font-bold uppercase tracking-[0.2em] text-[#C9A84C]">
-                  {categoryLabel[course.category] || course.category}
-                </div>
-                <h1 className="mt-3 font-display text-[clamp(30px,4vw,54px)] font-black leading-[1.03] text-[#F5F0E8]">
-                  {course.title}
-                </h1>
-                <p className="mt-5 max-w-3xl text-base leading-8 text-[#b8ad93]">
-                  {course.description}
-                </p>
+                  <div className="text-xs font-bold uppercase tracking-[0.2em] text-[#C9A84C]">
+                    {categoryLabel[course.category] || course.category}
+                  </div>
+                  <h1 className="mt-3 font-display text-[clamp(30px,4vw,54px)] font-black leading-[1.03] text-[#F5F0E8]">
+                    {course.title}
+                  </h1>
+                  <p className="mt-5 max-w-3xl text-base leading-8 text-[#b8ad93]">
+                    {course.description}
+                  </p>
 
-                {teacher && (
-                  <div
-                    ref={teacherPreviewRef}
-                    className="relative z-10 mt-8"
-                    onMouseEnter={() => setShowTeacherPreview(true)}
-                    onMouseLeave={() => setShowTeacherPreview(false)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setShowTeacherPreview((v) => !v)}
-                        className="studio-card group flex flex-1 items-center justify-between rounded-2xl p-4 text-left"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(201,168,76,0.26)] bg-gradient-to-br from-[#34270f] to-[#1a1406] font-display text-xl text-[#E8C96D]">
-                            {teacher.name[0]}
-                          </div>
-                          <div>
-                            <div className="font-semibold text-[#F5F0E8]">{teacher.name}</div>
-                            <div className="text-sm text-[#8e8678]">
-                              {teacher.role} • {teacher.specialty}
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    </div>
-
-                    {showTeacherPreview && (
-                      <div className="studio-panel z-30 mt-3 w-full rounded-2xl p-5 sm:max-w-[460px] lg:absolute lg:left-[calc(100%+16px)] lg:top-0 lg:mt-0 lg:w-[380px]">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-start gap-3">
-                            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[rgba(217,195,138,0.4)] bg-gradient-to-br from-[#3a2b11] to-[#1a1408] font-display text-2xl text-[#E8C96D]">
+                  {teacher && (
+                    <div
+                      ref={teacherPreviewRef}
+                      className="relative z-10 mt-8"
+                      onMouseEnter={() => setShowTeacherPreview(true)}
+                      onMouseLeave={() => setShowTeacherPreview(false)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowTeacherPreview((v) => !v)}
+                          className="studio-card group flex flex-1 items-center justify-between rounded-2xl p-4 text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(201,168,76,0.26)] bg-gradient-to-br from-[#34270f] to-[#1a1406] font-display text-xl text-[#E8C96D]">
                               {teacher.name[0]}
                             </div>
                             <div>
-                              <p className="text-[11px] uppercase tracking-[0.18em] text-[#9f8f67]">
-                                Менторын танилцуулга
-                              </p>
-                              <h3 className="mt-1 text-xl font-bold text-[#F5F0E8]">
-                                {teacher.name}
-                              </h3>
-                              <p className="text-sm text-[#b5a98a]">{teacher.role}</p>
+                              <div className="font-semibold text-[#F5F0E8]">{teacher.name}</div>
+                              <div className="text-sm text-[#8e8678]">
+                                {teacher.role} • {teacher.specialty}
+                              </div>
                             </div>
                           </div>
-                          <div className="rounded-full border border-[rgba(217,195,138,0.3)] bg-[rgba(217,195,138,0.12)] px-2.5 py-1 text-xs font-semibold text-[#E8C96D]">
-                            {teacher.stats?.rating || '-'} / 5
+                        </button>
+                      </div>
+
+                      {showTeacherPreview && (
+                        <div className="studio-panel z-30 mt-3 w-full rounded-2xl p-5 sm:max-w-[460px] lg:absolute lg:left-[calc(100%+16px)] lg:top-0 lg:mt-0 lg:w-[380px]">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3">
+                              <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[rgba(217,195,138,0.4)] bg-gradient-to-br from-[#3a2b11] to-[#1a1408] font-display text-2xl text-[#E8C96D]">
+                                {teacher.name[0]}
+                              </div>
+                              <div>
+                                <p className="text-[11px] uppercase tracking-[0.18em] text-[#9f8f67]">
+                                  Менторын танилцуулга
+                                </p>
+                                <h3 className="mt-1 text-xl font-bold text-[#F5F0E8]">
+                                  {teacher.name}
+                                </h3>
+                                <p className="text-sm text-[#b5a98a]">{teacher.role}</p>
+                              </div>
+                            </div>
+                            <div className="rounded-full border border-[rgba(217,195,138,0.3)] bg-[rgba(217,195,138,0.12)] px-2.5 py-1 text-xs font-semibold text-[#E8C96D]">
+                              {teacher.stats?.rating || '-'} / 5
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="mt-4 rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#11131b] p-3.5">
-                          <p className="text-xs uppercase tracking-[0.12em] text-[#8f8779]">
-                            Чиглэл
-                          </p>
-                          <p className="mt-1 text-sm font-medium text-[#d9cba8]">
-                            {teacher.specialty}
-                          </p>
-                          <p className="mt-2 text-sm leading-6 text-[#b8ad93]">{teacher.bio}</p>
-                        </div>
-
-                        {teacher.instruments && teacher.instruments.length > 0 && (
-                          <div className="mt-4">
+                          <div className="mt-4 rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#11131b] p-3.5">
                             <p className="text-xs uppercase tracking-[0.12em] text-[#8f8779]">
-                              Ашигладаг хэрэгсэл
+                              Чиглэл
                             </p>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {teacher.instruments.map((tool) => (
-                                <span
-                                  key={tool}
-                                  className="rounded-full border border-[rgba(245,240,232,0.12)] bg-[rgba(245,240,232,0.04)] px-2.5 py-1 text-xs text-[#d7cba8]"
-                                >
-                                  {tool}
-                                </span>
-                              ))}
+                            <p className="mt-1 text-sm font-medium text-[#d9cba8]">
+                              {teacher.specialty}
+                            </p>
+                            <p className="mt-2 text-sm leading-6 text-[#b8ad93]">{teacher.bio}</p>
+                          </div>
+
+                          {teacher.instruments && teacher.instruments.length > 0 && (
+                            <div className="mt-4">
+                              <p className="text-xs uppercase tracking-[0.12em] text-[#8f8779]">
+                                Ашигладаг хэрэгсэл
+                              </p>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {teacher.instruments.map((tool) => (
+                                  <span
+                                    key={tool}
+                                    className="rounded-full border border-[rgba(245,240,232,0.12)] bg-[rgba(245,240,232,0.04)] px-2.5 py-1 text-xs text-[#d7cba8]"
+                                  >
+                                    {tool}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="mt-4 grid grid-cols-2 gap-2.5 text-xs">
+                            <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#12151e] p-3 text-center">
+                              <p className="font-display text-lg font-bold text-[#F5F0E8]">
+                                {teacher.stats?.studentCount?.toLocaleString() || '-'}+
+                              </p>
+                              <p className="mt-1 text-[#7A7570]">Сурагч</p>
+                            </div>
+                            <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#12151e] p-3 text-center">
+                              <p className="font-display text-lg font-bold text-[#F5F0E8]">
+                                {teacher.stats?.rating || '-'}
+                              </p>
+                              <p className="mt-1 text-[#7A7570]">Үнэлгээ</p>
                             </div>
                           </div>
-                        )}
-
-                        <div className="mt-4 grid grid-cols-2 gap-2.5 text-xs">
-                          <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#12151e] p-3 text-center">
-                            <p className="font-display text-lg font-bold text-[#F5F0E8]">
-                              {teacher.stats?.studentCount?.toLocaleString() || '-'}+
-                            </p>
-                            <p className="mt-1 text-[#7A7570]">Сурагч</p>
-                          </div>
-                          <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#12151e] p-3 text-center">
-                            <p className="font-display text-lg font-bold text-[#F5F0E8]">
-                              {teacher.stats?.rating || '-'}
-                            </p>
-                            <p className="mt-1 text-[#7A7570]">Үнэлгээ</p>
-                          </div>
                         </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="mt-9">
+                    <h2 className="font-display text-xl font-bold text-[#F5F0E8] sm:text-2xl">
+                      Хичээлийн агуулга ({course.curriculum.length} хичээл)
+                    </h2>
+                    <div className="studio-card mt-4 rounded-2xl p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a69262]">
+                            Тестийн тохиргоо
+                          </p>
+                          <p className="mt-1 text-sm text-[#b8ad93]">
+                            Хичээл бүрийн тест эсвэл бүтэн курсын төгсгөлийн нэг тестээс сонгоно уу.
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setSelfCheckMode('per-lesson')}
+                            className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                              selfCheckMode === 'per-lesson'
+                                ? 'border-[rgba(217,195,138,0.45)] bg-[rgba(201,168,76,0.16)] text-[#F5F0E8]'
+                                : 'border-[rgba(245,240,232,0.14)] text-[#b7aa8d] hover:border-[rgba(217,195,138,0.32)]'
+                            }`}
+                          >
+                            Хичээл бүр
+                          </button>
+                          <button
+                            onClick={() => setSelfCheckMode('final-only')}
+                            className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                              selfCheckMode === 'final-only'
+                                ? 'border-[rgba(217,195,138,0.45)] bg-[rgba(201,168,76,0.16)] text-[#F5F0E8]'
+                                : 'border-[rgba(245,240,232,0.14)] text-[#b7aa8d] hover:border-[rgba(217,195,138,0.32)]'
+                            }`}
+                          >
+                            Курсын төгсгөлд
+                          </button>
+                        </div>
+                      </div>
+                      <div className="mt-4 grid gap-2 text-sm text-[#c6bda8] sm:grid-cols-3">
+                        <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#121522] px-3 py-2">
+                          Дуусгасан хичээл: {lessonCompletedIds.length}/{course.curriculum.length}
+                        </p>
+                        <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#121522] px-3 py-2">
+                          Хичээлийн тест: {lessonQuizPassedIds.length}/{course.curriculum.length}
+                        </p>
+                        <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#121522] px-3 py-2">
+                          Эцсийн тест: {courseQuizPassed ? 'Тэнцсэн' : 'Өгөөгүй'}
+                        </p>
+                      </div>
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                        <p className="text-xs text-[#8c816b]">
+                          {finalQuizUnlocked
+                            ? 'Эцсийн өөрийгөө шалгах тест нээгдсэн.'
+                            : selfCheckMode === 'per-lesson'
+                              ? 'Эцсийн тест нээхийн тулд хичээл бүрийн тестийг давна уу.'
+                              : 'Эцсийн тест нээхийн тулд бүх хичээлээ дуусгасан гэж тэмдэглэнэ үү.'}
+                        </p>
+                        <button
+                          onClick={openCourseQuiz}
+                          disabled={!finalQuizUnlocked}
+                          className="studio-button rounded-xl px-4 py-2 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          Бүтэн курсын тест эхлэх
+                        </button>
+                      </div>
+                    </div>
+                    {!hasVideoCurrentLesson && (
+                      <div className="mt-4 space-y-2.5">
+                        {course.curriculum.map((lesson, i) => (
+                          <button
+                            key={lesson.id}
+                            onClick={() => handleLessonClick(lesson)}
+                            className="flex w-full items-center gap-3 rounded-xl border border-[rgba(245,240,232,0.08)] bg-[rgba(8,9,12,0.36)] p-3.5 text-left transition hover:border-[rgba(201,168,76,0.28)]"
+                          >
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#18181F] text-xs font-bold text-[#7A7570]">
+                              {i + 1}
+                            </span>
+                            <div className="flex-1">
+                              <span className="text-sm text-[#F5F0E8]">{lesson.title}</span>
+                              <div className="mt-1 flex flex-wrap items-center gap-2">
+                                {lessonCompletedIds.includes(lesson.id) && (
+                                  <span className="rounded-full border border-[rgba(117,214,144,0.3)] bg-[rgba(46,102,57,0.25)] px-2 py-0.5 text-[10px] font-semibold text-[#dff7e2]">
+                                    ДУУССАН
+                                  </span>
+                                )}
+                                {lesson.contentType === 'brief' && (
+                                  <span className="rounded-full border border-[rgba(88,130,216,0.32)] bg-[rgba(49,74,122,0.24)] px-2 py-0.5 text-[10px] font-semibold text-[#cfe0ff]">
+                                    Товч хичээл
+                                  </span>
+                                )}
+                                {lessonQuizPassedIds.includes(lesson.id) && (
+                                  <span className="rounded-full border border-[rgba(217,195,138,0.35)] bg-[rgba(217,195,138,0.12)] px-2 py-0.5 text-[10px] font-semibold text-[#E8C96D]">
+                                    Тест ✓
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {lesson.free ? (
+                              <span className="text-xs font-bold text-[#C9A84C]">Үнэгүй</span>
+                            ) : alreadyOwned ? (
+                              <span className="text-xs text-[#C9A84C]">✓</span>
+                            ) : (
+                              <svg
+                                className="h-4 w-4 text-[#7A7570]"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"
+                                />
+                              </svg>
+                            )}
+                            <span className="text-xs text-[#7A7570]">
+                              {lessonDurations[lesson.id] || lesson.durationMinutes} мин
+                            </span>
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
-                )}
-
-                <div className="mt-9">
-                  <h2 className="font-display text-xl font-bold text-[#F5F0E8] sm:text-2xl">
-                    Хичээлийн агуулга ({course.curriculum.length} хичээл)
-                  </h2>
-                  <div className="studio-card mt-4 rounded-2xl p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a69262]">
-                          Тестийн тохиргоо
-                        </p>
-                        <p className="mt-1 text-sm text-[#b8ad93]">
-                          Хичээл бүрийн тест эсвэл бүтэн курсын төгсгөлийн нэг тестээс сонгоно уу.
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setSelfCheckMode('per-lesson')}
-                          className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
-                            selfCheckMode === 'per-lesson'
-                              ? 'border-[rgba(217,195,138,0.45)] bg-[rgba(201,168,76,0.16)] text-[#F5F0E8]'
-                              : 'border-[rgba(245,240,232,0.14)] text-[#b7aa8d] hover:border-[rgba(217,195,138,0.32)]'
-                          }`}
-                        >
-                          Хичээл бүр
-                        </button>
-                        <button
-                          onClick={() => setSelfCheckMode('final-only')}
-                          className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
-                            selfCheckMode === 'final-only'
-                              ? 'border-[rgba(217,195,138,0.45)] bg-[rgba(201,168,76,0.16)] text-[#F5F0E8]'
-                              : 'border-[rgba(245,240,232,0.14)] text-[#b7aa8d] hover:border-[rgba(217,195,138,0.32)]'
-                          }`}
-                        >
-                          Курсын төгсгөлд
-                        </button>
-                      </div>
-                    </div>
-                    <div className="mt-4 grid gap-2 text-sm text-[#c6bda8] sm:grid-cols-3">
-                      <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#121522] px-3 py-2">
-                        Дуусгасан хичээл: {lessonCompletedIds.length}/{course.curriculum.length}
-                      </p>
-                      <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#121522] px-3 py-2">
-                        Хичээлийн тест: {lessonQuizPassedIds.length}/{course.curriculum.length}
-                      </p>
-                      <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#121522] px-3 py-2">
-                        Эцсийн тест: {courseQuizPassed ? 'Тэнцсэн' : 'Өгөөгүй'}
-                      </p>
-                    </div>
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                      <p className="text-xs text-[#8c816b]">
-                        {finalQuizUnlocked
-                          ? 'Эцсийн өөрийгөө шалгах тест нээгдсэн.'
-                          : selfCheckMode === 'per-lesson'
-                            ? 'Эцсийн тест нээхийн тулд хичээл бүрийн тестийг давна уу.'
-                            : 'Эцсийн тест нээхийн тулд бүх хичээлээ дуусгасан гэж тэмдэглэнэ үү.'}
-                      </p>
-                      <button
-                        onClick={openCourseQuiz}
-                        disabled={!finalQuizUnlocked}
-                        className="studio-button rounded-xl px-4 py-2 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        Бүтэн курсын тест эхлэх
-                      </button>
-                    </div>
-                  </div>
-                  {!hasVideoCurrentLesson && (
-                    <div className="mt-4 space-y-2.5">
-                      {course.curriculum.map((lesson, i) => (
-                        <button
-                          key={lesson.id}
-                          onClick={() => handleLessonClick(lesson)}
-                          className="flex w-full items-center gap-3 rounded-xl border border-[rgba(245,240,232,0.08)] bg-[rgba(8,9,12,0.36)] p-3.5 text-left transition hover:border-[rgba(201,168,76,0.28)]"
-                        >
-                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#18181F] text-xs font-bold text-[#7A7570]">
-                            {i + 1}
-                          </span>
-                          <div className="flex-1">
-                            <span className="text-sm text-[#F5F0E8]">{lesson.title}</span>
-                            <div className="mt-1 flex flex-wrap items-center gap-2">
-                              {lessonCompletedIds.includes(lesson.id) && (
-                                <span className="rounded-full border border-[rgba(117,214,144,0.3)] bg-[rgba(46,102,57,0.25)] px-2 py-0.5 text-[10px] font-semibold text-[#dff7e2]">
-                                  ДУУССАН
-                                </span>
-                              )}
-                              {lesson.contentType === 'brief' && (
-                                <span className="rounded-full border border-[rgba(88,130,216,0.32)] bg-[rgba(49,74,122,0.24)] px-2 py-0.5 text-[10px] font-semibold text-[#cfe0ff]">
-                                  Товч хичээл
-                                </span>
-                              )}
-                              {lessonQuizPassedIds.includes(lesson.id) && (
-                                <span className="rounded-full border border-[rgba(217,195,138,0.35)] bg-[rgba(217,195,138,0.12)] px-2 py-0.5 text-[10px] font-semibold text-[#E8C96D]">
-                                  Тест ✓
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          {lesson.free ? (
-                            <span className="text-xs font-bold text-[#C9A84C]">Үнэгүй</span>
-                          ) : alreadyOwned ? (
-                            <span className="text-xs text-[#C9A84C]">✓</span>
-                          ) : (
-                            <svg
-                              className="h-4 w-4 text-[#7A7570]"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"
-                              />
-                            </svg>
-                          )}
-                          <span className="text-xs text-[#7A7570]">
-                            {lessonDurations[lesson.id] || lesson.durationMinutes} мин
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
-              </div>
 
-              <aside className="h-fit lg:sticky lg:top-24" id="buy-section">
-                {course.price === 0 ? (
-                  <div className="studio-card rounded-2xl p-6">
-                    <div className="text-center">
-                      <div className="font-display text-4xl font-black text-[#C9A84C]">Үнэгүй</div>
-                      <p className="mt-2 text-sm text-[#7A7570]">
-                        {hasActiveLesson ? 'Сонгосон хичээлээ үзэж байна' : 'Бүртгэлгүй үзэх боломжтой'}
-                      </p>
-                      <button
-                        onClick={() => {
-                          if (hasActiveLesson) {
-                            document
-                              .getElementById('active-player')
-                              ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            return;
-                          }
-                          if (course.curriculum[0]) setCurrentLesson(course.curriculum[0]);
-                        }}
-                        className="studio-button mt-6 w-full rounded-xl py-3.5 font-bold"
-                      >
-                        {hasActiveLesson ? 'Одоо үзэж байна' : 'Эхлэх'}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="studio-card rounded-2xl p-6">
-                    <div className="text-center">
-                      <div className="font-display text-4xl font-black text-[#C9A84C]">
-                        ₮{course.price.toLocaleString()}
-                      </div>
-                      <p className="mt-2 text-sm text-[#7A7570]">Нэг удаагийн төлбөр</p>
-                    </div>
-
-                    <div className="mt-6">
-                      {alreadyOwned ? (
+                <aside className="h-fit lg:sticky lg:top-24" id="buy-section">
+                  {course.price === 0 ? (
+                    <div className="studio-card rounded-2xl p-6">
+                      <div className="text-center">
+                        <div className="font-display text-4xl font-black text-[#C9A84C]">
+                          Үнэгүй
+                        </div>
+                        <p className="mt-2 text-sm text-[#7A7570]">
+                          {hasActiveLesson
+                            ? 'Сонгосон хичээлээ үзэж байна'
+                            : 'Бүртгэлгүй үзэх боломжтой'}
+                        </p>
                         <button
                           onClick={() => {
                             if (hasActiveLesson) {
@@ -1261,66 +1282,94 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                             }
                             if (course.curriculum[0]) setCurrentLesson(course.curriculum[0]);
                           }}
-                          className="studio-button w-full rounded-xl py-3.5 font-bold"
+                          className="studio-button mt-6 w-full rounded-xl py-3.5 font-bold"
                         >
-                          {hasActiveLesson ? 'Одоо үзэж байна' : 'Үзэж эхлэх'}
+                          {hasActiveLesson ? 'Одоо үзэж байна' : 'Эхлэх'}
                         </button>
-                      ) : (
-                        <button
-                          onClick={handleBuy}
-                          className="studio-button w-full rounded-xl py-3.5 font-bold"
-                        >
-                          Худалдаж авах
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="mt-5 space-y-2 text-sm text-[#7A7570]">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[#C9A84C]">✓</span> Хязгааргүй хугацаагаар үзэх
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[#C9A84C]">✓</span> {course.curriculum.length} хичээл
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[#C9A84C]">✓</span> .FLP project файл
                       </div>
                     </div>
-
-                    <div className="mt-5 rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0f1118] p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#a69262]">
-                        Төлбөрийн хэсэг (туршилт)
-                      </p>
-                      <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[11px]">
-                        <span className="rounded-lg border border-[rgba(245,240,232,0.12)] bg-[rgba(245,240,232,0.03)] px-2 py-1.5 text-[#d9cfb6]">
-                          QPay
-                        </span>
-                        <span className="rounded-lg border border-[rgba(245,240,232,0.12)] bg-[rgba(245,240,232,0.03)] px-2 py-1.5 text-[#d9cfb6]">
-                          Visa
-                        </span>
-                        <span className="rounded-lg border border-[rgba(245,240,232,0.12)] bg-[rgba(245,240,232,0.03)] px-2 py-1.5 text-[#d9cfb6]">
-                          MasterCard
-                        </span>
+                  ) : (
+                    <div className="studio-card rounded-2xl p-6">
+                      <div className="text-center">
+                        <div className="font-display text-4xl font-black text-[#C9A84C]">
+                          ₮{course.price.toLocaleString()}
+                        </div>
+                        <p className="mt-2 text-sm text-[#7A7570]">Нэг удаагийн төлбөр</p>
                       </div>
 
-                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-[#9c9077]">
-                        <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#11141d] px-2.5 py-2">
-                          Үнэгүй урьдчилсан үзэлт: {freeLessonsCount}
+                      <div className="mt-6">
+                        {alreadyOwned ? (
+                          <button
+                            onClick={() => {
+                              if (hasActiveLesson) {
+                                document
+                                  .getElementById('active-player')
+                                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                return;
+                              }
+                              if (course.curriculum[0]) setCurrentLesson(course.curriculum[0]);
+                            }}
+                            className="studio-button w-full rounded-xl py-3.5 font-bold"
+                          >
+                            {hasActiveLesson ? 'Одоо үзэж байна' : 'Үзэж эхлэх'}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={handleBuy}
+                            className="studio-button w-full rounded-xl py-3.5 font-bold"
+                          >
+                            Худалдаж авах
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="mt-5 space-y-2 text-sm text-[#7A7570]">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#C9A84C]">✓</span> Хязгааргүй хугацаагаар үзэх
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#C9A84C]">✓</span> {course.curriculum.length}{' '}
+                          хичээл
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#C9A84C]">✓</span> .FLP project файл
+                        </div>
+                      </div>
+
+                      <div className="mt-5 rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0f1118] p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#a69262]">
+                          Төлбөрийн хэсэг (туршилт)
                         </p>
-                        <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#11141d] px-2.5 py-2">
-                          Төлбөртэй хичээл: {paidLessonsCount}
+                        <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[11px]">
+                          <span className="rounded-lg border border-[rgba(245,240,232,0.12)] bg-[rgba(245,240,232,0.03)] px-2 py-1.5 text-[#d9cfb6]">
+                            QPay
+                          </span>
+                          <span className="rounded-lg border border-[rgba(245,240,232,0.12)] bg-[rgba(245,240,232,0.03)] px-2 py-1.5 text-[#d9cfb6]">
+                            Visa
+                          </span>
+                          <span className="rounded-lg border border-[rgba(245,240,232,0.12)] bg-[rgba(245,240,232,0.03)] px-2 py-1.5 text-[#d9cfb6]">
+                            MasterCard
+                          </span>
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-[#9c9077]">
+                          <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#11141d] px-2.5 py-2">
+                            Үнэгүй урьдчилсан үзэлт: {freeLessonsCount}
+                          </p>
+                          <p className="rounded-lg border border-[rgba(245,240,232,0.08)] bg-[#11141d] px-2.5 py-2">
+                            Төлбөртэй хичээл: {paidLessonsCount}
+                          </p>
+                        </div>
+
+                        <p className="mt-3 text-xs leading-5 text-[#7f7564]">
+                          Сургалтын туршилтын горимд худалдаж авах товч дармагц хандалт идэвхжинэ.
                         </p>
                       </div>
-
-                      <p className="mt-3 text-xs leading-5 text-[#7f7564]">
-                        Сургалтын туршилтын горимд худалдаж авах товч дармагц хандалт идэвхжинэ.
-                      </p>
                     </div>
-                  </div>
-                )}
-              </aside>
-            </div>
-          </section>
+                  )}
+                </aside>
+              </div>
+            </section>
           )}
 
           {hasActiveLesson && nextCourses.length > 0 && (

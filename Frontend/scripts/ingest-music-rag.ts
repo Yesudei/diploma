@@ -59,6 +59,24 @@ async function main() {
     }
   }
 
+  const gpuTipsPath = path.join(process.cwd(), 'data', 'rag', 'gpu-generated-tips.jsonl');
+
+  try {
+    const gpuTipsRaw = await readFile(gpuTipsPath, 'utf-8');
+    const gpuTipsDocuments = gpuTipsRaw
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as RagDocument);
+
+    documents.push(...gpuTipsDocuments);
+    console.log(`Loaded ${gpuTipsDocuments.length} GPU-generated tips from ${gpuTipsPath}`);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error;
+    }
+  }
+
   if (!Array.isArray(documents) || documents.length === 0) {
     throw new Error('Seed data must be a non-empty JSON array.');
   }
