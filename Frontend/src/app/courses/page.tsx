@@ -1,15 +1,10 @@
 'use client';
-import { Suspense, useCallback, useMemo, useState, useEffect } from 'react';
+import { Suspense, useMemo, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { courses } from '@/lib/data';
 import { fetchDbCourses } from '@/lib/db-courses';
-import {
-  buildCourseRealtimeChannelName,
-  courseRealtimeTables,
-  mergeCourses,
-} from '@/lib/course-list';
-import { supabase } from '@/lib/supabase';
+import { mergeCourses } from '@/lib/course-list';
 import type { Course } from '@/lib/types';
 
 const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
@@ -72,48 +67,23 @@ function CoursesPageContent() {
     }
   }, [searchParams]);
 
-  const loadCourses = useCallback(async () => {
-    try {
-      const loadedCourses = await fetchDbCourses();
-      setDbCourses(loadedCourses);
-    } catch (error) {
-      console.error('Could not load database courses:', error);
-    }
-  }, []);
-
   useEffect(() => {
-    void loadCourses();
-  }, [loadCourses]);
+    let mounted = true;
 
-  useEffect(() => {
-    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
-    const scheduleCourseRefresh = () => {
-      if (refreshTimer) {
-        clearTimeout(refreshTimer);
-      }
-
-      refreshTimer = setTimeout(() => {
-        void loadCourses();
-      }, 300);
-    };
-
-    const channel = supabase.channel(buildCourseRealtimeChannelName('catalog'));
-    courseRealtimeTables.forEach((table) => {
-      channel.on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table },
-        scheduleCourseRefresh
-      );
-    });
-    channel.subscribe();
+    fetchDbCourses()
+      .then((loadedCourses) => {
+        if (mounted) {
+          setDbCourses(loadedCourses);
+        }
+      })
+      .catch((error) => {
+        console.error('Could not load database courses:', error);
+      });
 
     return () => {
-      if (refreshTimer) {
-        clearTimeout(refreshTimer);
-      }
-      void supabase.removeChannel(channel);
+      mounted = false;
     };
-  }, [loadCourses]);
+  }, []);
 
   const allCourses = useMemo(() => mergeCourses(courses, dbCourses), [dbCourses]);
   const totalLessonsAll = useMemo(
@@ -181,14 +151,16 @@ function CoursesPageContent() {
       <main className="min-h-screen bg-[#0A0A0F] pb-20 pt-28 sm:pt-32">
         <div className="mx-auto w-full max-w-[1320px] px-4 sm:px-8 lg:px-14">
           <section className="studio-panel rounded-[32px] px-6 py-8 sm:px-8 sm:py-10">
-            <p className="studio-kicker">Melodex course catalog</p>
+            <p className="studio-kicker">
+              Melodex course catalog
+            </p>
             <h1 className="mt-4 font-display text-[clamp(34px,5vw,64px)] font-black leading-[1.02] text-[#F5F0E8]">
               Хичээлүүд
             </h1>
             <p className="mt-4 max-w-[580px] text-sm leading-7 text-[#b8ad93] sm:text-base">
               Одоогийн сургалтын сан rhythm, melody, harmony, arrangement, bass, mix clarity зэрэг
-              суурь ур чадварт төвлөрсөн хичээлүүдээс бүрдэнэ. Ангилал, түвшин, хичээлийн тоогоор
-              шүүж өөрт тохирох замналаа сонгоорой.
+              суурь ур чадварт төвлөрсөн хичээлүүдээс бүрдэнэ. Ангилал, түвшин,
+              хичээлийн тоогоор шүүж өөрт тохирох замналаа сонгоорой.
             </p>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-3 sm:gap-4">

@@ -9,25 +9,14 @@ import { supabase } from '@/lib/supabase';
 import { getIsAdmin } from '@/lib/admin';
 import { courses } from '@/lib/data';
 import { fetchDbCourses } from '@/lib/db-courses';
-import {
-  adminRealtimeTables,
-  buildCourseRealtimeChannelName,
-  mergeCourses,
-} from '@/lib/course-list';
+import { mergeCourses } from '@/lib/course-list';
 import { getSupabaseSetupMessage, isMissingTableError } from '@/lib/supabase-errors';
 import { normalizeYouTubeVideoId } from '@/lib/youtube';
 import type { Course } from '@/lib/types';
 
 const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
 
-type AdminTab =
-  | 'overview'
-  | 'users'
-  | 'courses'
-  | 'add-course'
-  | 'knowledge'
-  | 'activity'
-  | 'system';
+type AdminTab = 'overview' | 'users' | 'courses' | 'add-course' | 'knowledge' | 'activity' | 'system';
 
 type ProfileRow = {
   id: string;
@@ -162,7 +151,8 @@ const getCount = async (table: string) => {
   return count ?? 0;
 };
 
-const getCourseSetupErrorMessage = () => getSupabaseSetupMessage('Course болон lesson нэмэх');
+const getCourseSetupErrorMessage = () =>
+  getSupabaseSetupMessage('Course болон lesson нэмэх');
 
 export default function AdminPage() {
   const router = useRouter();
@@ -182,12 +172,6 @@ export default function AdminPage() {
   const [audioFiles, setAudioFiles] = useState<AudioFileRow[]>([]);
   const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [userSearch, setUserSearch] = useState('');
-  const [isSeedingCourses, setIsSeedingCourses] = useState(false);
-  const [seedResult, setSeedResult] = useState<{
-    coursesSeeded: number;
-    lessonsSeeded: number;
-    errors: string[];
-  } | null>(null);
   const [knowledgeForm, setKnowledgeForm] = useState<KnowledgeForm>(initialKnowledgeForm);
   const [savingKnowledge, setSavingKnowledge] = useState(false);
 
@@ -202,29 +186,27 @@ export default function AdminPage() {
   const allCourses = useMemo(() => mergeCourses(courses, dbCourses), [dbCourses]);
 
   const totalLessons = useMemo(
-    () => allCourses.reduce((sum, course) => sum + course.curriculum.length, 0),
-    [allCourses]
+    () => courses.reduce((sum, course) => sum + course.curriculum.length, 0),
+    []
   );
 
   const lessonsWithVideo = useMemo(
     () =>
-      allCourses.reduce(
-        (sum, course) =>
-          sum + course.curriculum.filter((lesson) => Boolean(lesson.youtubeId)).length,
+      courses.reduce(
+        (sum, course) => sum + course.curriculum.filter((lesson) => Boolean(lesson.youtubeId)).length,
         0
       ),
-    [allCourses]
+    []
   );
 
   const courseMinutes = useMemo(
     () =>
-      allCourses.reduce(
+      courses.reduce(
         (sum, course) =>
-          sum +
-          course.curriculum.reduce((lessonSum, lesson) => lessonSum + lesson.durationMinutes, 0),
+          sum + course.curriculum.reduce((lessonSum, lesson) => lessonSum + lesson.durationMinutes, 0),
         0
       ),
-    [allCourses]
+    []
   );
 
   const revenue = useMemo(
@@ -386,34 +368,6 @@ export default function AdminPage() {
     };
   }, [loadAdminData, router]);
 
-  useEffect(() => {
-    if (!isAdmin || authLoading) return;
-
-    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
-    const scheduleAdminRefresh = () => {
-      if (refreshTimer) {
-        clearTimeout(refreshTimer);
-      }
-
-      refreshTimer = setTimeout(() => {
-        void loadAdminData();
-      }, 300);
-    };
-
-    const channel = supabase.channel(buildCourseRealtimeChannelName('admin'));
-    adminRealtimeTables.forEach((table) => {
-      channel.on('postgres_changes', { event: '*', schema: 'public', table }, scheduleAdminRefresh);
-    });
-    channel.subscribe();
-
-    return () => {
-      if (refreshTimer) {
-        clearTimeout(refreshTimer);
-      }
-      void supabase.removeChannel(channel);
-    };
-  }, [authLoading, isAdmin, loadAdminData]);
-
   const handleAdminToggle = async (profile: ProfileRow) => {
     if (profile.id === currentUserId) {
       toast.error('You cannot remove admin access from your own account here.');
@@ -466,38 +420,6 @@ export default function AdminPage() {
     toast.success('Knowledge base entry added.');
     setKnowledgeForm(initialKnowledgeForm);
     await loadAdminData();
-  };
-
-  const handleSeedCourses = async () => {
-    setIsSeedingCourses(true);
-    setSeedResult(null);
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        toast.error('Session expired. Please sign in again.');
-        return;
-      }
-      const res = await fetch('/api/seed-courses', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      const result = await res.json();
-      if (!res.ok) {
-        toast.error(result.error ?? 'Seed failed.');
-        return;
-      }
-      setSeedResult(result);
-      toast.success(
-        `Seeded ${result.coursesSeeded} courses and ${result.lessonsSeeded} lessons to Supabase.`
-      );
-      await loadAdminData();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Seed request failed.');
-    } finally {
-      setIsSeedingCourses(false);
-    }
   };
 
   const handleDeleteKnowledge = async (id: string) => {
@@ -736,9 +658,7 @@ export default function AdminPage() {
                     key={card.label}
                     className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-4"
                   >
-                    <p className="text-xs uppercase tracking-[0.16em] text-[#7A7570]">
-                      {card.label}
-                    </p>
+                    <p className="text-xs uppercase tracking-[0.16em] text-[#7A7570]">{card.label}</p>
                     <p className="mt-3 font-display text-3xl font-black text-[#F5F0E8]">
                       {card.value}
                     </p>
@@ -797,9 +717,7 @@ export default function AdminPage() {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="font-display text-xl font-bold">Users and admins</h2>
-                  <p className="mt-1 text-sm text-[#8f8779]">
-                    Promote trusted accounts and review profiles.
-                  </p>
+                  <p className="mt-1 text-sm text-[#8f8779]">Promote trusted accounts and review profiles.</p>
                 </div>
                 <input
                   value={userSearch}
@@ -813,9 +731,7 @@ export default function AdminPage() {
                 <table className="w-full min-w-[760px] text-left text-sm">
                   <thead className="text-xs uppercase tracking-[0.16em] text-[#7A7570]">
                     <tr>
-                      <th className="border-b border-[rgba(245,240,232,0.08)] py-3 pr-4">
-                        Profile
-                      </th>
+                      <th className="border-b border-[rgba(245,240,232,0.08)] py-3 pr-4">Profile</th>
                       <th className="border-b border-[rgba(245,240,232,0.08)] py-3 pr-4">Role</th>
                       <th className="border-b border-[rgba(245,240,232,0.08)] py-3 pr-4">Joined</th>
                       <th className="border-b border-[rgba(245,240,232,0.08)] py-3 pr-4">Action</th>
@@ -843,9 +759,7 @@ export default function AdminPage() {
                             {profile.is_admin ? 'Admin' : 'Student'}
                           </span>
                         </td>
-                        <td className="py-4 pr-4 text-[#a9a091]">
-                          {formatDate(profile.created_at)}
-                        </td>
+                        <td className="py-4 pr-4 text-[#a9a091]">{formatDate(profile.created_at)}</td>
                         <td className="py-4 pr-4">
                           <button
                             onClick={() => handleAdminToggle(profile)}
@@ -878,9 +792,7 @@ export default function AdminPage() {
                           {course.category} / {course.level}
                         </p>
                         <h2 className="mt-2 font-display text-xl font-bold">{course.title}</h2>
-                        <p className="mt-2 text-sm leading-6 text-[#9d9587]">
-                          {course.description}
-                        </p>
+                        <p className="mt-2 text-sm leading-6 text-[#9d9587]">{course.description}</p>
                       </div>
                       <Link
                         href={`/courses/${course.slug}`}
@@ -896,9 +808,7 @@ export default function AdminPage() {
                       <span className="rounded-full bg-[#0A0A0F] px-2.5 py-1">
                         {videoCount} videos
                       </span>
-                      <span className="rounded-full bg-[#0A0A0F] px-2.5 py-1">
-                        {course.duration}
-                      </span>
+                      <span className="rounded-full bg-[#0A0A0F] px-2.5 py-1">{course.duration}</span>
                     </div>
                     <div className="mt-4 space-y-2">
                       {course.curriculum.map((lesson) => (
@@ -1015,7 +925,9 @@ export default function AdminPage() {
                         className="rounded-lg border border-[rgba(245,240,232,0.06)] bg-[#0A0A0F] p-4"
                       >
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-semibold text-[#E8C96D]">Lesson {index + 1}</p>
+                          <p className="text-sm font-semibold text-[#E8C96D]">
+                            Lesson {index + 1}
+                          </p>
                           <button
                             type="button"
                             onClick={() => removeLesson(index)}
@@ -1035,9 +947,7 @@ export default function AdminPage() {
                             />
                           </div>
                           <div>
-                            <label className="mb-1 block text-xs text-[#8f8779]">
-                              YouTube ID or URL
-                            </label>
+                            <label className="mb-1 block text-xs text-[#8f8779]">YouTube ID or URL</label>
                             <input
                               value={lesson.youtubeId}
                               onChange={(e) => updateLesson(index, 'youtubeId', e.target.value)}
@@ -1046,15 +956,11 @@ export default function AdminPage() {
                             />
                           </div>
                           <div>
-                            <label className="mb-1 block text-xs text-[#8f8779]">
-                              Duration (min)
-                            </label>
+                            <label className="mb-1 block text-xs text-[#8f8779]">Duration (min)</label>
                             <input
                               type="number"
                               value={lesson.durationMinutes}
-                              onChange={(e) =>
-                                updateLesson(index, 'durationMinutes', Number(e.target.value))
-                              }
+                              onChange={(e) => updateLesson(index, 'durationMinutes', Number(e.target.value))}
                               placeholder="0"
                               className="w-full rounded-lg border border-[rgba(245,240,232,0.12)] bg-[#111118] px-3 py-2 text-sm outline-none focus:border-[rgba(201,168,76,0.35)]"
                             />
@@ -1182,12 +1088,8 @@ export default function AdminPage() {
                           Delete
                         </button>
                       </div>
-                      <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#a9a091]">
-                        {item.answer}
-                      </p>
-                      {item.source && (
-                        <p className="mt-2 text-xs text-[#7A7570]">Source: {item.source}</p>
-                      )}
+                      <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#a9a091]">{item.answer}</p>
+                      {item.source && <p className="mt-2 text-xs text-[#7A7570]">Source: {item.source}</p>}
                     </article>
                   ))}
                 </div>
@@ -1203,9 +1105,7 @@ export default function AdminPage() {
                   {chatMessages.map((message) => (
                     <article key={message.id} className="rounded-lg bg-[#0A0A0F] p-3">
                       <p className="line-clamp-2 text-sm">{message.user_message}</p>
-                      <p className="mt-2 text-xs text-[#7A7570]">
-                        {formatDate(message.created_at)}
-                      </p>
+                      <p className="mt-2 text-xs text-[#7A7570]">{formatDate(message.created_at)}</p>
                     </article>
                   ))}
                 </div>
@@ -1239,9 +1139,7 @@ export default function AdminPage() {
                           {payment.status || 'pending'}
                         </span>
                       </div>
-                      <p className="mt-2 text-xs text-[#7A7570]">
-                        {formatDate(payment.created_at)}
-                      </p>
+                      <p className="mt-2 text-xs text-[#7A7570]">{formatDate(payment.created_at)}</p>
                     </article>
                   ))}
                 </div>
@@ -1250,181 +1148,25 @@ export default function AdminPage() {
           )}
 
           {activeTab === 'system' && (
-            <section className="mt-7 space-y-5">
-              {/* ── Seed static courses ─────────────────────────────────────────── */}
-              <div className="rounded-xl border border-[rgba(201,168,76,0.22)] bg-[#111118] p-5">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h2 className="font-display text-xl font-bold">Seed courses to database</h2>
-                    <p className="mt-2 max-w-xl text-sm leading-6 text-[#a9a091]">
-                      Pushes all {courses.length} static courses and their lessons from{' '}
-                      <code className="rounded bg-[#0A0A0F] px-1.5 py-0.5 text-xs text-[#E8C96D]">
-                        src/lib/data.ts
-                      </code>{' '}
-                      into the Supabase{' '}
-                      <code className="rounded bg-[#0A0A0F] px-1.5 py-0.5 text-xs text-[#E8C96D]">
-                        courses
-                      </code>{' '}
-                      and{' '}
-                      <code className="rounded bg-[#0A0A0F] px-1.5 py-0.5 text-xs text-[#E8C96D]">
-                        lessons
-                      </code>{' '}
-                      tables using upsert. Safe to run multiple times. After seeding, the app serves
-                      course data from the DB instead of the static file.
-                    </p>
-                    {seedResult && (
-                      <div className="mt-3 rounded-lg border border-[rgba(125,211,168,0.25)] bg-[rgba(125,211,168,0.06)] px-4 py-3 text-sm">
-                        <p className="font-semibold text-[#7DD3A8]">
-                          ✓ {seedResult.coursesSeeded} courses · {seedResult.lessonsSeeded} lessons
-                          seeded
-                        </p>
-                        {seedResult.errors.length > 0 && (
-                          <ul className="mt-2 space-y-1 text-xs text-red-400">
-                            {seedResult.errors.map((e, i) => (
-                              <li key={i}>{e}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    onClick={handleSeedCourses}
-                    disabled={isSeedingCourses}
-                    className="shrink-0 rounded-lg bg-[#C9A84C] px-5 py-3 text-sm font-bold text-black transition hover:bg-[#E8C96D] disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {isSeedingCourses ? 'Seeding...' : 'Seed to DB'}
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid gap-5 lg:grid-cols-2">
-                {/* ── Current readiness ──────────────────────────────────────────── */}
-                <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-5">
-                  <h2 className="font-display text-xl font-bold">Current readiness</h2>
-                  <div className="mt-5 space-y-2 text-sm">
-                    {[
-                      { label: 'Admin', value: 'Active ✓', ok: true },
-                      {
-                        label: 'Courses in DB',
-                        value: `${dbCourseCount} courses / ${dbLessonCount} lessons`,
-                        ok: dbCourseCount > 0,
-                      },
-                      {
-                        label: 'Knowledge entries',
-                        value: String(counts.knowledgeItems),
-                        ok: counts.knowledgeItems > 0,
-                      },
-                      {
-                        label: 'Audio files',
-                        value: String(counts.audioFiles),
-                        ok: true,
-                      },
-                      {
-                        label: 'Analyses run',
-                        value: String(counts.analyses),
-                        ok: true,
-                      },
-                      {
-                        label: 'Chat messages',
-                        value: String(counts.chats),
-                        ok: true,
-                      },
-                    ].map((row) => (
-                      <div
-                        key={row.label}
-                        className="flex items-center justify-between gap-3 rounded-lg border border-[rgba(245,240,232,0.06)] bg-[#0A0A0F] px-3 py-2"
-                      >
-                        <span className="text-[#a9a091]">{row.label}</span>
-                        <span
-                          className={`font-semibold ${
-                            row.ok ? 'text-[#7DD3A8]' : 'text-[#E8C96D]'
-                          }`}
-                        >
-                          {row.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* ── AI / Ollama config ──────────────────────────────────────────── */}
-                <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-5">
-                  <h2 className="font-display text-xl font-bold">AI &amp; RAG config</h2>
-                  <div className="mt-4 space-y-3 text-sm leading-6 text-[#a9a091]">
-                    <p>
-                      Set{' '}
-                      <code className="rounded bg-[#0A0A0F] px-1.5 py-0.5 text-xs text-[#E8C96D]">
-                        OLLAMA_BASE_URL
-                      </code>{' '}
-                      to your home PC tunnel URL (ngrok / Cloudflare / Tailscale) in Vercel env
-                      vars. See{' '}
-                      <code className="rounded bg-[#0A0A0F] px-1.5 py-0.5 text-xs text-[#E8C96D]">
-                        REMOTE_OLLAMA.md
-                      </code>{' '}
-                      for the full guide.
-                    </p>
-                    <div className="space-y-1.5 rounded-lg border border-[rgba(245,240,232,0.06)] bg-[#0A0A0F] px-3 py-3 font-mono text-xs">
-                      <p>
-                        <span className="text-[#7A7570]"># Chat &amp; audio analysis model</span>
-                      </p>
-                      <p className="text-[#E8C96D]">OLLAMA_CHAT_MODEL=qwen3:8b</p>
-                      <p className="text-[#E8C96D]">OLLAMA_EMBED_MODEL=bge-m3</p>
-                      <p className="mt-2">
-                        <span className="text-[#7A7570]"># Vector DB (Qdrant Cloud free tier)</span>
-                      </p>
-                      <p className="text-[#E8C96D]">QDRANT_URL=https://your-cluster.qdrant.io</p>
-                      <p className="text-[#E8C96D]">QDRANT_COLLECTION=music_lessons_rag</p>
-                    </div>
-                    <p className="text-xs text-[#7A7570]">
-                      Run <code className="text-[#E8C96D]">npm run rag:convert-ingest</code> locally
-                      to embed your 2 000-item GPU dataset and push vectors to Qdrant.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* ── Setup steps ──────────────────────────────────────────────────── */}
+            <section className="mt-7 grid gap-5 lg:grid-cols-2">
               <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-5">
-                <h2 className="font-display text-xl font-bold">Setup checklist</h2>
-                <ol className="mt-5 space-y-2 text-sm leading-7 text-[#a9a091]">
-                  <li>
-                    1. Register your owner account and run supabase-schema.sql in Supabase SQL
-                    Editor.
-                  </li>
-                  <li>
-                    2. Run supabase-admin-setup.sql and replace the placeholder email with yours.
-                  </li>
-                  <li>
-                    3. Click <strong className="text-[#F5F0E8]">Seed to DB</strong> above to push
-                    courses &amp; lessons from the static file into Supabase.
-                  </li>
-                  <li>
-                    4. On your home PC:{' '}
-                    <code className="rounded bg-[#0A0A0F] px-1.5 py-0.5 text-xs text-[#E8C96D]">
-                      OLLAMA_HOST=0.0.0.0 ollama serve
-                    </code>{' '}
-                    then start ngrok / Cloudflare Tunnel.
-                  </li>
-                  <li>
-                    5. Set{' '}
-                    <code className="rounded bg-[#0A0A0F] px-1.5 py-0.5 text-xs text-[#E8C96D]">
-                      OLLAMA_BASE_URL
-                    </code>{' '}
-                    in Vercel project settings to your tunnel URL.
-                  </li>
-                  <li>
-                    6. Locally:{' '}
-                    <code className="rounded bg-[#0A0A0F] px-1.5 py-0.5 text-xs text-[#E8C96D]">
-                      npm run rag:convert
-                    </code>{' '}
-                    then{' '}
-                    <code className="rounded bg-[#0A0A0F] px-1.5 py-0.5 text-xs text-[#E8C96D]">
-                      npm run rag:ingest
-                    </code>{' '}
-                    to embed &amp; push your 2 000-item dataset.
-                  </li>
-                </ol>
+                <h2 className="font-display text-xl font-bold">Admin setup checklist</h2>
+                <div className="mt-5 space-y-3 text-sm leading-6 text-[#a9a091]">
+                  <p>1. Register your owner account normally from the app.</p>
+                  <p>2. Run Frontend/supabase-schema.sql inside Supabase SQL Editor.</p>
+                  <p>3. Run Frontend/supabase-admin-setup.sql and replace admin@example.com with your owner email.</p>
+                  <p>4. Sign out and sign in again, then open /admin.</p>
+                </div>
+              </div>
+              <div className="rounded-xl border border-[rgba(245,240,232,0.08)] bg-[#111118] p-5">
+                <h2 className="font-display text-xl font-bold">Current readiness</h2>
+                <div className="mt-5 space-y-3 text-sm text-[#a9a091]">
+                  <p>Admin profile flag: active</p>
+                  <p>Course catalog source: src/lib/data.ts</p>
+                  <p>Chat provider: configured by CHAT_PROVIDER in .env.local</p>
+                  <p>RAG entries visible to admin: {knowledgeBase.length}</p>
+                  <p>Loaded database tables: profiles, knowledge, chats, uploads, payments.</p>
+                </div>
               </div>
             </section>
           )}
