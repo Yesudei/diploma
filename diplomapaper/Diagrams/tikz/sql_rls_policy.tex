@@ -1,0 +1,68 @@
+\begin{tikzpicture}[
+  x=1cm,
+  y=1cm,
+  >=stealth,
+  font=\sffamily\small,
+  process/.style={
+    draw=blue!55!black,
+    fill=blue!6,
+    rounded corners=8pt,
+    minimum width=4.2cm,
+    minimum height=0.9cm,
+    align=center,
+    line width=0.8pt
+  },
+  decision/.style={
+    diamond,
+    draw=orange!65!black,
+    fill=orange!8,
+    aspect=2.2,
+    minimum width=3.8cm,
+    minimum height=1.1cm,
+    align=center,
+    inner xsep=2pt,
+    line width=0.8pt
+  },
+  datasrc/.style={
+    draw=green!55!black,
+    fill=green!6,
+    cylinder,
+    shape border rotate=90,
+    aspect=0.2,
+    minimum height=1.1cm,
+    minimum width=2.8cm,
+    align=center,
+    line width=0.8pt
+  },
+  result/.style={
+    draw=#1!60!black,
+    fill=#1!8,
+    rounded corners=6pt,
+    minimum width=3.6cm,
+    minimum height=0.85cm,
+    align=center,
+    line width=0.8pt
+  },
+  flow/.style={->, draw=blue!45!black, line width=0.8pt},
+  flabel/.style={font=\sffamily\scriptsize, fill=white, inner sep=1.5pt, text=gray!30!black}
+]
+  \node[process] (request) at (0,0) {Хэрэглэгч хүсэлт\\илгээнэ};
+  \node[decision] (auth) at (0,-2.2) {Нэвтэрсэн\\үү?};
+  \node[result=red] (deny1) at (-4.5,-2.2) {Хандалт\\хориглоно};
+  \node[datasrc] (db) at (0,-4.5) {PostgreSQL\\RLS бодлого};
+  \node[decision] (owner) at (0,-7.0) {\texttt{user\_id =}\\\texttt{auth.uid()}?};
+  \node[result=green] (allow) at (4.5,-7.0) {Өгөгдөл\\буцаана};
+  \node[result=red] (deny2) at (-4.5,-7.0) {Мөр\\харагдахгүй};
+
+  \draw[flow] (request) -- (auth);
+  \draw[flow] (auth) -- node[flabel, above] {Үгүй} (deny1);
+  \draw[flow] (auth) -- node[flabel, right] {Тийм} (db);
+  \draw[flow] (db) -- (owner);
+  \draw[flow] (owner) -- node[flabel, above] {Тийм} (allow);
+  \draw[flow] (owner) -- node[flabel, above] {Үгүй} (deny2);
+
+  \node[font=\sffamily\scriptsize\itshape, text=gray!40!black, anchor=north west, align=left] at (-5.5,-9.0) {%
+    Жишээ: \texttt{CREATE POLICY "owner\_only" ON completed\_lessons}\\
+    \texttt{FOR SELECT USING (user\_id = auth.uid())}%
+  };
+\end{tikzpicture}

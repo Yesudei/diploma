@@ -4,35 +4,46 @@
   >=stealth,
   font=\sffamily\small,
   participant/.style={
-    draw=blue!55!black,
-    fill=blue!5,
+    draw=slate!60,
+    fill=#1,
     rounded corners=6pt,
-    minimum width=2.85cm,
-    minimum height=0.82cm,
+    minimum width=2.9cm,
+    minimum height=0.85cm,
     align=center,
-    line width=0.75pt
+    line width=0.8pt,
+    drop shadow={shadow xshift=0.4pt, shadow yshift=-0.4pt, fill=gray!15, opacity=0.3}
   },
-  life/.style={draw=gray!45, dashed, line width=0.55pt},
-  msg/.style={->, draw=blue!45!black, line width=0.75pt},
-  returnmsg/.style={->, draw=gray!55!black, line width=0.75pt},
-  msglabel/.style={font=\sffamily\scriptsize, fill=white, inner sep=1.4pt, text=gray!25!black}
+  life/.style={draw=slate!30, dashed, line width=0.55pt},
+  msg/.style={->, draw=blue!50!black, line width=0.8pt},
+  returnmsg/.style={->, draw=slate!50, line width=0.75pt, dashed},
+  msglabel/.style={font=\sffamily\scriptsize, fill=white, inner sep=1.5pt, text=slate!75}
 ]
-  \node[participant] (u) at (0,0) {Суралцагч};
-  \node[participant] (ui) at (4.0,0) {Чат интерфейс};
-  \node[participant] (api) at (8.0,0) {Чатын API зам};
-  \node[participant] (rag) at (12.0,0) {RAG өгөгдлийн багц};
-  \node[participant] (llm) at (16.0,0) {Хэлний загвар};
+  \definecolor{slate}{HTML}{475569}
+  \definecolor{sky}{HTML}{E0F2FE}
+
+  \node[participant=blue!6] (u) at (0,0) {Суралцагч};
+  \node[participant=sky] (ui) at (4.0,0) {Чат интерфейс};
+  \node[participant=green!6] (api) at (8.0,0) {Чатын API зам};
+  \node[participant=orange!6] (rag) at (12.0,0) {RAG өгөгдлийн багц};
+  \node[participant=purple!6] (llm) at (16.0,0) {Хэлний загвар};
 
   \foreach \x in {0,4,8,12,16} {
-    \draw[life] (\x,-0.55) -- (\x,-8.05);
+    \draw[life] (\x,-0.6) -- (\x,-8.3);
   }
 
-  \draw[msg] (0,-1.15) -- node[msglabel, above] {1. Асуулт бичих} (4.0,-1.15);
-  \draw[msg] (4.0,-2.05) -- node[msglabel, above] {2. Зурвас илгээх} (8.0,-2.05);
-  \draw[msg] (8.0,-2.95) -- node[msglabel, above] {3. Контекст хайх} (12.0,-2.95);
-  \draw[returnmsg] (12.0,-3.85) -- node[msglabel, above] {4. Холбогдох эх сурвалж} (8.0,-3.85);
-  \draw[msg] (8.0,-4.75) -- node[msglabel, above] {5. Зааварчилгаа + контекст} (16.0,-4.75);
-  \draw[returnmsg] (16.0,-5.70) -- node[msglabel, above] {6. Чатботын хариу} (8.0,-5.70);
-  \draw[returnmsg] (8.0,-6.65) -- node[msglabel, above] {7. Хариу + эх сурвалж} (4.0,-6.65);
-  \draw[returnmsg] (4.0,-7.45) -- node[msglabel, above] {8. Зөвлөгөө харах} (0,-7.45);
+  % activation bars
+  \fill[blue!10, rounded corners=1pt] (-0.12,-0.6) rectangle (0.12,-7.8);
+  \fill[sky, rounded corners=1pt] (3.88,-1.5) rectangle (4.12,-7.6);
+  \fill[green!8, rounded corners=1pt] (7.88,-2.4) rectangle (8.12,-6.9);
+  \fill[orange!8, rounded corners=1pt] (11.88,-3.3) rectangle (12.12,-4.2);
+  \fill[purple!8, rounded corners=1pt] (15.88,-5.1) rectangle (16.12,-6.0);
+
+  \draw[msg] (0.12,-1.2) -- node[msglabel, above] {1. Асуулт бичих} (3.88,-1.2);
+  \draw[msg] (4.12,-2.1) -- node[msglabel, above] {2. Зурвас илгээх} (7.88,-2.1);
+  \draw[msg] (8.12,-3.0) -- node[msglabel, above] {3. Контекст хайх} (11.88,-3.0);
+  \draw[returnmsg] (11.88,-3.9) -- node[msglabel, above] {4. Холбогдох эх сурвалж} (8.12,-3.9);
+  \draw[msg] (8.12,-4.8) -- node[msglabel, above] {5. Зааварчилгаа + контекст} (15.88,-4.8);
+  \draw[returnmsg] (15.88,-5.75) -- node[msglabel, above] {6. Чатботын хариу} (8.12,-5.75);
+  \draw[returnmsg] (7.88,-6.7) -- node[msglabel, above] {7. Хариу + эх сурвалж} (4.12,-6.7);
+  \draw[returnmsg] (3.88,-7.5) -- node[msglabel, above] {8. Зөвлөгөө харах} (0.12,-7.5);
 \end{tikzpicture}

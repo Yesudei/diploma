@@ -3,42 +3,56 @@
   y=1cm,
   >=stealth,
   font=\sffamily\small,
-  flow/.style={->, draw=blue!45!black, line width=0.8pt},
+  flow/.style={->, draw=blue!50!black, line width=0.85pt},
   activity/.style={
     draw=blue!55!black,
-    fill=blue!4,
-    rounded corners=6pt,
-    minimum width=4.35cm,
-    minimum height=0.86cm,
+    fill=blue!6,
+    rounded corners=8pt,
+    minimum width=4.6cm,
+    minimum height=0.92cm,
     align=center,
-    line width=0.75pt
+    line width=0.8pt,
+    drop shadow={shadow xshift=0.5pt, shadow yshift=-0.5pt, fill=gray!20, opacity=0.4}
   },
   decision/.style={
     diamond,
-    draw=orange!60!black,
+    draw=orange!65!black,
     fill=orange!8,
-    aspect=2.45,
-    minimum width=3.85cm,
-    minimum height=1.12cm,
+    aspect=2.3,
+    minimum width=4.0cm,
+    minimum height=1.15cm,
     align=center,
-    inner xsep=1pt,
-    line width=0.75pt
+    inner xsep=2pt,
+    line width=0.8pt,
+    drop shadow={shadow xshift=0.5pt, shadow yshift=-0.5pt, fill=gray!20, opacity=0.4}
   },
-  terminal/.style={circle, draw=blue!55!black, fill=blue!70!black, minimum size=0.50cm, inner sep=0pt},
-  flowlabel/.style={font=\sffamily\scriptsize, fill=white, inner sep=1.2pt, text=gray!35!black}
+  terminal/.style={
+    circle,
+    draw=blue!55!black,
+    fill=blue!70!black,
+    minimum size=0.52cm,
+    inner sep=0pt,
+    line width=0.8pt
+  },
+  flowlabel/.style={
+    font=\sffamily\scriptsize\bfseries,
+    fill=white,
+    inner sep=1.5pt,
+    text=gray!30!black
+  }
 ]
   \node[terminal] (start) at (0,0) {};
-  \node[activity] (login) at (0,-1.05) {Нэвтрэх / бүртгүүлэх};
-  \node[activity] (catalog) at (0,-2.25) {Курсийн каталог үзэх};
-  \node[activity] (course) at (0,-3.45) {Курс сонгох};
-  \node[decision] (access) at (0,-4.90) {Үзэх эрхтэй\\юу?};
-  \node[activity] (buy) at (-4.75,-6.10) {Курс худалдан авах};
-  \node[activity] (lesson) at (0,-7.20) {Хичээл үзэх};
-  \node[activity] (quiz) at (0,-8.45) {Өөрийгөө шалгах};
-  \node[decision] (help) at (0,-9.90) {Тусламж\\хэрэгтэй юу?};
-  \node[activity] (chat) at (4.75,-11.10) {AI туслахаас асуух};
-  \node[activity] (progress) at (0,-12.30) {Ахиц хадгалах};
-  \node[terminal] (end) at (0,-13.40) {};
+  \node[activity] (login) at (0,-1.15) {Нэвтрэх / бүртгүүлэх};
+  \node[activity] (catalog) at (0,-2.45) {Курсийн каталог үзэх};
+  \node[activity] (course) at (0,-3.75) {Курс сонгох};
+  \node[decision] (access) at (0,-5.35) {Үзэх эрхтэй\\юу?};
+  \node[activity, fill=orange!6] (buy) at (-5.0,-6.65) {Курс худалдан авах};
+  \node[activity] (lesson) at (0,-7.85) {Хичээл үзэх};
+  \node[activity] (quiz) at (0,-9.20) {Өөрийгөө шалгах};
+  \node[decision] (help) at (0,-10.80) {Тусламж\\хэрэгтэй юу?};
+  \node[activity, fill=purple!6] (chat) at (5.0,-12.10) {AI туслахаас асуух};
+  \node[activity, fill=green!6] (progress) at (0,-13.40) {Ахиц хадгалах};
+  \node[terminal] (end) at (0,-14.55) {};
 
   \draw[flow] (start) -- (login);
   \draw[flow] (login) -- (catalog);

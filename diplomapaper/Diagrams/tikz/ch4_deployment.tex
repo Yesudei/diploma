@@ -1,20 +1,46 @@
-\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
-  \tikzstyle{nodebox}=[draw, rounded corners=5pt, minimum width=4.5cm, minimum height=1.1cm, align=center]
-  \tikzstyle{store}=[draw, cylinder, shape border rotate=90, aspect=0.25, minimum height=1.2cm, minimum width=2.2cm, align=center]
+\begin{tikzpicture}[
+  x=1cm,
+  y=1cm,
+  >=stealth,
+  font=\sffamily\small,
+  nodebox/.style={
+    draw=slate!55,
+    rounded corners=6pt,
+    minimum width=4.8cm,
+    minimum height=1.15cm,
+    align=center,
+    line width=0.85pt,
+    drop shadow={shadow xshift=0.4pt, shadow yshift=-0.4pt, fill=gray!15, opacity=0.3}
+  },
+  store/.style={
+    draw=slate!55,
+    cylinder,
+    shape border rotate=90,
+    aspect=0.25,
+    minimum height=1.25cm,
+    minimum width=2.5cm,
+    align=center,
+    line width=0.8pt,
+    drop shadow={shadow xshift=0.4pt, shadow yshift=-0.4pt, fill=gray!15, opacity=0.3}
+  },
+  flow/.style={->, draw=slate!50, line width=0.8pt},
+  flowlbl/.style={font=\sffamily\scriptsize, fill=white, inner sep=1.5pt, text=slate}
+]
+  \definecolor{slate}{HTML}{475569}
 
-  \node[nodebox, fill=blue!8] (browser) at (0,0) {Хөтөч\\Суралцагч/Админ};
-  \node[nodebox, fill=green!8] (next) at (6,0) {Веб тал\\Хуудас + компонент};
-  \node[nodebox, fill=yellow!10] (api) at (6,-2.4) {Програмчлалын интерфейс\\Чат, видео хугацаа};
-  \node[store, fill=orange!10] (supabase) at (12,0) {Үүлэн сан\\Өгөгдлийн сан + нэвтрэлт};
-  \node[store, fill=gray!14] (rag) at (12,-2.4) {Сэргээн хайх өгөгдөл\\Бүтэцтэй файл};
-  \node[nodebox, fill=purple!8] (llm) at (12,-4.8) {Хэлний загварын үйлчилгээ\\Дотоод эсвэл гадаад үйлчилгээ};
+  \node[nodebox, fill=blue!7] (browser) at (0,0) {Хөтөч\\Суралцагч / Админ};
+  \node[nodebox, fill=green!7] (next) at (6.5,0) {Веб тал\\Хуудас + компонент};
+  \node[nodebox, fill=yellow!8] (api) at (6.5,-2.7) {Програмчлалын интерфейс\\Чат, видео хугацаа};
+  \node[store, fill=orange!8] (supabase) at (13,0) {Үүлэн сан\\Өгөгдлийн сан + нэвтрэлт};
+  \node[store, fill=gray!12] (rag) at (13,-2.7) {Сэргээн хайх өгөгдөл\\Бүтэцтэй файл};
+  \node[nodebox, fill=purple!7] (llm) at (13,-5.4) {Хэлний загварын үйлчилгээ\\Дотоод эсвэл гадаад үйлчилгээ};
 
-  \draw[->] (browser) -- node[above,font=\scriptsize] {хамгаалалттай хүсэлт} (next);
-  \draw[->] (next) -- node[above,font=\scriptsize] {өгөгдлийн сангийн клиент} (supabase);
-  \draw[->] (next) -- node[right,font=\scriptsize] {чат хүсэлт} (api);
-  \draw[->] (api) -- node[above,font=\scriptsize] {унших/хайх} (rag);
-  \draw[->] (api) -- node[right,font=\scriptsize] {зааварчилгаа + контекст} (llm);
-  \draw[->] (llm) -- node[left,font=\scriptsize] {хариу} (api);
-  \draw[->] (api) -- node[left,font=\scriptsize] {хариу + эх сурвалж} (next);
-  \draw[->] (api) -- node[above,font=\scriptsize] {чат лог / ирээдүйн импорт} (supabase);
+  \draw[flow] (browser) -- node[flowlbl, above] {хамгаалалттай хүсэлт} (next);
+  \draw[flow] (next) -- node[flowlbl, above] {өгөгдлийн сангийн клиент} (supabase);
+  \draw[flow] (next) -- node[flowlbl, right] {чат хүсэлт} (api);
+  \draw[flow] (api) -- node[flowlbl, above] {унших/хайх} (rag);
+  \draw[flow] (api) -- node[flowlbl, right] {зааварчилгаа + контекст} (llm);
+  \draw[flow] (llm) -- node[flowlbl, left] {хариу} (api);
+  \draw[flow] (api) -- node[flowlbl, left] {хариу + эх сурвалж} (next);
+  \draw[flow] (api) -- node[flowlbl, above] {чат лог} (supabase);
 \end{tikzpicture}

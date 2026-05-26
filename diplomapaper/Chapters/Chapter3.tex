@@ -19,12 +19,19 @@
 \section{Хэрэглээний ерөнхий зураг}
 Платформын үндсэн оролцогч нь зочин хэрэглэгч, бүртгэлтэй суралцагч, админ юм. Зочин хэрэглэгч курс хайх, үнэгүй танилцах хичээл үзэх, бүртгүүлэх боломжтой. Суралцагч курс худалдан авч, хичээл үзэж, сорил өгч, AI туслахаас асуулт асууж, ахицаа хадгална. Админ курс, хичээл, мэдлэгийн сан, хэрэглэгчийн мэдээллийг удирдана.
 
-Зураг \ref{fig:ch1-usecase}-д хэрэглэгчийн үндсэн боломжуудыг харуулсан. AI туслах нь сургалтын үндсэн урсгалыг орлохгүй, харин хичээл үзэх явцад гарсан тодорхой асуултад context-тэй зөвлөгөө өгөх нэмэлт давхарга байдлаар байрлана.
+\begin{figure}[H]
+  \centering
+  \resizebox{0.95\textwidth}{!}{\input{Diagrams/tikz/usecase_music_platform.tex}}
+  \caption[Хэрэглээний тохиолдлын диаграм]{Платформын хэрэглээний тохиолдлын диаграм}
+  \label{fig:ch3-usecase}
+\end{figure}
+
+Зураг \ref{fig:ch3-usecase}-д хэрэглэгчийн үндсэн боломжуудыг харуулсан. AI туслах нь сургалтын үндсэн урсгалыг орлохгүй, харин хичээл үзэх явцад гарсан тодорхой асуултад context-тэй зөвлөгөө өгөх нэмэлт давхарга байдлаар байрлана.
 
 \section{Давхаргат архитектур}
 Платформыг нэг том фронтенд файл хэлбэрээр зохион байгуулах нь засварлахад хүндрэлтэй. Иймээс архитектурыг хэрэглэгчийн интерфейс, аппликейшний логик, API/AI, өгөгдөл, контент ба өгөгдлийн багц гэсэн таван давхаргад хуваав.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{\input{Diagrams/tikz/ch4_layered_architecture.tex}}
   \caption[Платформын давхаргат архитектур]{Платформын давхаргат архитектур}
@@ -32,8 +39,6 @@
 \end{figure}
 
 \begin{longtable}{|p{0.20\textwidth}|p{0.30\textwidth}|p{0.34\textwidth}|}
-  \caption{Архитектурын давхарга ба хариуцлага}
-  \label{tab:ch3-layers}\\
   \hline
   \textbf{Давхарга} & \textbf{Гол нэгж} & \textbf{Хариуцлага} \\ \hline
   Хэрэглэгчийн интерфейс & Хуудас, layout, компонент & Хэрэглэгчийн харах UI, навигаци, курсийн карт, хичээлийн тоглуулагч, чат цонх \\ \hline
@@ -41,12 +46,14 @@
   API/AI & Next.js route handler & Чат хүсэлт, RAG сэргээн хайлт, зааварчилгаа бүрдүүлэх, үйлчилгээ үзүүлэгч дуудах, нөөц хариу \\ \hline
   Өгөгдлийн давхарга & Supabase PostgreSQL, Auth, RLS & Хэрэглэгч, курс, худалдан авалт, ахиц, чат, мэдлэгийн сангийн хадгалалт \\ \hline
   Контент ба өгөгдлийн багц & Курсийн эх өгөгдөл, JSONL/CSV, YouTube лавлагаа & Сургалтын агуулга, RAG мэдлэгийн сан, импортын өгөгдөл \\ \hline
+  \caption{Архитектурын давхарга ба хариуцлага}
+  \label{tab:ch3-layers}
 \end{longtable}
 
 \section{Хэрэглэгчийн үндсэн урсгал}
 Суралцагчийн урсгал нь курсийн каталог үзэх, хандалтын эрх шалгах, хичээл үзэх, сорил өгөх, AI туслахаас асуух, ахиц хадгалах гэсэн дараалалтай. Энэ урсгал нь сургалтын платформыг энгийн видео жагсаалт бус, суралцах явцыг удирддаг систем болгож байна.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \resizebox{0.82\textwidth}{!}{\input{Diagrams/tikz/activity_music_workflow.tex}}
   \caption[Суралцагчийн үйл ажиллагааны урсгал]{Суралцагчийн курс сонголт, хандалт, хичээл, сорил, AI туслах, ахиц хадгалалтын урсгал}
@@ -57,8 +64,6 @@
 Дипломын төсөл нь \texttt{Frontend}, \texttt{dataset}, \texttt{diplomapaper} болон \texttt{Frontend/data/rag}, \texttt{Frontend/scripts} доторх RAG дамжлагын файлуудаас бүрдэнэ. Эдгээр нь тусдаа харагдавч нэг бүтээгдэхүүний өөр өөр давхаргыг илэрхийлнэ.
 
 \begin{longtable}{|p{0.25\textwidth}|p{0.27\textwidth}|p{0.34\textwidth}|}
-  \caption{Төслийн гол хавтас ба үүрэг}
-  \label{tab:ch3-project-folders}\\
   \hline
   \textbf{Хавтас/файл} & \textbf{Үүрэг} & \textbf{Тайлбар} \\ \hline
   \texttt{Frontend/src/app} & Зам ба API & Нүүр хуудас, курс, хяналтын самбар, админ, чат, төлбөр, \texttt{/api/ai-chat} \\ \hline
@@ -70,14 +75,14 @@
   \texttt{Frontend/data/rag} & Мэдлэгийн сан & 20 seed document болон 2000 generated Mongolian music lesson chunk \\ \hline
   \texttt{dataset} & Нэмэлт зөвлөмжийн сан & FL Studio mixing/compression чиглэлийн 20000 бичлэгтэй JSON сан \\ \hline
   \texttt{diplomapaper} & Дипломын тайлан & LaTeX бүлгүүд, диаграм, зураг, ном зүй \\ \hline
+  \caption{Төслийн гол хавтас ба үүрэг}
+  \label{tab:ch3-project-folders}
 \end{longtable}
 
 \section{Фронтенд хэрэгжүүлэлт}
 Фронтенд нь Next.js 14, React 18, TypeScript, Tailwind CSS дээр суурилсан \cite{nextjs_docs,react_learn,typescript_handbook,tailwind_docs}. App Router ашигласнаар хуудас, layout, динамик зам, API замыг нэг фреймворк дотор зохион байгуулах боломжтой болсон.
 
 \begin{longtable}{|p{0.18\textwidth}|p{0.30\textwidth}|p{0.34\textwidth}|}
-  \caption{Фронтенд замууд ба үүрэг}
-  \label{tab:ch3-routes}\\
   \hline
   \textbf{Зам} & \textbf{Хуудасны үүрэг} & \textbf{Гол хэрэгжилт} \\ \hline
   \texttt{/} & Нүүр хуудас & Hero хэсэг, суралцах замнал, боломжийн товч, хөвдөг чат товч \\ \hline
@@ -87,6 +92,8 @@
   \texttt{/checkout} & Төлбөрийн урсгал & Khan Bank дансны шилжүүлгийн хүсэлт үүсгэж, \texttt{payments} хүснэгтэд pending төлөвөөр хадгалах \\ \hline
   Хөвдөг чат товч & Studio mentor чат & Бүх хуудсанд байрлах drawer UI, эх сурвалжийн жижиг жагсаалт, \texttt{/api/ai-chat} хүсэлт \\ \hline
   \texttt{/admin} & Админ хэсэг & Курс, хичээл, хэрэглэгч, мэдлэгийн сан, төлбөрийн баталгаажуулалт, lesson reorder удирдах интерфейс \\ \hline
+  \caption{Фронтенд замууд ба үүрэг}
+  \label{tab:ch3-routes}
 \end{longtable}
 
 Компонентын түвшинд \texttt{CourseCard}, \texttt{LessonPlayer}, \texttt{VideoPlayer}, \texttt{ChatDrawer}, \texttt{DashboardLayout} зэрэг дахин ашиглагдах нэгжүүд бий. Hook түвшинд \texttt{useAuth} нэвтрэлтийн төлөвийг, \texttt{usePurchases} төлбөртэй хичээл үзэх эрхийг, \texttt{useReveal} танилцуулгын төлөвийг удирдана.
@@ -94,7 +101,7 @@
 \section{Өгөгдлийн сангийн архитектур}
 Supabase нь PostgreSQL өгөгдлийн сан, authentication, API болон RLS бодлогыг нэгтгэн өгдөг \cite{supabase_docs,supabase_rls}. PostgreSQL-ийн Row Level Security нь хэрэглэгч зөвхөн өөрийн мөрүүдийг харах, өөрчлөх боломжтой болгох үндсэн хамгаалалт юм \cite{postgres_rls}.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{\input{Diagrams/tikz/er_core_schema.tex}}
   \caption[Өгөгдлийн сангийн ER диаграм]{Платформын үндсэн өгөгдлийн сангийн ER диаграм}
@@ -102,8 +109,6 @@ Supabase нь PostgreSQL өгөгдлийн сан, authentication, API боло
 \end{figure}
 
 \begin{longtable}{|p{0.22\textwidth}|p{0.30\textwidth}|p{0.34\textwidth}|}
-  \caption{Өгөгдлийн сангийн хүснэгтүүд}
-  \label{tab:ch3-db-tables}\\
   \hline
   \textbf{Хүснэгт} & \textbf{Үндсэн өгөгдөл} & \textbf{Үүрэг} \\ \hline
   \texttt{profiles} & нэр, зураг, товч танилцуулга, \texttt{is\_admin} & Auth хэрэглэгчийн нэмэлт мэдээлэл ба админы эрх \\ \hline
@@ -114,14 +119,52 @@ Supabase нь PostgreSQL өгөгдлийн сан, authentication, API боло
   \texttt{chat\_messages} & хэрэглэгчийн зурвас, AI хариу, эх сурвалж & Чатын түүх болон чанарын үнэлгээ \\ \hline
   \texttt{payments} & дүн, валют, төлөв, шилжүүлгийн утга, баталгаажсан/буцаагдсан огноо & Банкны шилжүүлгийн хүсэлт, админ approval/refund урсгал \\ \hline
   \texttt{audio\_files}, \texttt{mixing\_analysis} & оруулсан файлын мета өгөгдөл, шинжилгээний үр дүн & Ирээдүйн аудио feedback модуль \\ \hline
+  \caption{Өгөгдлийн сангийн хүснэгтүүд}
+  \label{tab:ch3-db-tables}
 \end{longtable}
 
 Schema-д foreign key, unique constraint, RLS policy зэрэг хамгаалалт ашигласан. Жишээлбэл \texttt{purchased\_courses} дээр \texttt{unique(user\_id, course\_id)} тавьснаар нэг хэрэглэгч нэг курсийг давхар худалдан авсан бичлэг үүсгэхээс сэргийлнэ. \texttt{completed\_lessons} дээр \texttt{unique(user\_id, lesson\_id)} ашиглаж хичээл дуусгалтын бичлэг давхцахгүй байхаар зохион байгуулсан.
 
+\section{Классын диаграм}
+Платформын үндсэн объектуудын бүтэц, шинж чанар, аргууд болон тэдгээрийн хоорондын хамаарлыг UML классын диаграмаар харуулав. Классын диаграм нь объект хандалтат зохиомжийн суурь баримт бичиг бөгөөд хэрэглэгч, курс, хичээл, ахиц, чат зурвас, төлбөр зэрэг домайн объектуудын харилцааг илэрхийлнэ.
+
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{\input{Diagrams/tikz/class_music_platform.tex}}
+  \caption[Классын диаграм]{Платформын үндсэн классуудын бүтэц ба хамаарлын диаграм}
+  \label{fig:ch3-class}
+\end{figure}
+
+Зураг \ref{fig:ch3-class}-д платформын зургаан үндсэн класс болон тэдгээрийн холбоог харуулсан. \texttt{Хэрэглэгч} класс нь \texttt{Курс}-д элсэж, \texttt{Курсийн ахиц}-аа хянах, \texttt{Чат зурвас}-аар AI туслахтай харилцах, \texttt{Төлбөр}-өөр худалдан авалт хийнэ. \texttt{Курс} нь олон \texttt{Хичээл}-ийг агуулна.
+
+\section{Өгөгдлийн сангийн SQL бүтэц}
+Суурь өгөгдлийн сангийн хүснэгтүүдийн DDL бүтцийг дараах диаграмаар харуулав. Энэ нь PostgreSQL дээр Supabase-ээр дамжуулан хэрэгжсэн бөгөөд хүснэгт бүрийн гол талбар, төрөл, хязгаарлалтыг тусгасан.
+
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{\input{Diagrams/tikz/sql_schema_detail.tex}}
+  \caption[SQL схемийн диаграм]{Платформын үндсэн хүснэгтүүдийн SQL бүтэц}
+  \label{fig:ch3-sql-schema}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \resizebox{0.85\textwidth}{!}{\input{Diagrams/tikz/sql_rls_policy.tex}}
+  \caption[RLS бодлогын диаграм]{Мөрийн түвшний хамгаалалтын бодлогын урсгал}
+  \label{fig:ch3-rls-policy}
+\end{figure}
+
 \section{AI чатботын хэрэгжүүлэлт}
 Сургалтын туслах нь \texttt{Frontend/src/app/api/ai-chat/route.ts} файлд байрлах Next.js route handler-ээр хэрэгжсэн. Энэ зам нь хэрэглэгчийн зурвасыг хүлээн авч, Монгол кирилл болон латин бичлэгтэй асуултыг normalization хийж, Ollama-ийн \texttt{bge-m3} embedding model-оор vector үүсгэн, локал Qdrant collection-оос хамгийн ойр контекстуудыг хайна. Дараа нь retrieved context дээр тулгуурласан prompt үүсгээд Ollama дээр ажиллаж буй \texttt{qwen3:8b} загвар руу \texttt{/api/chat} endpoint-оор сервер талын дуудлага илгээнэ. Хариулт буцахдаа \texttt{answer} болон эх сурвалжийн \texttt{title}, \texttt{category}, \texttt{score} талбаруудыг фронтенд рүү илгээдэг.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
+  \centering
+  \resizebox{0.72\textwidth}{!}{\input{Diagrams/tikz/ch2_ai_stack.tex}}
+  \caption[AI туслахын стек]{Мэдээлэл сэргээн баяжуулсан генерацид суурилсан AI туслахын стек}
+  \label{fig:ch3-ai-stack}
+\end{figure}
+
+\begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{\input{Diagrams/tikz/sequence_music_generation.tex}}
   \caption[AI туслахын дарааллын диаграм]{AI туслахын хүсэлт, сэргээн хайлт, үйлчилгээ үзүүлэгч дуудах, хариу буцаах дараалал}
@@ -140,8 +183,6 @@ Schema-д foreign key, unique constraint, RLS policy зэрэг хамгаала
 \end{enumerate}
 
 \begin{longtable}{|p{0.22\textwidth}|p{0.32\textwidth}|p{0.32\textwidth}|}
-  \caption{AI чатботын хэрэгжилтийн шийдэл}
-  \label{tab:ch3-chatbot}\\
   \hline
   \textbf{Шийдэл} & \textbf{Хэрэгжилт} & \textbf{Ач холбогдол} \\ \hline
   Сэргээн хайлт & Qdrant vector search, cosine similarity, top 5 chunk & Латин болон кирилл асуултад утгын ойролцоогоор контекст олох \\ \hline
@@ -150,14 +191,14 @@ Schema-д foreign key, unique constraint, RLS policy зэрэг хамгаала
   Локал загварын тохиргоо & Ollama \texttt{qwen3:8b} & RTX 3060 12GB орчинд төлбөртэй API-гүй ажиллуулах \cite{ollama_qwen3} \\ \hline
   Vector storage & Qdrant local REST service & Browser талд Ollama-г ил гаргахгүйгээр сервер талын сэргээн хайлт хийх \\ \hline
   Access control & \texttt{x-rag-api-key} optional хамгаалалт & Гэрийн компьютероос гадна төхөөрөмжөөр ашиглах үед API-г хязгаарлах \\ \hline
+  \caption{AI чатботын хэрэгжилтийн шийдэл}
+  \label{tab:ch3-chatbot}
 \end{longtable}
 
 \section{RAG өгөгдлийн багц}
 Одоогийн RAG мэдлэгийн сан нь \texttt{Frontend/data/rag/music-course-seed.json} болон \texttt{Frontend/data/rag/generated-music-course.jsonl} файлуудаас бүрдэнэ. Seed файл нь DAW, FL Studio, BPM, beat structure, drum pattern, kick, snare, hi-hat, 808 bass, melody, chord, scale, EQ, compression, reverb, delay, mixing, mastering, arrangement, export зэрэг 20 үндсэн сэдвийг Монгол хэлээр агуулна. Generated JSONL файл нь Gemma/Ollama ашиглан үүсгэсэн 2000 нэмэлт beginner-friendly chunk-ийг хадгална. \texttt{npm run rag:ingest} script эдгээрийг embedding болгон Qdrant-д оруулна.
 
 \begin{longtable}{|p{0.24\textwidth}|p{0.28\textwidth}|p{0.34\textwidth}|}
-  \caption{RAG өгөгдлийн багцын одоогийн бүрэлдэхүүн}
-  \label{tab:ch3-dataset}\\
   \hline
   \textbf{Үзүүлэлт} & \textbf{Төлөв} & \textbf{Тайлбар} \\ \hline
   Seed бичлэг & 20 document & Сургалтын үндсэн сэдвүүдийг хүний бичсэн Монгол тайлбараар эхлүүлсэн \\ \hline
@@ -165,6 +206,8 @@ Schema-д foreign key, unique constraint, RLS policy зэрэг хамгаала
   Vector collection & \texttt{music\_lessons\_rag} & Qdrant дээр cosine similarity ашиглан хайдаг \\ \hline
   Payload metadata & title, category, level, content, tags, source, language, createdAt & Эх сурвалж болон сэдвийг UI-д харуулах боломжтой \\ \hline
   Хэлний хамрах хүрээ & Кирилл Монгол, латин Mongolian keyword tags & ``kick ee'', ``bpm yu ve'', ``808 murulduud bn'' зэрэг асуултад дэмжлэгтэй \\ \hline
+  \caption{RAG өгөгдлийн багцын одоогийн бүрэлдэхүүн}
+  \label{tab:ch3-dataset}
 \end{longtable}
 
 Өгөгдлийн багцын чанарын гол анхаарах зүйл нь давхардал, хэлзүйн чанар, эх сурвалжийн мета өгөгдөл юм. Generated бичлэгийг official manual мэт харуулахгүй, харин сургалтын дотоод контекст байдлаар ашиглана. Цаашид Image-Line FL Studio manual зэрэг албан эх сурвалж \cite{flstudio_workflow} болон багшийн сонгож баталгаажуулсан сургалтын материал дээр тулгуурласан citation-safe бичлэг нэмэх шаардлагатай.
@@ -172,7 +215,7 @@ Schema-д foreign key, unique constraint, RLS policy зэрэг хамгаала
 \section{Нэвтрүүлэлт ба гэрийн компьютерийн тохиргоо}
 Платформыг гэрийн компьютер дээр локал хөгжүүлэлтийн орчинд ажиллуулахдаа Node.js 18+, npm, Next.js dev server, Supabase project, Ollama болон Qdrant ашигласан. Энэ тохиргоо нь дипломын demo-д төлбөртэй API ашиглахгүйгээр фронтенд, өгөгдлийн багц, embedding, vector search, локал LLM хариуг шалгах боломж олгодог.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{\input{Diagrams/tikz/ch4_deployment.tex}}
   \caption[Нэвтрүүлэлтийн архитектур]{Хөтөч, Next.js, Supabase, Qdrant, Ollama бүхий локал RAG нэвтрүүлэлтийн зураг}
@@ -180,8 +223,6 @@ Schema-д foreign key, unique constraint, RLS policy зэрэг хамгаала
 \end{figure}
 
 \begin{longtable}{|p{0.26\textwidth}|p{0.34\textwidth}|p{0.26\textwidth}|}
-  \caption{Локал тохиргооны үндсэн үзүүлэлт}
-  \label{tab:ch3-local-setup}\\
   \hline
   \textbf{Тохиргоо} & \textbf{Жишээ утга} & \textbf{Үүрэг} \\ \hline
   Node.js/npm & Node.js 18+, npm 9+ & Next.js project ажиллуулах \\ \hline
@@ -191,6 +232,8 @@ Schema-д foreign key, unique constraint, RLS policy зэрэг хамгаала
   Ollama & \texttt{qwen3:8b}, \texttt{bge-m3} & Хариу үүсгэх болон embedding үүсгэх локал загварууд \\ \hline
   Qdrant & \texttt{http://localhost:6333} & Vector collection, cosine similarity search \\ \hline
   RAG API & \texttt{/api/ai-chat} & Browser зөвхөн backend API-г дуудаж, Ollama/Qdrant-г шууд ил гаргахгүй \\ \hline
+  \caption{Локал тохиргооны үндсэн үзүүлэлт}
+  \label{tab:ch3-local-setup}
 \end{longtable}
 
 Нууц тохиргоог source code-д хадгалахгүй, \texttt{.env.local} файлд байрлуулах зарчим баримтална. \texttt{NEXT\_PUBLIC\_} prefix-тэй хувьсагч хөтөч талд ил гардаг тул service role key болон сервер талын RAG тохиргоог зөвхөн backend environment variable хэлбэрээр ашиглах шаардлагатай.
@@ -199,8 +242,6 @@ Schema-д foreign key, unique constraint, RLS policy зэрэг хамгаала
 Платформын аюулгүй байдал нь клиент хамгаалалт, серверийн зам, өгөгдлийн сангийн бодлого гэсэн гурван түвшинд хэрэгжинэ. Клиент талд төлбөртэй хичээлийн түгжээ болон админ холбоосын харагдах байдал хянагдана. Сервер талд Ollama/Qdrant холболт, retrieval, prompt бүрдүүлэх логик байрлана. Өгөгдлийн сангийн түвшинд RLS policy нь ахиц, худалдан авалт, чат зэрэг хэрэглэгч эзэмшдэг өгөгдлийг хамгаална.
 
 \begin{longtable}{|p{0.24\textwidth}|p{0.32\textwidth}|p{0.30\textwidth}|}
-  \caption{Аюулгүй байдал ба өргөтгөлийн чиглэл}
-  \label{tab:ch3-security-scale}\\
   \hline
   \textbf{Чиглэл} & \textbf{Одоогийн шийдэл} & \textbf{Дараагийн алхам} \\ \hline
   Төлбөртэй хандалт & Khan Bank шилжүүлгийн хүсэлт, админ approve/refund, \texttt{payments}, \texttt{purchased\_courses} & Автомат gateway, webhook, баримтын баталгаажуулалт \\ \hline
@@ -209,9 +250,11 @@ Schema-д foreign key, unique constraint, RLS policy зэрэг хамгаала
   RAG хайлт & Qdrant vector search ба \texttt{bge-m3} embedding & Hybrid retrieval, human-reviewed source expansion \cite{supabase_vectors,pgvector_github} \\ \hline
   Хариу үүсгэх загвар & Локал Ollama \texttt{qwen3:8b} & Timeout, response cache, чанарын regression test \\ \hline
   Аудио шинжилгээ & Browser дээр audio decode хийж peak, loudness, dynamic range, balance оноо тооцоод \texttt{mixing\_analysis}-д хадгалах & Source separation, илүү нарийн спектрийн feedback \\ \hline
+  \caption{Аюулгүй байдал ба өргөтгөлийн чиглэл}
+  \label{tab:ch3-security-scale}
 \end{longtable}
 
-\section{Бүлгийн дүгнэлт}
+\section*{Бүлгийн дүгнэлт}
 Гуравдугаар бүлгээр платформын архитектур ба хэрэгжилтийг нэгтгэн тайлбарлав. Платформ нь курсийн каталог, хичээлийн тоглуулагч, төлбөртэй хандалт, сорил, хяналтын самбар, админ хэсэг, AI чатбот гэсэн хэрэглэгчийн үндсэн урсгалтай бөгөөд Next.js, React, TypeScript, Supabase PostgreSQL, RAG өгөгдлийн багцын дамжлага дээр тулгуурласан. Use case, activity, layered, ER, AI sequence, deployment диаграмуудаар системийн үндсэн холбоо, өгөгдлийн бүтэц, AI туслахын хүсэлтийн урсгал, локал тохиргоог харууллаа.
 
 AI туслахын хувьд \texttt{/api/ai-chat} зам нь query normalization, Ollama \texttt{bge-m3} embedding, Qdrant vector search, grounded prompt, Ollama \texttt{qwen3:8b} answer generation гэсэн дамжлагатайгаар хэрэгжсэн. Мөн төлбөрийн урсгал нь банкны шилжүүлгийн pending хүсэлт, админы баталгаажуулалт, \texttt{purchased\_courses}-д эрх үүсгэх байдлаар Supabase-д хадгалагддаг болсон. Ахицын мэдээлэл \texttt{completed\_lessons} болон \texttt{course\_progress} хүснэгтэд хадгалагдаж, mix шинжилгээ browser дээр тооцоологдон \texttt{mixing\_analysis}-д бүртгэгдэнэ. Цаашид citation-safe өгөгдлийн бичлэг, retrieval evaluation, автомат payment gateway/webhook болон илүү нарийн audio AI шинжилгээг нэмэх шаардлагатай.

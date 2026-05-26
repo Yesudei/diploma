@@ -1,66 +1,113 @@
-\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
-  \draw[rounded corners=4pt] (0,6.3) rectangle (5.0,9.2);
-  \node[font=\small\bfseries] at (2.5,8.85) {Хэрэглэгч};
-  \draw (0,8.45) -- (5.0,8.45);
-  \node[anchor=west,font=\scriptsize] at (0.2,8.1) {+ дугаар};
-  \node[anchor=west,font=\scriptsize] at (0.2,7.75) {+ цахим шуудан};
-  \node[anchor=west,font=\scriptsize] at (0.2,7.4) {+ үүрэг: суралцагч/админ};
-  \draw (0,7.05) -- (5.0,7.05);
-  \node[anchor=west,font=\scriptsize] at (0.2,6.72) {+ нэвтрэх(), гарах()};
+\begin{tikzpicture}[
+  x=1cm,
+  y=1cm,
+  >=stealth,
+  font=\sffamily\small,
+  classbox/.style={
+    draw=slate!70,
+    line width=0.9pt,
+    rounded corners=2pt,
+    fill=white,
+    minimum width=5.4cm,
+    inner sep=0pt
+  },
+  classhead/.style={
+    fill=#1,
+    minimum width=5.2cm,
+    minimum height=0.65cm,
+    font=\sffamily\small\bfseries,
+    text=white,
+    rounded corners=2pt
+  },
+  field/.style={font=\sffamily\scriptsize, anchor=west},
+  sep/.style={draw=slate!30, line width=0.5pt},
+  rel/.style={draw=slate!60, line width=0.75pt, ->},
+  rellabel/.style={font=\sffamily\scriptsize, fill=white, inner sep=1.5pt, text=slate!80},
+  mult/.style={font=\sffamily\scriptsize\itshape, text=slate}
+]
+  \definecolor{slate}{HTML}{475569}
+  \definecolor{cblue}{HTML}{2563EB}
+  \definecolor{cgreen}{HTML}{059669}
+  \definecolor{corange}{HTML}{D97706}
+  \definecolor{cpurple}{HTML}{7C3AED}
+  \definecolor{crose}{HTML}{E11D48}
+  \definecolor{ccyan}{HTML}{0891B2}
 
-  \draw[rounded corners=4pt] (6.1,6.3) rectangle (11.4,9.2);
-  \node[font=\small\bfseries] at (8.75,8.85) {Курс};
-  \draw (6.1,8.45) -- (11.4,8.45);
-  \node[anchor=west,font=\scriptsize] at (6.3,8.1) {+ курсийн дугаар, товч нэр};
-  \node[anchor=west,font=\scriptsize] at (6.3,7.75) {+ гарчиг, ангилал, түвшин};
-  \node[anchor=west,font=\scriptsize] at (6.3,7.4) {+ үнэ, багшийн дугаар};
-  \draw (6.1,7.05) -- (11.4,7.05);
-  \node[anchor=west,font=\scriptsize] at (6.3,6.72) {+ шүүх(), худалдан авах()};
+  % ── Хэрэглэгч ──
+  \node[classbox, minimum height=3.6cm] (user) at (0,8) {};
+  \node[classhead=cblue] at (0,9.35) {Хэрэглэгч};
+  \draw[sep] (-2.6,8.95) -- (2.6,8.95);
+  \node[field] at (-2.4,8.65) {- дугаар: uuid};
+  \node[field] at (-2.4,8.30) {- цахим шуудан: text};
+  \node[field] at (-2.4,7.95) {- бүтэн нэр: text};
+  \node[field] at (-2.4,7.60) {- админ эсэх: boolean};
+  \draw[sep] (-2.6,7.30) -- (2.6,7.30);
+  \node[field] at (-2.4,7.00) {+ нэвтрэх()};
+  \node[field] at (-2.4,6.65) {+ гарах()};
 
-  \draw[rounded corners=4pt] (12.4,6.3) rectangle (18.3,9.2);
-  \node[font=\small\bfseries] at (15.35,8.85) {Хичээл};
-  \draw (12.4,8.45) -- (18.3,8.45);
-  \node[anchor=west,font=\scriptsize] at (12.6,8.1) {+ хичээлийн дугаар, курсийн дугаар};
-  \node[anchor=west,font=\scriptsize] at (12.6,7.75) {+ видео дугаар, хураангуй};
-  \node[anchor=west,font=\scriptsize] at (12.6,7.4) {+ дасгал, гол санаа, үнэгүй};
-  \draw (12.4,7.05) -- (18.3,7.05);
-  \node[anchor=west,font=\scriptsize] at (12.6,6.72) {+ үзэх(), дуусгах()};
+  % ── Курс ──
+  \node[classbox, minimum height=4.0cm] (course) at (7.5,8) {};
+  \node[classhead=cgreen] at (7.5,9.55) {Курс};
+  \draw[sep] (4.9,9.15) -- (10.1,9.15);
+  \node[field] at (5.1,8.85) {- курсийн дугаар: text};
+  \node[field] at (5.1,8.50) {- товч нэр: text};
+  \node[field] at (5.1,8.15) {- гарчиг: text};
+  \node[field] at (5.1,7.80) {- ангилал, түвшин: text};
+  \node[field] at (5.1,7.45) {- үнэ: numeric};
+  \draw[sep] (4.9,7.15) -- (10.1,7.15);
+  \node[field] at (5.1,6.85) {+ шүүх()};
+  \node[field] at (5.1,6.50) {+ худалдан авах()};
 
-  \draw[rounded corners=4pt] (0.2,2.5) rectangle (5.4,5.5);
-  \node[font=\small\bfseries] at (2.8,5.15) {Курсийн ахиц};
-  \draw (0.2,4.75) -- (5.4,4.75);
-  \node[anchor=west,font=\scriptsize] at (0.4,4.4) {+ хэрэглэгч, курс};
-  \node[anchor=west,font=\scriptsize] at (0.4,4.05) {+ ахицын хувь};
-  \node[anchor=west,font=\scriptsize] at (0.4,3.7) {+ сүүлийн хичээл};
-  \draw (0.2,3.35) -- (5.4,3.35);
-  \node[anchor=west,font=\scriptsize] at (0.4,3.02) {+ ахиц шинэчлэх()};
+  % ── Хичээл ──
+  \node[classbox, minimum height=3.8cm] (lesson) at (15,8) {};
+  \node[classhead=cgreen] at (15,9.45) {Хичээл};
+  \draw[sep] (12.4,9.05) -- (17.6,9.05);
+  \node[field] at (12.6,8.75) {- хичээлийн дугаар: text};
+  \node[field] at (12.6,8.40) {- курсийн дугаар: text};
+  \node[field] at (12.6,8.05) {- видео дугаар: text};
+  \node[field] at (12.6,7.70) {- хураангуй: text};
+  \node[field] at (12.6,7.35) {- үнэгүй эсэх: boolean};
+  \draw[sep] (12.4,7.05) -- (17.6,7.05);
+  \node[field] at (12.6,6.75) {+ үзэх()};
+  \node[field] at (12.6,6.40) {+ дуусгах()};
 
-  \draw[rounded corners=4pt] (6.4,2.5) rectangle (11.9,5.5);
-  \node[font=\small\bfseries] at (9.15,5.15) {Чат зурвас};
-  \draw (6.4,4.75) -- (11.9,4.75);
-  \node[anchor=west,font=\scriptsize] at (6.6,4.4) {+ хэрэглэгчийн зурвас};
-  \node[anchor=west,font=\scriptsize] at (6.6,4.05) {+ хиймэл оюуны хариу};
-  \node[anchor=west,font=\scriptsize] at (6.6,3.7) {+ ашигласан эх сурвалж};
-  \draw (6.4,3.35) -- (11.9,3.35);
-  \node[anchor=west,font=\scriptsize] at (6.6,3.02) {+ хайх(), хариулах()};
+  % ── Курсийн ахиц ──
+  \node[classbox, minimum height=3.0cm] (progress) at (0,2.8) {};
+  \node[classhead=corange] at (0,3.85) {Курсийн ахиц};
+  \draw[sep] (-2.6,3.45) -- (2.6,3.45);
+  \node[field] at (-2.4,3.15) {- хэрэглэгч: uuid};
+  \node[field] at (-2.4,2.80) {- курс: text};
+  \node[field] at (-2.4,2.45) {- ахицын хувь: numeric};
+  \draw[sep] (-2.6,2.15) -- (2.6,2.15);
+  \node[field] at (-2.4,1.85) {+ ахиц шинэчлэх()};
 
-  \draw[rounded corners=4pt] (13.0,2.5) rectangle (18.5,5.5);
-  \node[font=\small\bfseries] at (15.75,5.15) {Төлбөр};
-  \draw (13.0,4.75) -- (18.5,4.75);
-  \node[anchor=west,font=\scriptsize] at (13.2,4.4) {+ төлбөрийн дугаар, хэрэглэгч};
-  \node[anchor=west,font=\scriptsize] at (13.2,4.05) {+ курс, дүн};
-  \node[anchor=west,font=\scriptsize] at (13.2,3.7) {+ төлөв, худалдан авсан огноо};
-  \draw (13.0,3.35) -- (18.5,3.35);
-  \node[anchor=west,font=\scriptsize] at (13.2,3.02) {+ төлөх(), баталгаажуулах()};
+  % ── Чат зурвас ──
+  \node[classbox, minimum height=3.2cm] (chat) at (7.5,2.8) {};
+  \node[classhead=cpurple] at (7.5,3.95) {Чат зурвас};
+  \draw[sep] (4.9,3.55) -- (10.1,3.55);
+  \node[field] at (5.1,3.25) {- хэрэглэгчийн зурвас: text};
+  \node[field] at (5.1,2.90) {- хиймэл оюуны хариу: text};
+  \node[field] at (5.1,2.55) {- ашигласан эх сурвалж: jsonb};
+  \draw[sep] (4.9,2.25) -- (10.1,2.25);
+  \node[field] at (5.1,1.95) {+ хайх()};
+  \node[field] at (5.1,1.60) {+ хариулах()};
 
-  \draw[->] (5.0,7.6) -- (6.1,7.6);
-  \node[font=\scriptsize, fill=white, inner sep=1pt] at (5.55,7.85) {элсэнэ};
-  \draw[->] (11.4,7.6) -- (12.4,7.6);
-  \node[font=\scriptsize, fill=white, inner sep=1pt] at (11.9,7.85) {агуулна};
-  \draw[->] (2.7,6.3) -- (2.8,5.5);
-  \node[font=\scriptsize, fill=white, inner sep=1pt] at (3.5,5.9) {хянана};
-  \draw[->] (8.9,6.3) -- (9.1,5.5);
-  \node[font=\scriptsize, fill=white, inner sep=1pt] at (9.8,5.9) {асууна};
-  \draw[->] (15.4,6.3) -- (15.7,5.5);
-  \node[font=\scriptsize, fill=white, inner sep=1pt] at (16.4,5.9) {худалдан авна};
+  % ── Төлбөр ──
+  \node[classbox, minimum height=3.4cm] (payment) at (15,2.8) {};
+  \node[classhead=crose] at (15,4.05) {Төлбөр};
+  \draw[sep] (12.4,3.65) -- (17.6,3.65);
+  \node[field] at (12.6,3.35) {- төлбөрийн дугаар: uuid};
+  \node[field] at (12.6,3.00) {- хэрэглэгч: uuid};
+  \node[field] at (12.6,2.65) {- курс, дүн: text/numeric};
+  \node[field] at (12.6,2.30) {- төлөв: text};
+  \draw[sep] (12.4,2.00) -- (17.6,2.00);
+  \node[field] at (12.6,1.70) {+ төлөх()};
+  \node[field] at (12.6,1.35) {+ баталгаажуулах()};
+
+  % ── Relationships ──
+  \draw[rel] (user.east) -- node[rellabel, above] {элсэнэ} node[mult, below, yshift=-1pt] {1..*} (course.west);
+  \draw[rel] (course.east) -- node[rellabel, above] {агуулна} node[mult, below, yshift=-1pt] {1..*} (lesson.west);
+  \draw[rel] (user.south) -- node[rellabel, right, xshift=2pt] {хянана} (progress.north);
+  \draw[rel] ([xshift=15pt]user.south) -- node[rellabel, right, xshift=2pt] {асууна} (chat.north west);
+  \draw[rel] ([xshift=-15pt]course.south) -- node[rellabel, left, xshift=-2pt] {худалдан авна} (payment.north west);
 \end{tikzpicture}

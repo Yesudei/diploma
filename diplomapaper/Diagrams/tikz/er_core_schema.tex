@@ -1,26 +1,120 @@
-\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
-  \tikzstyle{entity}=[draw, rounded corners=4pt, minimum width=4.6cm, minimum height=2.1cm, align=left, font=\scriptsize]
+\begin{tikzpicture}[
+  x=1cm,
+  y=1cm,
+  >=stealth,
+  font=\sffamily\small,
+  entity/.style={
+    draw=slate!65,
+    line width=0.9pt,
+    rounded corners=4pt,
+    fill=white,
+    minimum width=5.0cm,
+    inner sep=0pt
+  },
+  ehead/.style={
+    fill=#1,
+    minimum width=4.8cm,
+    minimum height=0.6cm,
+    font=\sffamily\small\bfseries,
+    text=white,
+    rounded corners=4pt
+  },
+  attr/.style={font=\sffamily\scriptsize, anchor=west},
+  pkattr/.style={font=\sffamily\scriptsize\bfseries, anchor=west, text=amber!80!black},
+  fkattr/.style={font=\sffamily\scriptsize, anchor=west, text=blue!55!black},
+  relline/.style={draw=slate!55, line width=0.75pt, ->},
+  rellbl/.style={font=\sffamily\scriptsize, fill=white, inner sep=1.5pt, text=slate}
+]
+  \definecolor{slate}{HTML}{475569}
+  \definecolor{eblue}{HTML}{3B82F6}
+  \definecolor{egreen}{HTML}{059669}
+  \definecolor{eorange}{HTML}{D97706}
+  \definecolor{epurple}{HTML}{7C3AED}
+  \definecolor{erose}{HTML}{E11D48}
+  \definecolor{ecyan}{HTML}{0891B2}
+  \definecolor{amber}{HTML}{F59E0B}
 
-  \node[entity] (profiles) at (0,6.6) {\textbf{Профайл}\\Үндсэн түлхүүр\\бүтэн нэр\\админ эсэх};
-  \node[entity] (courses) at (6.0,6.6) {\textbf{Курс}\\Үндсэн түлхүүр\\курсийн дугаар, товч нэр\\гарчиг, үнэ\\ангилал, түвшин};
-  \node[entity] (lessons) at (12.0,6.6) {\textbf{Хичээл}\\Үндсэн түлхүүр\\курсийн дугаар\\хичээлийн дугаар\\видео дугаар, үнэгүй эсэх};
+  % ── profiles ──
+  \node[entity, minimum height=2.6cm] (profiles) at (0,7) {};
+  \node[ehead=eblue] at (0,7.85) {profiles};
+  \node[pkattr] at (-2.2,7.35) {id (PK)};
+  \node[attr] at (-2.2,7.00) {full\_name};
+  \node[attr] at (-2.2,6.65) {is\_admin};
+  \node[attr] at (-2.2,6.30) {avatar\_url};
 
-  \node[entity] (purchases) at (0,3.2) {\textbf{Худалдан авсан курс}\\Үндсэн түлхүүр\\Гадаад түлхүүр: хэрэглэгч\\курсийн дугаар\\худалдан авсан огноо};
-  \node[entity] (completed) at (6.0,3.2) {\textbf{Дууссан хичээл}\\Үндсэн түлхүүр\\Гадаад түлхүүр: хэрэглэгч\\хичээлийн дугаар\\курсийн дугаар};
-  \node[entity] (progress) at (12.0,3.2) {\textbf{Курсийн ахиц}\\Үндсэн түлхүүр\\Гадаад түлхүүр: хэрэглэгч\\курсийн дугаар\\ахицын хувь};
+  % ── courses ──
+  \node[entity, minimum height=2.9cm] (courses) at (7,7) {};
+  \node[ehead=egreen] at (7,8.0) {courses};
+  \node[pkattr] at (4.8,7.50) {id (PK)};
+  \node[attr] at (4.8,7.15) {course\_id, slug};
+  \node[attr] at (4.8,6.80) {title, price};
+  \node[attr] at (4.8,6.45) {category, level};
+  \node[attr] at (4.8,6.10) {instructor\_id};
 
-  \node[entity] (kb) at (0,-0.2) {\textbf{Мэдлэгийн сан}\\Үндсэн түлхүүр\\ангилал\\асуулт, хариулт\\эх сурвалж, шигтгэл};
-  \node[entity] (chat) at (6.0,-0.2) {\textbf{Чат зурвас}\\Үндсэн түлхүүр\\Гадаад түлхүүр: хэрэглэгч\\хэрэглэгчийн зурвас\\хиймэл оюуны хариу, эх сурвалж};
-  \node[entity] (payments) at (12.0,-0.2) {\textbf{Төлбөр}\\Үндсэн түлхүүр\\Гадаад түлхүүр: хэрэглэгч\\курсийн дугаар\\дүн, төлөв};
+  % ── lessons ──
+  \node[entity, minimum height=2.9cm] (lessons) at (14,7) {};
+  \node[ehead=egreen] at (14,8.0) {lessons};
+  \node[pkattr] at (11.8,7.50) {id (PK)};
+  \node[fkattr] at (11.8,7.15) {course\_id (FK)};
+  \node[attr] at (11.8,6.80) {lesson\_id, title};
+  \node[attr] at (11.8,6.45) {video\_id};
+  \node[attr] at (11.8,6.10) {is\_free, sort\_order};
 
-  \draw[->] (courses) -- node[above,font=\scriptsize] {нэг:олон} (lessons);
-  \draw[->] (profiles) -- node[left,font=\scriptsize] {нэг:олон} (purchases);
-  \draw[->] (profiles) -- node[above,font=\scriptsize] {нэг:олон} (completed);
-  \draw[->] (profiles) -- node[right,font=\scriptsize] {нэг:олон} (progress);
-  \draw[->] (profiles) -- node[above,font=\scriptsize] {нэг:олон} (chat);
-  \draw[->] (profiles) -- node[above,font=\scriptsize] {нэг:олон} (payments);
-  \draw[->] (courses) -- node[left,font=\scriptsize] {курсийн дугаар} (purchases);
-  \draw[->] (lessons) -- node[right,font=\scriptsize] {хичээлийн дугаар} (completed);
-  \draw[->] (courses) -- node[right,font=\scriptsize] {курсийн дугаар} (progress);
-  \draw[->] (kb) -- node[above,font=\scriptsize] {сэргээн хайх контекст} (chat);
+  % ── purchased_courses ──
+  \node[entity, minimum height=2.2cm] (purchases) at (0,3.0) {};
+  \node[ehead=eorange] at (0,3.65) {purchased\_courses};
+  \node[fkattr] at (-2.2,3.15) {user\_id (FK)};
+  \node[fkattr] at (-2.2,2.80) {course\_id (FK)};
+  \node[attr] at (-2.2,2.45) {purchased\_at};
+
+  % ── completed_lessons ──
+  \node[entity, minimum height=2.2cm] (completed) at (7,3.0) {};
+  \node[ehead=eorange] at (7,3.65) {completed\_lessons};
+  \node[fkattr] at (4.8,3.15) {user\_id (FK)};
+  \node[fkattr] at (4.8,2.80) {lesson\_id (FK)};
+  \node[attr] at (4.8,2.45) {course\_id};
+
+  % ── course_progress ──
+  \node[entity, minimum height=2.2cm] (progress) at (14,3.0) {};
+  \node[ehead=eorange] at (14,3.65) {course\_progress};
+  \node[fkattr] at (11.8,3.15) {user\_id (FK)};
+  \node[fkattr] at (11.8,2.80) {course\_id (FK)};
+  \node[attr] at (11.8,2.45) {progress\_pct};
+
+  % ── knowledge_base ──
+  \node[entity, minimum height=2.4cm] (kb) at (0,-1.0) {};
+  \node[ehead=ecyan] at (0,-0.25) {knowledge\_base};
+  \node[pkattr] at (-2.2,-0.75) {id (PK)};
+  \node[attr] at (-2.2,-1.10) {category};
+  \node[attr] at (-2.2,-1.45) {question, answer};
+  \node[attr] at (-2.2,-1.80) {source, embedding};
+
+  % ── chat_messages ──
+  \node[entity, minimum height=2.4cm] (chat) at (7,-1.0) {};
+  \node[ehead=epurple] at (7,-0.25) {chat\_messages};
+  \node[pkattr] at (4.8,-0.75) {id (PK)};
+  \node[fkattr] at (4.8,-1.10) {user\_id (FK)};
+  \node[attr] at (4.8,-1.45) {user\_message};
+  \node[attr] at (4.8,-1.80) {ai\_response, sources};
+
+  % ── payments ──
+  \node[entity, minimum height=2.6cm] (payments) at (14,-1.0) {};
+  \node[ehead=erose] at (14,-0.15) {payments};
+  \node[pkattr] at (11.8,-0.65) {id (PK)};
+  \node[fkattr] at (11.8,-1.00) {user\_id (FK)};
+  \node[attr] at (11.8,-1.35) {course\_id, amount};
+  \node[attr] at (11.8,-1.70) {status};
+  \node[attr] at (11.8,-2.05) {confirmed\_at};
+
+  % ── Relationships ──
+  \draw[relline] (courses) -- node[rellbl, above] {1:N} (lessons);
+  \draw[relline] (profiles) -- node[rellbl, left] {1:N} (purchases);
+  \draw[relline] ([xshift=10pt]profiles.south) -- node[rellbl, right, xshift=2pt] {1:N} (completed.north west);
+  \draw[relline] ([xshift=20pt]profiles.south) -- (progress.north west);
+  \draw[relline] (profiles.south) -- node[rellbl, left, xshift=-2pt] {} (chat.north west);
+  \draw[relline] ([xshift=-10pt]profiles.south east) -- (payments.north west);
+  \draw[relline] (courses) -- node[rellbl, left] {} (purchases.north east);
+  \draw[relline] (lessons) -- node[rellbl, right] {} (completed.north east);
+  \draw[relline] (courses.south east) -- (progress.north west);
+  \draw[relline] (kb) -- node[rellbl, above] {контекст} (chat);
 \end{tikzpicture}

@@ -1,25 +1,49 @@
-\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,thick]
-  \tikzstyle{layer}=[draw, rounded corners=5pt, minimum width=13.5cm, minimum height=1.0cm, align=center]
-  \tikzstyle{side}=[draw, rounded corners=4pt, minimum width=3.5cm, minimum height=0.8cm, align=center, font=\small]
+\begin{tikzpicture}[
+  x=1cm,
+  y=1cm,
+  >=stealth,
+  font=\sffamily\small,
+  layer/.style={
+    draw=slate!50,
+    rounded corners=6pt,
+    minimum width=14.0cm,
+    minimum height=1.15cm,
+    align=center,
+    line width=0.85pt,
+    drop shadow={shadow xshift=0.4pt, shadow yshift=-0.4pt, fill=gray!15, opacity=0.3}
+  },
+  side/.style={
+    draw=slate!50,
+    rounded corners=5pt,
+    minimum width=3.8cm,
+    minimum height=0.9cm,
+    align=center,
+    font=\sffamily\small,
+    line width=0.75pt,
+    drop shadow={shadow xshift=0.3pt, shadow yshift=-0.3pt, fill=gray!12, opacity=0.25}
+  },
+  flow/.style={->, draw=slate!50, line width=0.8pt}
+]
+  \definecolor{slate}{HTML}{475569}
 
-  \node[layer, fill=blue!8] (ui) at (0,0) {\textbf{Танилцуулгын давхарга}\\Веб хуудас, компонент, хэрэглэгчийн интерфейс, курс/хичээл/чат};
-  \node[layer, fill=green!8] (app) at (0,-1.8) {\textbf{Аппликейшний давхарга}\\Клиент төлөвийн функц, хандалтын хяналт, хичээлийн урсгал, сорилын төлөв};
-  \node[layer, fill=yellow!10] (api) at (0,-3.6) {\textbf{Хиймэл оюуны туслах давхарга}\\Програмчлалын интерфейсийн зам, сэргээн хайлт, зааварчилгаа, нөөц хариу};
-  \node[layer, fill=orange!10] (data) at (0,-5.4) {\textbf{Өгөгдлийн давхарга}\\Үүлэн харилцаат өгөгдлийн сан, нэвтрэлт, мөрийн түвшний хамгаалалт, ахиц};
-  \node[layer, fill=gray!14] (assets) at (0,-7.2) {\textbf{Контент ба өгөгдлийн багцын давхарга}\\Курсийн эх өгөгдөл, видео хичээлийн лавлагаа, өгөгдлийн багц, ФЛ Студио зөвлөмж};
+  \node[layer, fill=blue!7] (ui) at (0,0) {\textbf{Танилцуулгын давхарга}\\Веб хуудас, компонент, хэрэглэгчийн интерфейс, курс/хичээл/чат};
+  \node[layer, fill=green!7] (app) at (0,-2.0) {\textbf{Аппликейшний давхарга}\\Клиент төлөвийн функц, хандалтын хяналт, хичээлийн урсгал, сорилын төлөв};
+  \node[layer, fill=yellow!8] (api) at (0,-4.0) {\textbf{Хиймэл оюуны туслах давхарга}\\Програмчлалын интерфейсийн зам, сэргээн хайлт, зааварчилгаа, нөөц хариу};
+  \node[layer, fill=orange!8] (data) at (0,-6.0) {\textbf{Өгөгдлийн давхарга}\\Үүлэн харилцаат өгөгдлийн сан, нэвтрэлт, мөрийн түвшний хамгаалалт, ахиц};
+  \node[layer, fill=gray!10] (assets) at (0,-8.0) {\textbf{Контент ба өгөгдлийн багцын давхарга}\\Курсийн эх өгөгдөл, видео хичээлийн лавлагаа, өгөгдлийн багц, FL Studio зөвлөмж};
 
-  \draw[->] (ui) -- (app);
-  \draw[->] (app) -- (api);
-  \draw[->] (api) -- (data);
-  \draw[->] (data) -- (assets);
+  \draw[flow] (ui) -- (app);
+  \draw[flow] (app) -- (api);
+  \draw[flow] (api) -- (data);
+  \draw[flow] (data) -- (assets);
 
-  \node[side, fill=purple!8] (student) at (-9.0,-0.9) {Суралцагч};
-  \node[side, fill=purple!8] (admin) at (9.0,-0.9) {Админ};
-  \node[side, fill=cyan!8] (llm) at (9.0,-3.6) {Хэлний загварын үйлчилгээ};
-  \node[side, fill=cyan!8] (supabase) at (9.0,-5.4) {Үүлэн сангийн үйлчилгээ};
+  \node[side, fill=purple!7] (student) at (-9.5,-1.0) {Суралцагч};
+  \node[side, fill=purple!7] (admin) at (9.5,-1.0) {Админ};
+  \node[side, fill=cyan!7] (llm) at (9.5,-4.0) {Хэлний загварын\\үйлчилгээ};
+  \node[side, fill=cyan!7] (supabase) at (9.5,-6.0) {Үүлэн сангийн\\үйлчилгээ};
 
-  \draw[->] (student) -- (ui.west);
-  \draw[->] (admin) -- (ui.east);
-  \draw[->] (api.east) -- (llm);
-  \draw[->] (data.east) -- (supabase);
+  \draw[flow] (student) -- (ui.west);
+  \draw[flow] (admin) -- (ui.east);
+  \draw[flow] (api.east) -- (llm);
+  \draw[flow] (data.east) -- (supabase);
 \end{tikzpicture}

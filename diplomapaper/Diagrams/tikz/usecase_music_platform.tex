@@ -1,91 +1,106 @@
+\definecolor{ucslate}{HTML}{475569}
+\definecolor{ucsky}{HTML}{38BDF8}
+\definecolor{ucemerald}{HTML}{34D399}
+\definecolor{ucamber}{HTML}{FBBF24}
+\definecolor{ucindigo}{HTML}{818CF8}
+
 \begin{tikzpicture}[
   x=1cm,
   y=1cm,
   >=stealth,
   font=\sffamily\small,
-  actorline/.style={draw=blue!45!black, line width=0.8pt, line cap=round},
-  actorlabel/.style={font=\sffamily\small\bfseries, align=center, text=blue!35!black},
-  boundary/.style={draw=blue!55!black, line width=1pt, rounded corners=14pt, fill=blue!2},
-  band/.style={draw=blue!15, line width=0.45pt, rounded corners=10pt},
+  actorline/.style={draw=ucslate!70, line width=0.9pt, line cap=round},
+  actorlabel/.style={font=\sffamily\small\bfseries, align=center, text=ucslate!80},
+  boundary/.style={draw=ucslate!55, line width=1.1pt, rounded corners=16pt, fill=gray!2},
+  band/.style={draw=gray!25, line width=0.5pt, rounded corners=10pt},
   usecase/.style={
-    draw=blue!55!black,
-    line width=0.75pt,
+    draw=ucslate!55,
+    line width=0.8pt,
     ellipse,
     align=center,
-    minimum width=3.85cm,
-    minimum height=0.88cm,
-    inner xsep=6pt,
-    font=\sffamily\small
+    minimum width=4.6cm,
+    minimum height=1.3cm,
+    inner xsep=8pt,
+    inner ysep=4pt,
+    font=\sffamily\small,
+    drop shadow={shadow xshift=0.4pt, shadow yshift=-0.4pt, fill=gray!15, opacity=0.35}
   },
-  publiccase/.style={usecase, fill=cyan!8},
-  learncase/.style={usecase, fill=green!8},
-  aicase/.style={usecase, fill=orange!10},
-  admincase/.style={usecase, fill=blue!8},
-  relation/.style={draw=gray!58, line width=0.65pt},
-  include/.style={draw=blue!50!black, dashed, ->, line width=0.65pt},
-  notelabel/.style={font=\sffamily\scriptsize\itshape, fill=white, inner sep=1.4pt, text=blue!40!black}
+  publiccase/.style={usecase, fill=ucsky!12},
+  learncase/.style={usecase, fill=ucemerald!10},
+  aicase/.style={usecase, fill=ucamber!12},
+  admincase/.style={usecase, fill=ucindigo!8},
+  relation/.style={draw=ucslate!45, line width=0.7pt},
+  include/.style={draw=ucslate!60, dashed, ->, line width=0.7pt},
+  notelabel/.style={font=\sffamily\scriptsize\itshape, fill=white, inner sep=1.5pt, text=ucslate!60}
 ]
-  \draw[boundary] (0,0) rectangle (15,9);
-  \fill[blue!10, rounded corners=14pt] (0.02,8.1) rectangle (14.98,8.98);
-  \node[font=\sffamily\bfseries, text=blue!35!black] at (7.5,8.55)
+
+  % ── System boundary ──
+  \draw[boundary] (0,0) rectangle (17,11.5);
+  \fill[ucslate!10, rounded corners=16pt] (0.02,10.4) rectangle (16.98,11.48);
+  \node[font=\sffamily\bfseries, text=ucslate!75] at (8.5,10.94)
     {FL Studio сургалтын AI дэмжлэгтэй веб платформ};
 
-  \draw[band, fill=cyan!4] (0.45,6.72) rectangle (14.55,7.95);
-  \node[font=\sffamily\scriptsize\bfseries, text=cyan!45!black, anchor=west]
-    at (0.75,7.78) {Нийтийн хэрэглээ};
+  % ── Zone bands ──
+  \draw[band, fill=ucsky!5] (0.5,8.3) rectangle (16.5,10.2);
+  \node[font=\sffamily\scriptsize\bfseries, text=ucsky!70!black, anchor=north west]
+    at (0.8,10.15) {Нийтийн хэрэглээ};
 
-  \draw[band, fill=green!4] (0.45,3.86) rectangle (14.55,6.36);
-  \node[font=\sffamily\scriptsize\bfseries, text=green!35!black, anchor=west]
-    at (0.75,6.16) {Суралцах урсгал};
+  \draw[band, fill=ucemerald!5] (0.5,4.5) rectangle (16.5,8.0);
+  \node[font=\sffamily\scriptsize\bfseries, text=ucemerald!60!black, anchor=north west]
+    at (0.8,7.95) {Суралцах урсгал};
 
-  \draw[band, fill=orange!5] (0.45,0.55) rectangle (14.55,3.55);
-  \node[font=\sffamily\scriptsize\bfseries, text=orange!55!black, anchor=west]
-    at (0.75,3.35) {AI туслах ба админ удирдлага};
+  \draw[band, fill=ucamber!6] (0.5,0.5) rectangle (16.5,4.2);
+  \node[font=\sffamily\scriptsize\bfseries, text=ucamber!70!black, anchor=north west]
+    at (0.8,4.15) {AI туслах ба админ удирдлага};
 
-  \node[publiccase] (auth) at (3.25,7.28) {Бүртгүүлэх\\Нэвтрэх};
-  \node[publiccase] (browse) at (7.55,7.28) {Курс хайх\\шүүх};
-  \node[publiccase] (preview) at (11.85,7.28) {Үнэгүй танилцах\\хичээл үзэх};
+  % ── Use cases: Public ──
+  \node[publiccase] (auth)    at (3.8,9.2) {Бүртгүүлэх, Нэвтрэх};
+  \node[publiccase] (browse)  at (8.5,9.2) {Курс хайх, шүүх};
+  \node[publiccase] (preview) at (13.2,9.2) {Үнэгүй танилцах\\хичээл үзэх};
 
-  \node[learncase] (purchase) at (3.25,5.45) {Курс худалдан\\авах};
-  \node[learncase] (lesson) at (7.55,5.45) {Хичээл\\үзэх};
-  \node[learncase] (quiz) at (11.85,5.45) {Өөрийгөө шалгах\\сорил өгөх};
-  \node[learncase] (progress) at (11.85,4.35) {Явц\\хадгалах};
+  % ── Use cases: Learning ──
+  \node[learncase] (purchase) at (3.8,6.8)  {Курс худалдан авах};
+  \node[learncase] (lesson)   at (8.5,6.8)  {Хичээл үзэх};
+  \node[learncase] (quiz)     at (13.2,6.8) {Өөрийгөө шалгах\\сорил өгөх};
+  \node[learncase] (progress) at (13.2,5.3) {Явц хадгалах};
 
-  \node[aicase] (chat) at (3.25,2.35) {AI туслахаас\\асуух};
-  \node[aicase] (source) at (7.55,2.35) {Эх сурвалжтай\\хариу авах};
-  \node[admincase] (adminContent) at (11.85,2.72) {Курс ба хичээл\\удирдах};
-  \node[admincase] (adminKnowledge) at (11.85,1.52) {Мэдлэгийн сан\\удирдах};
+  % ── Use cases: AI & Admin ──
+  \node[aicase] (chat)   at (3.8,2.8)  {AI туслахаас асуух};
+  \node[aicase] (source) at (8.5,2.8)  {Эх сурвалжтай\\хариу авах};
+  \node[admincase] (adminContent)   at (13.2,3.3) {Курс ба хичээл\\удирдах};
+  \node[admincase] (adminKnowledge) at (13.2,1.7) {Мэдлэгийн сан\\удирдах};
 
-  % Guest actor
-  \node[draw=cyan!45!black, circle, fill=cyan!8, minimum size=0.68cm] at (-1.75,7.35) {};
-  \draw[actorline] (-1.75,7.01) -- (-1.75,6.15);
-  \draw[actorline] (-2.18,6.65) -- (-1.32,6.65);
-  \draw[actorline] (-1.75,6.15) -- (-2.12,5.55);
-  \draw[actorline] (-1.75,6.15) -- (-1.38,5.55);
-  \node[actorlabel] at (-1.75,5.15) {Зочин};
-  \coordinate (guest) at (-1.23,6.65);
+  % ── Guest actor ──
+  \node[draw=ucsky!60!black, circle, fill=ucsky!12, minimum size=0.7cm, line width=0.8pt] at (-1.8,9.3) {};
+  \draw[actorline] (-1.8,8.95) -- (-1.8,8.05);
+  \draw[actorline] (-2.25,8.55) -- (-1.35,8.55);
+  \draw[actorline] (-1.8,8.05) -- (-2.2,7.4);
+  \draw[actorline] (-1.8,8.05) -- (-1.4,7.4);
+  \node[actorlabel] at (-1.8,7.0) {Зочин};
+  \coordinate (guest) at (-1.2,8.55);
 
-  % Student actor
-  \node[draw=green!40!black, circle, fill=green!8, minimum size=0.68cm] at (-1.75,4.45) {};
-  \draw[actorline] (-1.75,4.11) -- (-1.75,3.25);
-  \draw[actorline] (-2.18,3.75) -- (-1.32,3.75);
-  \draw[actorline] (-1.75,3.25) -- (-2.12,2.65);
-  \draw[actorline] (-1.75,3.25) -- (-1.38,2.65);
-  \node[actorlabel] at (-1.75,2.22) {Суралцагч};
-  \coordinate (student) at (-1.23,3.75);
+  % ── Student actor ──
+  \node[draw=ucemerald!55!black, circle, fill=ucemerald!10, minimum size=0.7cm, line width=0.8pt] at (-1.8,5.5) {};
+  \draw[actorline] (-1.8,5.15) -- (-1.8,4.25);
+  \draw[actorline] (-2.25,4.75) -- (-1.35,4.75);
+  \draw[actorline] (-1.8,4.25) -- (-2.2,3.6);
+  \draw[actorline] (-1.8,4.25) -- (-1.4,3.6);
+  \node[actorlabel] at (-1.8,3.2) {Суралцагч};
+  \coordinate (student) at (-1.2,4.75);
 
-  % Admin actor
-  \node[draw=blue!45!black, circle, fill=blue!8, minimum size=0.68cm] at (16.75,2.95) {};
-  \draw[actorline] (16.75,2.61) -- (16.75,1.75);
-  \draw[actorline] (16.32,2.25) -- (17.18,2.25);
-  \draw[actorline] (16.75,1.75) -- (16.38,1.15);
-  \draw[actorline] (16.75,1.75) -- (17.12,1.15);
-  \node[actorlabel] at (16.75,0.72) {Админ};
-  \coordinate (admin) at (16.25,2.25);
+  % ── Admin actor ──
+  \node[draw=ucindigo!60!black, circle, fill=ucindigo!10, minimum size=0.7cm, line width=0.8pt] at (18.8,3.3) {};
+  \draw[actorline] (18.8,2.95) -- (18.8,2.05);
+  \draw[actorline] (18.35,2.55) -- (19.25,2.55);
+  \draw[actorline] (18.8,2.05) -- (18.4,1.4);
+  \draw[actorline] (18.8,2.05) -- (19.2,1.4);
+  \node[actorlabel] at (18.8,1.0) {Админ};
+  \coordinate (admin) at (18.25,2.55);
 
+  % ── Actor connections ──
+  \draw[relation] (guest) -- (auth.west);
   \draw[relation] (guest) -- (browse.west);
   \draw[relation] (guest) -- (preview.west);
-  \draw[relation] (guest) -- (auth.west);
 
   \draw[relation] (student) -- (auth.west);
   \draw[relation] (student) -- (purchase.west);
@@ -97,18 +112,19 @@
   \draw[relation] (admin) -- (adminContent.east);
   \draw[relation] (admin) -- (adminKnowledge.east);
 
+  % ── Stereotype relationships ──
   \draw[include] (preview) -- (auth);
-  \node[notelabel] at (7.55,7.88) {<<extend>>};
+  \node[notelabel] at (8.5,9.8) {$\ll$extend$\gg$};
 
   \draw[include] (purchase) -- (lesson);
-  \node[notelabel] at (5.40,5.75) {<<include>>};
+  \node[notelabel] at (6.15,7.15) {$\ll$include$\gg$};
 
   \draw[include] (lesson) -- (quiz);
-  \node[notelabel] at (9.70,5.75) {<<include>>};
+  \node[notelabel] at (10.85,7.15) {$\ll$include$\gg$};
 
   \draw[include] (quiz) -- (progress);
-  \node[notelabel] at (12.65,4.90) {<<include>>};
+  \node[notelabel] at (14.3,6.1) {$\ll$include$\gg$};
 
   \draw[include] (chat) -- (source);
-  \node[notelabel] at (5.40,2.65) {<<include>>};
+  \node[notelabel] at (6.15,3.15) {$\ll$include$\gg$};
 \end{tikzpicture}

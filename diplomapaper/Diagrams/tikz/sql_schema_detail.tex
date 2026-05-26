@@ -1,0 +1,115 @@
+\begin{tikzpicture}[
+  x=1cm,
+  y=1cm,
+  >=stealth,
+  font=\sffamily\small,
+  tablebox/.style={
+    draw=slate!70,
+    line width=0.9pt,
+    rounded corners=3pt,
+    fill=white,
+    minimum width=5.6cm,
+    inner sep=0pt
+  },
+  tablehead/.style={
+    fill=#1,
+    rounded corners=3pt,
+    minimum width=5.4cm,
+    minimum height=0.7cm,
+    font=\sffamily\small\bfseries,
+    text=white
+  },
+  fieldrow/.style={
+    font=\sffamily\scriptsize,
+    anchor=west
+  },
+  pkicon/.style={font=\sffamily\scriptsize\bfseries, text=amber!80!black},
+  fkicon/.style={font=\sffamily\scriptsize\bfseries, text=blue!60!black},
+  fkline/.style={draw=blue!45!black, line width=0.7pt, ->, dashed},
+  define color/.code 2 args={\definecolor{#1}{HTML}{#2}}
+]
+  \pgfdeclarelayer{background}
+  \pgfsetlayers{background,main}
+
+  \definecolor{slate}{HTML}{475569}
+  \definecolor{tblblue}{HTML}{3B82F6}
+  \definecolor{tblgreen}{HTML}{059669}
+  \definecolor{tblorange}{HTML}{D97706}
+  \definecolor{tblpurple}{HTML}{7C3AED}
+  \definecolor{tblrose}{HTML}{E11D48}
+  \definecolor{amber}{HTML}{F59E0B}
+
+  % ── profiles ──
+  \node[tablebox, minimum height=3.2cm] (profiles) at (0,7) {};
+  \node[tablehead=tblblue] at (0,8.15) {profiles};
+  \node[pkicon] at (-2.3,7.65) {PK};
+  \node[fieldrow] at (-1.9,7.65) {id \textcolor{gray}{uuid}};
+  \node[fieldrow] at (-1.9,7.25) {full\_name \textcolor{gray}{text}};
+  \node[fieldrow] at (-1.9,6.85) {avatar\_url \textcolor{gray}{text}};
+  \node[fieldrow] at (-1.9,6.45) {is\_admin \textcolor{gray}{boolean}};
+  \node[fieldrow] at (-1.9,6.05) {updated\_at \textcolor{gray}{timestamptz}};
+
+  % ── courses ──
+  \node[tablebox, minimum height=3.8cm] (courses) at (7.5,7) {};
+  \node[tablehead=tblgreen] at (7.5,8.45) {courses};
+  \node[pkicon] at (5.2,7.95) {PK};
+  \node[fieldrow] at (5.6,7.95) {id \textcolor{gray}{uuid}};
+  \node[fieldrow] at (5.6,7.55) {course\_id \textcolor{gray}{text UNIQUE}};
+  \node[fieldrow] at (5.6,7.15) {slug \textcolor{gray}{text UNIQUE}};
+  \node[fieldrow] at (5.6,6.75) {title \textcolor{gray}{text}};
+  \node[fieldrow] at (5.6,6.35) {price \textcolor{gray}{numeric}};
+  \node[fieldrow] at (5.6,5.95) {category, level \textcolor{gray}{text}};
+  \node[fieldrow] at (5.6,5.55) {instructor\_id \textcolor{gray}{uuid}};
+
+  % ── lessons ──
+  \node[tablebox, minimum height=3.8cm] (lessons) at (15,7) {};
+  \node[tablehead=tblgreen] at (15,8.45) {lessons};
+  \node[pkicon] at (12.7,7.95) {PK};
+  \node[fieldrow] at (13.1,7.95) {id \textcolor{gray}{uuid}};
+  \node[fkicon] at (12.7,7.55) {FK};
+  \node[fieldrow] at (13.1,7.55) {course\_id \textcolor{gray}{text}};
+  \node[fieldrow] at (13.1,7.15) {lesson\_id \textcolor{gray}{text}};
+  \node[fieldrow] at (13.1,6.75) {title \textcolor{gray}{text}};
+  \node[fieldrow] at (13.1,6.35) {video\_id \textcolor{gray}{text}};
+  \node[fieldrow] at (13.1,5.95) {is\_free \textcolor{gray}{boolean}};
+  \node[fieldrow] at (13.1,5.55) {sort\_order \textcolor{gray}{integer}};
+
+  % ── purchased_courses ──
+  \node[tablebox, minimum height=2.6cm] (purchases) at (0,2.5) {};
+  \node[tablehead=tblorange] at (0,3.35) {purchased\_courses};
+  \node[fkicon] at (-2.3,2.85) {FK};
+  \node[fieldrow] at (-1.9,2.85) {user\_id \textcolor{gray}{uuid}};
+  \node[fkicon] at (-2.3,2.45) {FK};
+  \node[fieldrow] at (-1.9,2.45) {course\_id \textcolor{gray}{text}};
+  \node[fieldrow] at (-1.9,2.05) {purchased\_at \textcolor{gray}{timestamptz}};
+  \node[fieldrow, text=slate] at (-1.9,1.65) {\textit{UNIQUE(user\_id, course\_id)}};
+
+  % ── payments ──
+  \node[tablebox, minimum height=3.5cm] (payments) at (7.5,2.5) {};
+  \node[tablehead=tblrose] at (7.5,3.75) {payments};
+  \node[pkicon] at (5.2,3.25) {PK};
+  \node[fieldrow] at (5.6,3.25) {id \textcolor{gray}{uuid}};
+  \node[fkicon] at (5.2,2.85) {FK};
+  \node[fieldrow] at (5.6,2.85) {user\_id \textcolor{gray}{uuid}};
+  \node[fieldrow] at (5.6,2.45) {course\_id \textcolor{gray}{text}};
+  \node[fieldrow] at (5.6,2.05) {amount \textcolor{gray}{numeric}};
+  \node[fieldrow] at (5.6,1.65) {status \textcolor{gray}{text}};
+  \node[fieldrow] at (5.6,1.25) {confirmed\_at \textcolor{gray}{timestamptz}};
+
+  % ── chat_messages ──
+  \node[tablebox, minimum height=3.2cm] (chat) at (15,2.5) {};
+  \node[tablehead=tblpurple] at (15,3.65) {chat\_messages};
+  \node[pkicon] at (12.7,3.15) {PK};
+  \node[fieldrow] at (13.1,3.15) {id \textcolor{gray}{uuid}};
+  \node[fkicon] at (12.7,2.75) {FK};
+  \node[fieldrow] at (13.1,2.75) {user\_id \textcolor{gray}{uuid}};
+  \node[fieldrow] at (13.1,2.35) {user\_message \textcolor{gray}{text}};
+  \node[fieldrow] at (13.1,1.95) {ai\_response \textcolor{gray}{text}};
+  \node[fieldrow] at (13.1,1.55) {sources \textcolor{gray}{jsonb}};
+
+  % ── Foreign key lines ──
+  \draw[fkline] (courses.east) -- node[above, font=\sffamily\scriptsize, text=slate] {1:N} (lessons.west);
+  \draw[fkline] ([yshift=-5pt]profiles.south) -- ([yshift=5pt]purchases.north);
+  \draw[fkline] ([yshift=-5pt]courses.south) -- ([yshift=5pt]payments.north);
+  \draw[fkline] ([xshift=20pt]profiles.south) -- ([yshift=5pt]chat.north west);
+\end{tikzpicture}

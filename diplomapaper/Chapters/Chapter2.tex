@@ -21,7 +21,7 @@
 
 React-ийн компонентод суурилсан хандлага нь UI-г жижиг, дахин ашиглагдах блок болгон салгадаг. Жишээлбэл, курсийн карт, үнийн карт, видео тоглуулагч, чат цонх, навигаци, хяналтын самбарын layout зэрэг компонент нь тус бүр өөр хариуцлагатай. Энэ нь сургалтын платформын интерфейсийг засварлах, шинэ курсийн карт нэмэх, чат цонхыг олон хуудсанд ашиглахад давуу талтай.
 
-\subsection{Төрөлтэй жаваскриптийн үүрэг}
+\subsection{Төрөлтэй JavaScript-ийн үүрэг}
 TypeScript нь JavaScript дээр static type checking нэмдэг. Сургалтын платформд курс, хичээл, хэрэглэгч, чатын зурвас, аудио файл, төлбөр зэрэг өгөгдлийн хэлбэр олон тул typed interface ашиглах нь runtime алдааг бууруулна. \texttt{Frontend/src/lib/types.ts} болон \texttt{Frontend/src/types/index.ts} файлууд нь курс, хичээл, чат, аудио файл, API хариу зэрэг өгөгдлийг тодорхойлж байна.
 
 TypeScript-ийн давуу тал нь:
@@ -50,8 +50,6 @@ Row Level Security (RLS) нь хүснэгтийн түвшинд мөр бүр�
 
 \begin{table}[htbp]
   \centering
-  \caption{Өгөгдлийн технологийн сонголтын үндэслэл}
-  \label{tab:data-tech-choice}
   \begin{tabular}{|p{0.20\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}
     \hline
     \textbf{Технологи} & \textbf{Давуу тал} & \textbf{Төслийн хэрэглээ} \\ \hline
@@ -60,6 +58,8 @@ Row Level Security (RLS) нь хүснэгтийн түвшинд мөр бүр�
     Row Level Security & Өгөгдлийн мөрийн түвшний хандалтын дүрэм & Хэрэглэгч зөвхөн өөрийн ахиц, худалдан авалт, чатыг харах \\ \hline
     Supabase client & Фронтендээс typed query хийхэд хялбар & Курсийн жагсаалт, худалдан авалтын төлөв, админы өгөгдлийн query \\ \hline
   \end{tabular}
+  \caption{Өгөгдлийн технологийн сонголтын үндэслэл}
+  \label{tab:data-tech-choice}
 \end{table}
 
 \section{AI туслахын үндэс}
@@ -83,12 +83,7 @@ RAG-ийн үндсэн алхам:
   \item хариултын эх сурвалж, чанар, нөөц хариуны нөхцөлийг шалгах.
 \end{enumerate}
 
-\begin{figure}[htbp]
-  \centering
-  \resizebox{0.72\textwidth}{!}{\input{Diagrams/tikz/ch2_ai_stack.tex}}
-  \caption[AI туслахын стек]{Мэдээлэл сэргээн баяжуулсан генерацид суурилсан AI туслахын стек}
-  \label{fig:ai-stack}
-\end{figure}
+AI туслахын стекийн бүтцийг гуравдугаар бүлгийн хэрэгжүүлэлтийн хэсэгт (Зураг~\ref{fig:ch3-ai-stack}) дэлгэрэнгүй харуулсан.
 
 \subsection{Сийрэг, үгийн ба утгын сэргээн хайлт}
 Сэргээн хайлт хийхэд lexical буюу үгийн давхцалд суурилсан арга, dense embedding-д суурилсан арга гэсэн хоёр ерөнхий хандлага байдаг. Lexical арга нь хэрэгжүүлэхэд хялбар, ил тод, жижиг өгөгдлийн багцад тохиромжтой. Харин ижил утгатай үг, өөр хэлбэрээр илэрхийлэх, үгийн хувирал ихтэй үед recall буурч болно. Dense Passage Retrieval нь асуулт ба контекстийг embedding орон зайд оруулж, утгын ойролцоогоор хайдаг \cite{dpr_karpukhin_2020}. Sentence-BERT, SimCSE, ColBERT зэрэг ажлууд нь semantic similarity retrieval-ийн өөр өөр чиглэлийг төлөөлдөг \cite{sbert_reimers_2019,simcse_gao_2022,colbert_khattab_2020}.
@@ -100,8 +95,6 @@ RAG-ийн үндсэн алхам:
 
 \begin{table}[htbp]
   \centering
-  \caption{Локал RAG бүрэлдэхүүнүүдийн үүрэг}
-  \label{tab:provider-comparison}
   \begin{tabular}{|p{0.18\textwidth}|p{0.25\textwidth}|p{0.25\textwidth}|p{0.20\textwidth}|}
     \hline
     \textbf{Бүрэлдэхүүн} & \textbf{Давуу тал} & \textbf{Сул тал} & \textbf{Төслийн байр суурь} \\ \hline
@@ -109,6 +102,8 @@ RAG-ийн үндсэн алхам:
     Ollama \texttt{bge-m3} & Олон хэлний embedding, Mongolian/English term холимог асуултад тохиромжтой & Embedding үүсгэх үед model memory ашиглана & Query болон document embedding үүсгэнэ \\ \hline
     Qdrant & Vector хайлт хурдан, collection удирдах API энгийн & Тусдаа service ажиллуулах шаардлагатай & Локал vector database \\ \hline
   \end{tabular}
+  \caption{Локал RAG бүрэлдэхүүнүүдийн үүрэг}
+  \label{tab:provider-comparison}
 \end{table}
 
 Локал LLM зохион байгуулалтын гол давуу тал нь хэрэглэгчийн асуулт болон сургалтын өгөгдөл гадаад API руу дамжихгүй байх явдал юм. Гэхдээ локал орчинд Ollama service, Qdrant container, GPU memory зэрэг ажиллагааны нөхцөлийг зөв тохируулах шаардлагатай. Иймээс \texttt{.env.example}, ingestion script, error message, API validation зэрэг нь хэрэглэгчийн орчны алдааг ойлгомжтой болгоход чухал.
@@ -131,8 +126,6 @@ RAG платформын чанар нь зөвхөн LLM загвараас б�
 
 \begin{table}[htbp]
   \centering
-  \caption{Мэдээлэл сэргээн баяжуулсан генерацийн өгөгдлийн багцын чанарын үндсэн үзүүлэлт}
-  \label{tab:rag-dataset-summary}
   \begin{tabular}{|p{0.32\textwidth}|p{0.42\textwidth}|}
     \hline
     \textbf{Үзүүлэлт} & \textbf{Одоогийн өгөгдлийн багцын төлөв} \\ \hline
@@ -142,6 +135,8 @@ RAG платформын чанар нь зөвхөн LLM загвараас б�
     Retrieval storage & Qdrant collection \texttt{music\_lessons\_rag} \\ \hline
     Production хэрэглээний анхаарах зүйл & Generated guidance-ийг албан ёсны эх сурвалж мэт харуулахгүй, human review хийх \\ \hline
   \end{tabular}
+  \caption{Мэдээлэл сэргээн баяжуулсан генерацийн өгөгдлийн багцын чанарын үндсэн үзүүлэлт}
+  \label{tab:rag-dataset-summary}
 \end{table}
 
 Эндээс харахад RAG өгөгдлийн багц нь сургалтын туслахын хэрэглээнд үнэ цэнтэй боловч академик ишлэл эсвэл албан ёсны гарын авлагын оронд шууд хэрэглэхэд хязгаарлалттай. Иймээс чатботын хариултад эх сурвалжийн мета өгөгдөл буцаах, citation-safe flag ашиглах, generated/internal guidance-ийг ялгах нь зайлшгүй.
@@ -150,8 +145,6 @@ RAG платформын чанар нь зөвхөн LLM загвараас б�
 Технологи сонгохдоо зөвхөн шинэ, түгээмэл framework ашиглах нь хангалтгүй. Сургалтын платформын зорилго, хэрэглэгчийн урсгал, өгөгдлийн эзэмшил, AI туслахын найдвартай байдал, дипломын төслийн хугацаа зэрэг хүчин зүйлсийг хамтад нь авч үзэх шаардлагатай. Иймээс технологийн судалгааг шаардлага-шинжилгээний үр дүнтэй холбон тайлбарлах нь академик үндэслэлийг нэмэгдүүлнэ.
 
 \begin{longtable}{|p{0.20\textwidth}|p{0.25\textwidth}|p{0.25\textwidth}|p{0.20\textwidth}|}
-  \caption{Шаардлага ба технологийн сонголтын уялдаа}
-  \label{tab:req-tech-trace}\\
   \hline
   \textbf{Шаардлагын чиглэл} & \textbf{Технологийн хэрэгцээ} & \textbf{Сонгосон шийдэл} & \textbf{Үндэслэл} \\ \hline
   Олон хуудаст сургалтын урсгал & Зам, layout, динамик хуудас, сервер талын логик & Next.js App Router & Курсийн каталог, хичээлийн дэлгэрэнгүй, админ, чат, API замууд нэг framework-д багтана. \\ \hline
@@ -160,6 +153,8 @@ RAG платформын чанар нь зөвхөн LLM загвараас б�
   AI туслахын контексттэй хариулт & Сэргээн хайлт, prompt бүрдүүлэх, Ollama дуудах & Local RAG layer & Хичээл болон FL Studio мэдлэгийн сантай холбоотой хариулт үүсгэнэ. \\ \hline
   Өгөгдлийн багц хөгжүүлэлт & Эх сурвалж ялгах, үүсгэх, баталгаажуулах, импортлох & RAG өгөгдлийн багц бэлтгэх scripts & AI мэдлэгийн санг фронтенд кодоос тусад нь сайжруулах боломжтой. \\ \hline
   Цаашдын аудио шинжилгээ & Файл оруулах, шинжилгээний хүснэгт, model API & Supabase schema ба service layer & Одоогийн MVP-д бүрэн ашиглаагүй ч архитектурын өргөтгөлийн суурь болно. \\ \hline
+  \caption{Шаардлага ба технологийн сонголтын уялдаа}
+  \label{tab:req-tech-trace}
 \end{longtable}
 
 \section{Клиент-сервер ба дүрслэл}
@@ -171,8 +166,6 @@ Next.js App Router-ийн хувьд page, layout, route handler гэсэн ой
 
 \begin{table}[htbp]
   \centering
-  \caption{Клиент ба сервер талын логикийн ялгаа}
-  \label{tab:client-server-boundary}
   \begin{tabular}{|p{0.24\textwidth}|p{0.31\textwidth}|p{0.31\textwidth}|}
     \hline
     \textbf{Логикийн төрөл} & \textbf{Клиент талд байрлах шалтгаан} & \textbf{Сервер талд байрлах шалтгаан} \\ \hline
@@ -182,6 +175,8 @@ Next.js App Router-ийн хувьд page, layout, route handler гэсэн ой
     AI зааварчилгаа бүрдүүлэх & Клиент дээр ил болвол prompt болон key алдагдах эрсдэлтэй & Үйлчилгээ үзүүлэгчийн key, контекст сонголт, нөөц хариуг хамгаална. \\ \hline
     Төлбөр баталгаажуулах & UI төлөв харуулна & Webhook, receipt, fraud check сервер талд байх ёстой. \\ \hline
   \end{tabular}
+  \caption{Клиент ба сервер талын логикийн ялгаа}
+  \label{tab:client-server-boundary}
 \end{table}
 
 \section{Өгөгдлийн загварчлал ба хамгаалалт}
@@ -190,8 +185,6 @@ Relational database нь сургалтын платформд курс, хич�
 Row Level Security буюу RLS нь multi-user application-д хэрэглэгч бүр зөвхөн өөрийн өгөгдлийг харах, өөрчлөх боломжтой болгоно. PostgreSQL-ийн RLS нь мөр бүр дээр policy expression үнэлж, зөвшөөрөгдөөгүй мөрийг query болон data modification-оос хасдаг \cite{postgres_rls}. Supabase энэ механизмыг Auth user id-тэй холбон ашиглах боломж өгдөг \cite{supabase_rls}. Application code-д алдаа гарсан ч database policy зөв байвал хэрэглэгч эзэмшдэг өгөгдөл хамгаалагдана. Энэ нь дипломын төслийн хувьд чухал, учир нь ахиц, худалдан авалт, чатын түүх зэрэг нь хэрэглэгчийн хувийн өгөгдөлд хамаарна.
 
 \begin{longtable}{|p{0.22\textwidth}|p{0.30\textwidth}|p{0.34\textwidth}|}
-  \caption{Мөрийн түвшний хамгаалалтын бодлогын ангилал}
-  \label{tab:rls-theory}\\
   \hline
   \textbf{Бодлогын төрөл} & \textbf{Зорилго} & \textbf{Энэ төсөлд хэрэглэх жишээ} \\ \hline
   Эзэмшигчид суурилсан хандалт & Хэрэглэгч өөрийн мөрийг л харах & Ахиц, худалдан авалт, чатын зурвас, аудио файл \\ \hline
@@ -199,6 +192,8 @@ Row Level Security буюу RLS нь multi-user application-д хэрэглэг�
   Админы удирдах хандалт & Зөвхөн админ өгөгдөл удирдах & Курсийн CRUD, хичээлийн CRUD, мэдлэгийн сангийн импорт \\ \hline
   Шалгалттай оруулах & Хэрэглэгч өөрийн user id-тэй бичлэг л үүсгэх & Дуусгасан хичээл, худалдан авсан курс, чатын зурвас \\ \hline
   Функцэд суурилсан бодлого & Давтагдах эрх шалгалтыг helper function болгох & Админы эрх шалгах function \\ \hline
+  \caption{Мөрийн түвшний хамгаалалтын бодлогын ангилал}
+  \label{tab:rls-theory}
 \end{longtable}
 
 \section{Хийсвэрлэл ба хариултын хяналт}
@@ -207,8 +202,6 @@ LLM ашигласан сургалтын платформын гол эрсдэ
 Энэ төслийн AI туслахын prompt нь гурван зорилготой байх ёстой. Нэгдүгээрт, хариултыг FL Studio болон music production сургалтын хүрээнд барих. Хоёрдугаарт, хэрэглэгч эхлэн суралцагч байж болох тул тайлбарыг алхамчилсан, ойлгомжтой болгох. Гуравдугаарт, өгөгдлийн багцын контекст хангалтгүй үед итгэлтэй мэт худал хариулахгүйгээр ерөнхий зөвлөмж эсвэл тодруулах асуулт өгөх.
 
 \begin{longtable}{|p{0.20\textwidth}|p{0.36\textwidth}|p{0.30\textwidth}|}
-  \caption{AI хариултын эрсдэл ба бууруулах арга}
-  \label{tab:ai-risk-theory}\\
   \hline
   \textbf{Эрсдэл} & \textbf{Шалтгаан} & \textbf{Бууруулах арга} \\ \hline
   Hallucination & Өгөгдлийн багцын контекст бага эсвэл prompt тодорхойгүй & Контекстэд тулгуурласан prompt, нөөц хариу, эх сурвалжийн мета өгөгдөл \\ \hline
@@ -216,6 +209,8 @@ LLM ашигласан сургалтын платформын гол эрсдэ
   Буруу түвшний тайлбар & Эхлэгч ба ахисан хэрэглэгчийн ялгаа ороогүй & Түвшний мета өгөгдөл ашиглах, beginner-friendly style rule \\ \hline
   Үйлчилгээ үзүүлэгчийн хүртээмж & External API quota, сүлжээ, локал загварын алдаа & Үйлчилгээ үзүүлэгчийн хийсвэрлэл, нөөц хариу, retry policy \\ \hline
   Эшлэл буруу ашиглах & Synthetic entry-г official source мэт харуулах & citation-safe flag, эх сурвалжийн төрөл ялгах \\ \hline
+  \caption{AI хариултын эрсдэл ба бууруулах арга}
+  \label{tab:ai-risk-theory}
 \end{longtable}
 
 \section{Аудио өгөгдөл ба ирээдүйн AI боломж}
@@ -225,8 +220,6 @@ LLM ашигласан сургалтын платформын гол эрсдэ
 
 \begin{table}[htbp]
   \centering
-  \caption{Ирээдүйн аудио AI модулийн боломжит түвшин}
-  \label{tab:future-audio-ai}
   \begin{tabular}{|p{0.22\textwidth}|p{0.35\textwidth}|p{0.29\textwidth}|}
     \hline
     \textbf{Түвшин} & \textbf{Боловсруулах өгөгдөл} & \textbf{Сургалтын платформд өгөх үр ашиг} \\ \hline
@@ -235,14 +228,14 @@ LLM ашигласан сургалтын платформын гол эрсдэ
     Source analysis & Vocal, drums, bass, harmony layer & Mixing decision болон arrangement feedback \\ \hline
     Генератив дэмжлэг & Melody variation, chord idea & Бүтээлч санаа өгөх боловч хүний хяналттай ашиглах \\ \hline
   \end{tabular}
+  \caption{Ирээдүйн аудио AI модулийн боломжит түвшин}
+  \label{tab:future-audio-ai}
 \end{table}
 
 \section{Технологийн эрсдэл}
 Сонгосон технологи бүр давуу талтай боловч дипломын төслийн хүрээнд тодорхой эрсдэл дагуулна. Фронтенд framework хурдан хөгждөг тул version compatibility анхаарах шаардлагатай. Supabase нь RLS болон PostgreSQL давуу талтай боловч policy буруу бичигдвэл өгөгдөл нээлттэй болох эрсдэлтэй. LLM үйлчилгээ үзүүлэгч ашиглахад зардал, хариулах хугацаа, нууцлал, хүртээмж зэрэг асуудал гарна. Өгөгдлийн багц үүсгэвэл чанарын хяналт, эх сурвалжийн ялгалт, давхардал, хэлзүйн засвар зайлшгүй хэрэгтэй.
 
 \begin{longtable}{|p{0.20\textwidth}|p{0.30\textwidth}|p{0.36\textwidth}|}
-  \caption{Технологийн эрсдэл ба удирдлагын арга}
-  \label{tab:technology-risk}\\
   \hline
   \textbf{Технологи} & \textbf{Эрсдэл} & \textbf{Удирдлагын арга} \\ \hline
   Next.js, React & Клиент/сервер boundary буруу тогтох, bundle томрох & Замын логик, компонентын логик, API логикийг тусгаарлах \\ \hline
@@ -251,6 +244,8 @@ LLM ашигласан сургалтын платформын гол эрсдэ
   RAG өгөгдлийн багц & Synthetic content чанар жигд бус, citation асуудал & Validation script, эх сурвалжийн төрөл, citation-safe flag \\ \hline
   LLM үйлчилгээ & GPU memory, Ollama service унтрах, model latency & Локал model сонголт, clean error message, ingestion/test script \\ \hline
   Ирээдүйн аудио AI & Тооцооллын зардал, загварын тайлбарлагдах байдал & Feature-based MVP, human-readable feedback, staged rollout \\ \hline
+  \caption{Технологийн эрсдэл ба удирдлагын арга}
+  \label{tab:technology-risk}
 \end{longtable}
 
 \section{Аюулгүй байдал, нууцлал ба ёс зүй}
@@ -259,8 +254,6 @@ AI туслахтай сургалтын платформд аюулгүй ба�
 Privacy by design хандлагаар авч үзвэл platform дизайн хийх эхний үеэс л өгөгдлийг багасгах, access control хийх, purpose limitation баримтлах, хэрэглэгч эзэмшдэг өгөгдлийг тусгаарлах хэрэгтэй. Энэ төслийн хувьд хэрэглэгчийн ахиц болон худалдан авалтын мэдээлэл зөвхөн тухайн хэрэглэгчид харагдах ёстой. Чатын зурвас нь сургалтын чанар сайжруулахад ашиглагдаж болох боловч хэрэглэгчийн хувийн мэдээлэл агуулж болзошгүй тул analytics хийхдээ anonymization шаардлагатай.
 
 \begin{longtable}{|p{0.22\textwidth}|p{0.32\textwidth}|p{0.32\textwidth}|}
-  \caption{Аюулгүй байдал ба нууцлалын технологийн шаардлага}
-  \label{tab:security-privacy-tech}\\
   \hline
   \textbf{Чиглэл} & \textbf{Эрсдэл} & \textbf{Технологийн хамгаалалт} \\ \hline
   Authentication & Хуурамч хэрэглэгч, session алдагдах & Supabase Auth, session refresh, protected route \\ \hline
@@ -269,6 +262,8 @@ Privacy by design хандлагаар авч үзвэл platform дизайн �
   Чатын нууцлал & Хувийн мэдээлэл үйлчилгээ үзүүлэгч рүү дамжих & Контекст багасгах, prompt sanitization future \\ \hline
   Өгөгдлийн багцын ёс зүй & Generated entry-г official source мэт ашиглах & Эх сурвалжийн төрөл, citation-safe flag, human review \\ \hline
   Ирээдүйн аудио оруулалт & Хэрэглэгчийн бүтээл алдагдах & User-owned storage policy, signed URL, delete control \\ \hline
+  \caption{Аюулгүй байдал ба нууцлалын технологийн шаардлага}
+  \label{tab:security-privacy-tech}
 \end{longtable}
 
 \section{Хэрэглэгчийн туршлага ба хүртээмж}
@@ -278,8 +273,6 @@ Privacy by design хандлагаар авч үзвэл platform дизайн �
 
 \begin{table}[htbp]
   \centering
-  \caption{Хэрэглэгчийн туршлага ба хүртээмжийн технологийн шалгуур}
-  \label{tab:ux-accessibility-tech}
   \begin{tabular}{|p{0.24\textwidth}|p{0.34\textwidth}|p{0.28\textwidth}|}
     \hline
     \textbf{Шалгуур} & \textbf{Тайлбар} & \textbf{Төслийн жишээ} \\ \hline
@@ -289,14 +282,14 @@ Privacy by design хандлагаар авч үзвэл platform дизайн �
     Responsive layout & Mobile болон desktop дээр эвдрэхгүй байх & Tailwind responsive class \\ \hline
     Accessible control & Button, form, link-ийн semantic хэрэглээ & Auth, төлбөр, админ form \\ \hline
   \end{tabular}
+  \caption{Хэрэглэгчийн туршлага ба хүртээмжийн технологийн шалгуур}
+  \label{tab:ux-accessibility-tech}
 \end{table}
 
 \section{AI үнэлгээний хэмжүүр}
 AI туслахыг үнэлэхдээ зөвхөн “хариулт өгсөн эсэх”-ээр хэмжих нь хангалтгүй. Сургалтын платформд answer relevance, factual grounding, source usefulness, clarity, level appropriateness, safety, latency зэрэг олон хэмжүүр хэрэгтэй. RAG платформын хувьд retrieval recall болон answer faithfulness хамгийн чухал. Хэрэв зөв контекст сонгогдоогүй бол LLM сайн байсан ч хариулт буруу эсвэл ерөнхий болно. Хэрэв контекст зөв боловч загвар хэт их өөрийн таамаг нэмбэл faithfulness буурна.
 
 \begin{longtable}{|p{0.22\textwidth}|p{0.38\textwidth}|p{0.26\textwidth}|}
-  \caption{AI туслахын үнэлгээний боломжит хэмжүүр}
-  \label{tab:ai-evaluation-metrics}\\
   \hline
   \textbf{Хэмжүүр} & \textbf{Тайлбар} & \textbf{Шалгах арга} \\ \hline
   Retrieval relevance & Сонгосон контекст асуулттай холбоотой эсэх & Sample query review \\ \hline
@@ -305,6 +298,8 @@ AI туслахыг үнэлэхдээ зөвхөн “хариулт өгсөн
   Level fit & Beginner, intermediate ялгаа тохирсон эсэх & Level-tagged test set \\ \hline
   Safety & Буруу, эрсдэлтэй, хэт итгэлтэй зөвлөгөө багассан эсэх & Failure case test \\ \hline
   Latency & Хариу өгөх хугацаа боломжийн эсэх & API timing log \\ \hline
+  \caption{AI туслахын үнэлгээний боломжит хэмжүүр}
+  \label{tab:ai-evaluation-metrics}
 \end{longtable}
 
 \section{Нэвтрүүлэлт ба тохиргоо}
@@ -313,8 +308,6 @@ AI туслахыг үнэлэхдээ зөвхөн “хариулт өгсөн
 Тохиргооны удирдлагын гол зарчим нь нууц утгыг source code-д хадгалахгүй байх явдал юм. \texttt{.env.example} нь ямар хувьсагч шаардлагатайг баримтжуулахад хэрэгтэй боловч бодит key хадгалах ёсгүй. Next.js build-time болон runtime environment-ийн ялгааг зөв ойлгохгүй бол сервер талд байх ёстой тохиргоо client bundle-д алдагдах эрсдэлтэй. Иймээс Ollama болон Qdrant-ийг дуудах логик сервер талын API замд байрлах нь зөв шийдэл болно.
 
 \begin{longtable}{|p{0.22\textwidth}|p{0.32\textwidth}|p{0.32\textwidth}|}
-  \caption{Нэвтрүүлэлтийн тохиргооны үндсэн ангилал}
-  \label{tab:deployment-config-tech}\\
   \hline
   \textbf{Тохиргоо} & \textbf{Зориулалт} & \textbf{Анхаарах зүйл} \\ \hline
   Supabase URL, anon key & Фронтенд client болон Auth холболт & Public key ба service key-г ялгах \\ \hline
@@ -323,14 +316,14 @@ AI туслахыг үнэлэхдээ зөвхөн “хариулт өгсөн
   Dataset path & Seed JSON болон generated JSONL & Ingestion хийхээс өмнө JSON/JSONL schema шалгах \\ \hline
   Payment config future & Gateway webhook, secret & Signature verification хэрэгтэй \\ \hline
   Build command & Фронтенд болон дипломын build & CI/CD-д давтагдах боломжтой болгох \\ \hline
+  \caption{Нэвтрүүлэлтийн тохиргооны үндсэн ангилал}
+  \label{tab:deployment-config-tech}
 \end{longtable}
 
 \section{Технологийн сонголтын нэгтгэл}
 Дээрх судалгаан дээр үндэслэн төслийн технологийн сонголтыг дараах байдлаар нэгтгэв.
 
 \begin{longtable}{|p{0.18\textwidth}|p{0.24\textwidth}|p{0.22\textwidth}|p{0.24\textwidth}|}
-  \caption{Технологийн сонголтын нэгтгэл}
-  \label{tab:technology-summary}\\
   \hline
   \textbf{Давхарга} & \textbf{Сонгосон технологи} & \textbf{Үндэслэл} & \textbf{Эрсдэл ба хяналт} \\ \hline
   Фронтенд & Next.js, React, TypeScript & Олон зам, компонент, typed data model-д тохиромжтой & Компонент давхардал, UI state complexity → reusable component, hook ашиглах \\ \hline
@@ -339,9 +332,11 @@ AI туслахыг үнэлэхдээ зөвхөн “хариулт өгсөн
   Өгөгдлийн сан & Supabase PostgreSQL & Auth, relational schema, RLS, vector extension боломжтой & Policy алдаа → RLS review, admin function \\ \hline
   AI & Local RAG + Ollama & Контекстэд тулгуурласан хариу, төлбөргүй локал demo & Өгөгдлийн багцын чанар, hallucination → эх сурвалжийн мета өгөгдөл, refusal prompt \\ \hline
   Өгөгдлийн багц & Seed JSON + generated JSONL pipeline & Embedding, Qdrant import, human review-д тохиромжтой & Synthetic content их → citation-safe ялгах \\ \hline
+  \caption{Технологийн сонголтын нэгтгэл}
+  \label{tab:technology-summary}
 \end{longtable}
 
-\section{Бүлгийн дүгнэлт}
+\section*{Бүлгийн дүгнэлт}
 Хоёрдугаар бүлгээр төслийн технологийн болон AI үндсийг судаллаа. Судалгаанаас Next.js, React, TypeScript, Tailwind CSS нь сургалтын веб интерфейсийг модульчлан хөгжүүлэхэд тохиромжтой; Supabase PostgreSQL нь хэрэглэгч, курс, хичээл, ахиц зэрэг өгөгдлийг найдвартай удирдах боломжтой; Ollama, Qdrant, \texttt{bge-m3}, \texttt{qwen3:8b}-д суурилсан локал RAG нь AI туслахыг үндсэн сургалтын контентыг орлохгүйгээр, харин контексттэй дэмжлэг хэлбэрээр хэрэгжүүлэхэд зохистой болох нь харагдлаа.
 
 Мөн аудио AI-ийн судалгаанууд нь ирээдүйн өргөтгөлийн чиглэлийг тодорхойлж байгаа боловч одоогийн дипломын хүрээнд AI-г бүрэн автомат хөгжмийн генераци бус, сургалтын зөвлөгчийн үүргээр ашиглах нь илүү найдвартай гэж дүгнэв. Энэ бүлгийн технологийн сонголт нь гуравдугаар бүлгийн платформын дизайн ба хэрэгжилтийн тайлбарт шууд суурь болно.

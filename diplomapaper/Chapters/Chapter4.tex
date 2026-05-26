@@ -20,8 +20,6 @@
 Платформыг гэрийн компьютер дээр локал хөгжүүлэлтийн хэлбэрээр ажиллуулж шалгасан. Фронтенд талд Next.js хөгжүүлэлтийн сервер ажиллаж, хөтчөөр \texttt{http://localhost:3000} хаягаар хандсан. Studio mentor чатбот нь browser-оос зөвхөн \texttt{/api/ai-chat} замыг дуудаж, сервер талд Ollama болон Qdrant-тэй харилцана. Ингэснээр төлбөртэй API эсвэл үүлэн үйлчилгээ ашиглахгүйгээр RAG хариулт үүсгэх боломжтой болсон.
 
 \begin{longtable}{|p{0.24\textwidth}|p{0.34\textwidth}|p{0.28\textwidth}|}
-  \caption{Туршилтын орчны тохиргоо}
-  \label{tab:ch4-test-env}\\
   \hline
   \textbf{Түвшин} & \textbf{Ашигласан зүйл} & \textbf{Зорилго} \\ \hline
   Фронтенд & Next.js хөгжүүлэлтийн сервер, Chrome хөтөч & UI болон хэрэглэгчийн урсгал шалгах \\ \hline
@@ -30,14 +28,14 @@
   AI зам & \texttt{/api/ai-chat} & Чат хүсэлт, эх сурвалжтай хариу, refusal behavior шалгах \\ \hline
   Өгөгдлийн багц & Seed JSON + generated JSONL + Qdrant collection & Сэргээн хайх контекст болон эх сурвалжийн мета өгөгдөл шалгах \\ \hline
   Локал загварын хувилбар & Ollama \texttt{qwen3:8b} + \texttt{bge-m3} & Интернэт эсвэл төлбөртэй API-гүй demo хийх боломж \\ \hline
+  \caption{Туршилтын орчны тохиргоо}
+  \label{tab:ch4-test-env}
 \end{longtable}
 
 \section{Шалгах арга}
 Туршилтыг гар ажиллагаатай сценар, API хүсэлт, өгөгдлийн багцын баталгаажуулалт, build/type check гэсэн дөрвөн түвшинд авч үзэв. Гар ажиллагаатай сценар нь хэрэглэгчийн бодит замыг шалгана. API хүсэлт нь чатботын бекенд логик ажиллаж байгаа эсэхийг батална. Өгөгдлийн багцын баталгаажуулалт нь RAG мэдлэгийн сангийн бүтцийг шалгана. Build/type check нь source code-ийн суурь чанарыг шалгана.
 
 \begin{longtable}{|p{0.24\textwidth}|p{0.36\textwidth}|p{0.26\textwidth}|}
-  \caption{Туршилтын шалгуур}
-  \label{tab:ch4-test-checklist}\\
   \hline
   \textbf{Шалгах хэсэг} & \textbf{Шалгах арга} & \textbf{Хүлээгдэх үр дүн} \\ \hline
   Нүүр хуудас & \texttt{/} нээж layout, navigation, CTA шалгах & Платформын үнэ цэнэ ойлгомжтой харагдана \\ \hline
@@ -47,12 +45,14 @@
   Чатын API & \texttt{/api/ai-chat} POST хүсэлт илгээх & JSON хэлбэрээр \texttt{answer} болон \texttt{sources} буцаана \\ \hline
   Өгөгдлийн багц & Seed JSON, generated JSONL, ingestion log шалгах & 2020 бичлэг Qdrant collection-д орох боломжтой байна \\ \hline
   Build quality & Type-check, build, LaTeX build ажиллуулах & Compile алдаа багасна \\ \hline
+  \caption{Туршилтын шалгуур}
+  \label{tab:ch4-test-checklist}
 \end{longtable}
 
 \section{Нүүр хуудасны үр дүн}
 Нүүр хуудас нь платформын эхний сэтгэгдэл, суралцах замнал, гол боломжуудыг харуулах үүрэгтэй. Туршилтаар навигаци, hero хэсэг, CTA, курсийн каталог руу шилжих холбоосууд зөв харагдаж байгааг шалгав.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{Figures/screenshots/home.png}
   \caption[Нүүр хуудасны дэлгэцийн зураг]{Нүүр хуудасны дэлгэцийн зураг}
@@ -64,7 +64,7 @@
 \section{Курсийн каталогийн үр дүн}
 Курсийн каталог нь суралцагч өөрийн түвшин, сонирхол, төлбөрийн боломжид тохируулан курс сонгох хэсэг юм. Туршилтаар курсийн карт, үнэ, түвшин, хугацаа, ангилал болон шүүлтийн UI-г шалгав.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{Figures/screenshots/courses.png}
   \caption[Курсийн каталогийн дэлгэцийн зураг]{Курсийн каталогийн дэлгэцийн зураг}
@@ -76,7 +76,7 @@
 \section{Хичээлийн дэлгэрэнгүй ба тоглуулагч}
 Курсийн дэлгэрэнгүй хуудас нь платформын хамгийн чухал хэсэг юм. Энд хичээлийн жагсаалт, одоогийн хичээл, түгжээтэй төлөв, дуусгах товч, өөрийгөө шалгах сорил, холбоотой курс зэрэг сургалтын урсгал нэг дор байрлана. Сайжруулсан хувилбарт lesson player нь studio session хэлбэрийн том stage, хичээлийн дараалал бүхий session queue, тайлбар/дадлага/гол санаа/тест гэсэн workbook tab-уудтай болсон.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{Figures/screenshots/course-detail.png}
   \caption[Хичээлийн дэлгэрэнгүй хуудасны дэлгэцийн зураг]{Хичээлийн дэлгэрэнгүй хуудасны дэлгэцийн зураг}
@@ -88,7 +88,7 @@
 \section{Чатботын туршилт}
 Чатботын фронтенд нь тусдаа \texttt{/chat} хуудас бус, бүх хуудсанд харагдах хөвдөг товчоор нээгдэх drawer хэлбэртэй болсон. Хэрэглэгчийн асуултыг \texttt{/api/ai-chat} руу илгээж, API зам нь зурвас шалгах, Монгол кирилл болон латин бичлэгийг normalization хийх, Ollama \texttt{bge-m3} embedding үүсгэх, Qdrant collection-оос top 5 chunk хайх, grounded prompt бүрдүүлэх, Ollama \texttt{qwen3:8b} загвараар хариу үүсгэх гэсэн дарааллаар ажиллана. Туршилтад \textit{``kick bolon 808 hoorondoo murulduud bn yaj zasah ve?''} гэсэн beginner production асуулт ашигласан.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{Figures/screenshots/chat-answer.png}
   \caption[Чатботын хариуны дэлгэцийн зураг]{Studio mentor-ийн kick болон 808 давхцах асуултад өгсөн хариу}
@@ -99,8 +99,6 @@
 
 \begin{table}[htbp]
   \centering
-  \caption{Чатботын API хариултын жишээ}
-  \label{tab:ch4-chat-api-result}
   \begin{tabular}{|p{0.26\textwidth}|p{0.58\textwidth}|}
     \hline
     \textbf{Талбар} & \textbf{Буцсан утга} \\ \hline
@@ -109,6 +107,8 @@
     Загварууд & \texttt{bge-m3} embedding, \texttt{qwen3:8b} chat \\ \hline
     Үр дүн & 808 ба kick нэг low frequency хэсэгт давхцахыг тайлбарлаж, EQ cut, sidechain compression, level balance хийх алхам өгсөн \\ \hline
   \end{tabular}
+  \caption{Чатботын API хариултын жишээ}
+  \label{tab:ch4-chat-api-result}
 \end{table}
 
 Контекст хангалтгүй үед чатбот нь өөрөө мэдэж байгаа мэт зохиож хариулахгүй байх дүрэмтэй. Prompt-д ``Энэ асуултад хангалттай мэдээлэл миний сургалтын сангаас олдсонгүй.'' гэсэн refusal өгүүлбэрийг зааж, сургалтын сангаас олдсон chunk-уудыг үндсэн эх сурвалж болгохоор хязгаарласан.
@@ -117,8 +117,6 @@
 Одоогийн RAG өгөгдлийн багц нь 20 seed chunk болон 2000 generated JSONL chunk буюу нийт 2020 сургалтын бичлэгээс бүрдэнэ. Seed өгөгдөл нь үндсэн 20 beginner topic-ийг баталгаатай хамрах зорилготой, харин generated бичлэг нь FL Studio, beat making, drums, 808, melody, harmony, EQ, compression, mixing, mastering зэрэг ангиллын асуултад илүү өргөн контекст өгөх зорилготой. \texttt{npm run rag:ingest} script эдгээр бичлэгийг \texttt{bge-m3} embedding болгон Qdrant-ийн \texttt{music\_lessons\_rag} collection-д хадгална.
 
 \begin{longtable}{|p{0.24\textwidth}|p{0.26\textwidth}|p{0.34\textwidth}|}
-  \caption{RAG өгөгдлийн багцын туршилтын дүн}
-  \label{tab:ch4-dataset-result}\\
   \hline
   \textbf{Үзүүлэлт} & \textbf{Дүн} & \textbf{Тайлбар} \\ \hline
   Нийт бичлэг & 2020 & 20 seed JSON бичлэг, 2000 generated JSONL бичлэг \\ \hline
@@ -126,6 +124,8 @@
   Generated coverage & 2000 chunk & Beginner-friendly Монгол тайлбар, латин keyword tag-уудтай \\ \hline
   Vector storage & Qdrant collection & Cosine similarity ашиглан top 5 context сэргээнэ \\ \hline
   Citation-safe хяналт & Human review шаардлагатай & Generated guidance-ийг албан эх сурвалж мэт харуулахгүй \\ \hline
+  \caption{RAG өгөгдлийн багцын туршилтын дүн}
+  \label{tab:ch4-dataset-result}
 \end{longtable}
 
 Энэ үр дүнгээс харахад чатботын домайн хамрах хүрээ өмнөх mixing/mastering төвтэй өгөгдлөөс илүү өргөн болж, beginner FL Studio болон beat-making асуултад тохирох контекст нэмэгдсэн. Гэхдээ production хэрэглээнд оруулахын өмнө generated бичлэгүүдийг багшийн review-д оруулж, Image-Line manual, хөгжмийн онолын найдвартай эх сурвалж, өөрийн курсийн баталгаажсан тэмдэглэлээс citation-safe chunk нэмж баяжуулах шаардлагатай.
@@ -134,8 +134,6 @@
 Туршилтын үр дүнг нэгдүгээр бүлгийн шаардлагуудтай холбон нэгтгэв.
 
 \begin{longtable}{|p{0.18\textwidth}|p{0.30\textwidth}|p{0.34\textwidth}|}
-  \caption{Шаардлага ба туршилтын үр дүн}
-  \label{tab:ch4-requirement-result}\\
   \hline
   \textbf{Шаардлага} & \textbf{Хэрэгжилтийн нотолгоо} & \textbf{Үр дүн} \\ \hline
   Курс сонгох урсгал & Каталогийн дэлгэцийн зураг, замын шалгалт & Курсийн жагсаалт, карт, үнэ, түвшин харагдаж байна \\ \hline
@@ -144,7 +142,30 @@
   AI зөвлөгч & Чатын дэлгэцийн зураг, API хариу & Латин/кирилл Монгол асуултад эх сурвалжтай RAG хариу өгч байна \\ \hline
   Өгөгдлийн багцын дамжлага & Seed/generation/ingestion script & 2020 бичлэг бүхий RAG өгөгдөл Qdrant-д орох боломжтой болсон \\ \hline
   Аюулгүй байдлын чиглэл & Supabase schema, RLS policy & Хэрэглэгч эзэмшдэг өгөгдлийг хамгаалах өгөгдлийн сангийн суурь бүрдсэн \\ \hline
+  \caption{Шаардлага ба туршилтын үр дүн}
+  \label{tab:ch4-requirement-result}
 \end{longtable}
+
+\section{Хөгжмийн сургалтын үр дүн}
+Платформын сургалтын үр дүнг үнэлэхдээ суралцагчийн курс сонгохоос эхлээд хичээл дуусгах, ахиц хянах, AI туслахаас зөвлөгөө авах хүртэлх бүхий л урсгалыг бодитоор ажиллуулж шалгав. Үнэлгээний гол зорилго нь хөгжим боловсруулалтын сургалтыг платформ хэлбэрээр зохион байгуулахад ямар давуу тал, ямар хязгаарлалт илэрснийг тодорхойлох явдал юм.
+
+\begin{longtable}{|p{0.22\textwidth}|p{0.22\textwidth}|p{0.20\textwidth}|p{0.22\textwidth}|}
+  \hline
+  \textbf{Үнэлэх хэсэг} & \textbf{Шалгах арга} & \textbf{Хүлээгдэх үр дүн} & \textbf{Бодит үр дүн} \\ \hline
+  Курс сонгох, хайх & Каталогийн шүүлт, ангилал, хайлт & Хэрэглэгч түвшин, ангиллаар курс олно & Шүүлт ажиллаж, 6 курсийн карт зөв харагдсан \\ \hline
+  Хичээл үзэх урсгал & Үнэгүй болон төлбөртэй хичээл нээх & Төлбөргүй хичээл нээгдэх, төлбөртэй хичээл түгжигдэх & Хандалтын хяналт зөв ажилласан \\ \hline
+  Сорилын урсгал & Хичээлийн дараа сорил өгөх & Хариулт бүртгэгдэх, зөв буруу ялгарах & Сорилын UI ажилласан, хариулт хадгалагдсан \\ \hline
+  Ахицын хяналт & Хичээл дуусгаад хяналтын самбар шалгах & Ахицын хувь шинэчлэгдэх & Хичээл дуусгахад ахиц тооцоологдсон \\ \hline
+  AI туслах зөвлөгөө & FL Studio, mixing, beat-making асуулт & Эх сурвалжтай Монгол хариу & RAG контексттэй хариу буцсан \\ \hline
+  AI refusal & Сургалтын сангаас гадуурх асуулт & ``Хангалттай мэдээлэл олдсонгүй'' & Refusal зөв ажилласан \\ \hline
+  Аудио шинжилгээ & Хяналтын самбарт аудио файл байршуулах & Peak, loudness, balance оноо & Browser дээр тооцоологдож, үр дүн хадгалагдсан \\ \hline
+  \caption{Сургалтын үр дүнгийн үнэлгээ}
+  \label{tab:ch4-training-results}
+\end{longtable}
+
+Туршилтаас харахад платформ нь хөгжим боловсруулалт суралцагчид зориулсан суурь сургалтын урсгалыг дэмжих чадвартай байна. Суралцагч курс сонгох, хичээлийг дарааллаар үзэх, сорил өгч ойлголтоо шалгах, ахицаа хянах, тодорхой асуултад AI туслахаас эх сурвалжтай зөвлөгөө авах боломжтой болсон. Хөгжмийн сургалтын хувьд хичээлийн видео, дадлагын дасгал, гол санаа, FL Studio-ийн тодорхой plugin тохиргоо, mixing/mastering алхмуудыг бүтэцтэй байдлаар хүргэх нөхцөл бүрдсэн.
+
+Гэхдээ одоогийн үнэлгээ нь бодит суралцагчийн туршлагад суурилсан хэрэглэгчийн сэтгэл ханамжийн судалгаа бус, хөгжүүлэгчийн гар шалгалт юм. Цаашид бодит хэрэглэгчдийн оролцоотой ашиглалтын туршилт, суралцах хугацааны хэмжилт, сорилын дүнгийн статистик шинжилгээ хийх шаардлагатай.
 
 \section{Хязгаарлалт}
 Одоогийн туршилт нь дипломын MVP түвшний баталгаажуулалт юм. Production орчинд дараах хязгаарлалтыг заавал сайжруулах шаардлагатай.
@@ -157,7 +178,7 @@
   \item локал Ollama болон Qdrant service ажиллахгүй үед чатбот clean error буцаах боловч хариу үүсгэх боломжгүй.
 \end{itemize}
 
-\section{Бүлгийн дүгнэлт}
+\section*{Бүлгийн дүгнэлт}
 Дөрөвдүгээр бүлгээр платформын гол ажиллагааг локал орчинд шалгаж, нүүр хуудас, курсийн каталог, хичээлийн дэлгэрэнгүй, Studio mentor чатботын хариу, Qdrant RAG өгөгдлийн багцын үр дүнг баримтжууллаа. Туршилтаас харахад платформ нь FL Studio болон хөгжим боловсруулалт суралцагчдад зориулсан сургалтын үндсэн урсгалыг харуулж чадаж байна: хэрэглэгч курс сонгох, хичээл үзэх, төлбөртэй хандалтын ялгаа харах, RAG туслахаас эх сурвалжтай зөвлөгөө авах боломжтой.
 
 Үр дүнгийн хувьд фронтенд MVP, Supabase schema, локал Ollama/Qdrant RAG, \texttt{/api/ai-chat} API, өгөгдөл үүсгэх болон ingestion script, studio-style UI refresh бүрдсэн. Хяналтын самбар нь тусдаа studio-console layout болж, зүүн navigation, төв сургалтын workspace, баруун профайл/ахиц/ментор rail гэсэн бүтэцтэй болсон. Нэмэлтээр Khan Bank шилжүүлгийн төлбөрийн хүсэлт, админ approval/refund, Supabase purchase persistence, course progress persistence, browser-based mix analysis, course edit/delete болон lesson reorder урсгалууд хэрэгжсэн. Харин production түвшинд бүрэн хүргэхийн тулд өгөгдлийн багцын эх сурвалжийн чанар, retrieval evaluation, автомат payment gateway/webhook, илүү гүн audio AI шинжилгээ болон automated end-to-end/security test-ийг дараагийн хөгжүүлэлтийн гол чиглэл болгох шаардлагатай.
