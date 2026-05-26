@@ -10,6 +10,11 @@ import { toast } from 'sonner';
 import type { ChatMessage } from '@/types';
 import { fetchDbCourseBundleBySlug } from '@/lib/db-courses';
 import { getYouTubeDuration } from '@/lib/youtube';
+import {
+  getCourseLearningState,
+  markLessonComplete,
+  updateCourseProgress,
+} from '@/lib/database';
 import type { Course, Lesson, Teacher } from '@/lib/types';
 
 const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
@@ -215,6 +220,28 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
 
     fetchDurations();
   }, [course]);
+
+  useEffect(() => {
+    if (!course?.id || !user?.id) return;
+
+    let mounted = true;
+
+    getCourseLearningState(user.id, course.id)
+      .then((state) => {
+        if (!mounted) return;
+        setLessonCompletedIds(state.completedLessonIds);
+        setLessonQuizPassedIds(state.passedLessonQuizIds);
+        setCourseQuizPassed(state.courseQuizPassed);
+        setSelfCheckMode(state.selfCheckMode);
+      })
+      .catch((error) => {
+        console.error('Could not load course progress:', error);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [course?.id, user?.id]);
 
   useEffect(() => {
     if (!course?.curriculum?.length || currentLesson) return;
@@ -511,12 +538,29 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
     setShowQuizModal(true);
   };
 
-  const handleLessonCompleted = () => {
+  const handleLessonCompleted = async () => {
     if (!currentLesson) return;
 
-    setLessonCompletedIds((prev) =>
-      prev.includes(currentLesson.id) ? prev : [...prev, currentLesson.id]
-    );
+    const nextCompletedIds = lessonCompletedIds.includes(currentLesson.id)
+      ? lessonCompletedIds
+      : [...lessonCompletedIds, currentLesson.id];
+
+    setLessonCompletedIds(nextCompletedIds);
+
+    if (user?.id) {
+      try {
+        await markLessonComplete(
+          user.id,
+          course.id,
+          currentLesson.id,
+          lessonCompletedIds,
+          course.curriculum.length,
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Ахиц хадгалахад алдаа гарлаа';
+        toast.error(message);
+      }
+    }
 
     if (selfCheckMode === 'per-lesson' && !lessonQuizPassedIds.includes(currentLesson.id)) {
       openLessonQuiz(currentLesson);
@@ -531,7 +575,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
     setQuizAnswers((prev) => ({ ...prev, [questionId]: optionIndex }));
   };
 
-  const handleSubmitQuiz = () => {
+  const handleSubmitQuiz = async () => {
     if (!activeQuiz) return;
 
     const total = activeQuiz.questions.length;
@@ -554,13 +598,40 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
 
     if (activeQuiz.type === 'lesson' && activeQuiz.lessonId) {
       const lessonId = activeQuiz.lessonId;
-      setLessonQuizPassedIds((prev) => (prev.includes(lessonId) ? prev : [...prev, lessonId]));
+      const nextPassedIds = lessonQuizPassedIds.includes(lessonId)
+        ? lessonQuizPassedIds
+        : [...lessonQuizPassedIds, lessonId];
+      setLessonQuizPassedIds(nextPassedIds);
+      if (user?.id) {
+        await updateCourseProgress(user.id, course.id, {
+          passedLessonQuizIds: nextPassedIds,
+          progressPercent: courseProgressPercent,
+        });
+      }
       toast.success(`Хичээлийн тест амжилттай (${correct}/${total})`);
       return;
     }
 
     setCourseQuizPassed(true);
+    if (user?.id) {
+      await updateCourseProgress(user.id, course.id, {
+        courseQuizPassed: true,
+        progressPercent: courseProgressPercent,
+      });
+    }
     toast.success(`Курсын эцсийн тест амжилттай (${correct}/${total})`);
+  };
+
+  const handleSelfCheckModeChange = async (mode: SelfCheckMode) => {
+    setSelfCheckMode(mode);
+    if (user?.id) {
+      try {
+        await updateCourseProgress(user.id, course.id, { selfCheckMode: mode });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Тестийн тохиргоо хадгалагдсангүй';
+        toast.error(message);
+      }
+    }
   };
 
   const handleCloseQuiz = () => {
@@ -1107,7 +1178,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                       </div>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => setSelfCheckMode('per-lesson')}
+                          onClick={() => void handleSelfCheckModeChange('per-lesson')}
                           className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
                             selfCheckMode === 'per-lesson'
                               ? 'border-[rgba(217,195,138,0.45)] bg-[rgba(201,168,76,0.16)] text-[#F5F0E8]'
@@ -1117,7 +1188,7 @@ export default function CourseDetailPage({ params }: { params: { slug: string } 
                           Хичээл бүр
                         </button>
                         <button
-                          onClick={() => setSelfCheckMode('final-only')}
+                          onClick={() => void handleSelfCheckModeChange('final-only')}
                           className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
                             selfCheckMode === 'final-only'
                               ? 'border-[rgba(217,195,138,0.45)] bg-[rgba(201,168,76,0.16)] text-[#F5F0E8]'

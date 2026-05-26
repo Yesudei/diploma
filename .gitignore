@@ -20,6 +20,10 @@ lib64/
 !Frontend/src/lib/
 Frontend/src/lib/*
 !Frontend/src/lib/dashboard-audio.ts
+!Frontend/src/lib/audio-analysis.ts
+!Frontend/src/lib/audio-analysis.test.ts
+!Frontend/src/lib/bank-payment.ts
+!Frontend/src/lib/bank-payment.test.ts
 !Frontend/src/lib/db-courses.ts
 !Frontend/src/lib/course-list.ts
 !Frontend/src/lib/course-list.test.ts

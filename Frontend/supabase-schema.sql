@@ -251,6 +251,9 @@ create table if not exists public.payments (
   currency text default 'MNT',
   status text default 'pending',
   payment_method text,
+  payment_reference text,
+  approved_at timestamptz,
+  refunded_at timestamptz,
   created_at timestamptz not null default timezone('utc', now())
 );
 
@@ -261,7 +264,15 @@ alter table if exists public.payments
   add column if not exists currency text default 'MNT',
   add column if not exists status text default 'pending',
   add column if not exists payment_method text,
+  add column if not exists payment_reference text,
+  add column if not exists approved_at timestamptz,
+  add column if not exists refunded_at timestamptz,
   add column if not exists created_at timestamptz not null default timezone('utc', now());
+
+alter table if exists public.course_progress
+  add column if not exists passed_lesson_quiz_ids text[] not null default '{}'::text[],
+  add column if not exists course_quiz_passed boolean not null default false,
+  add column if not exists self_check_mode text not null default 'per-lesson';
 
 create table if not exists public.marketplace_items (
   id uuid primary key default gen_random_uuid(),
@@ -521,6 +532,25 @@ create policy "payments_insert_own_or_admin"
 on public.payments
 for insert
 with check (auth.uid() = user_id or public.is_admin(auth.uid()));
+
+drop policy if exists "payments_update_admin" on public.payments;
+create policy "payments_update_admin"
+on public.payments
+for update
+using (public.is_admin(auth.uid()))
+with check (public.is_admin(auth.uid()));
+
+drop policy if exists "payments_delete_admin" on public.payments;
+create policy "payments_delete_admin"
+on public.payments
+for delete
+using (public.is_admin(auth.uid()));
+
+drop policy if exists "purchased_courses_delete_admin" on public.purchased_courses;
+create policy "purchased_courses_delete_admin"
+on public.purchased_courses
+for delete
+using (public.is_admin(auth.uid()));
 
 drop policy if exists "marketplace_public_select" on public.marketplace_items;
 create policy "marketplace_public_select"

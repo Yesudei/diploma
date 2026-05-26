@@ -2,7 +2,6 @@ import Nav from '@/components/Nav';
 import SectionDots from '@/components/SectionDots';
 import HeroSection from '@/components/HeroSection';
 import FeaturesSection from '@/components/FeaturesSection';
-import ChatButton from '@/components/ChatButton';
 import LearningPathSection from '@/components/LearningPathSection';
 import LandingFooter from '@/components/LandingFooter';
 
@@ -25,8 +24,6 @@ export default function HomePage() {
           <LandingFooter />
         </div>
       </main>
-
-      <ChatButton />
     </>
   );
 }

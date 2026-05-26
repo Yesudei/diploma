@@ -43,7 +43,7 @@
   Нүүр хуудас & \texttt{/} нээж layout, navigation, CTA шалгах & Платформын үнэ цэнэ ойлгомжтой харагдана \\ \hline
   Курсийн каталог & Хайлт/шүүлт/эрэмбэ болон курсийн карт шалгах & Курс сонгох боломжтой байна \\ \hline
   Курсийн дэлгэрэнгүй & \texttt{/courses/[slug]} нээж хичээлийн жагсаалт, түгжээтэй төлөв шалгах & Үнэгүй/төлбөртэй хичээл ялгаатай харагдана \\ \hline
-  Чатботын UI & \texttt{/chat} дээр асуулт илгээх & Studio mentor эх сурвалжтай хариу харуулна \\ \hline
+  Чатботын UI & Бүх хуудсан дахь хөвдөг чат товчноос асуулт илгээх & Studio mentor эх сурвалжтай хариу харуулна \\ \hline
   Чатын API & \texttt{/api/ai-chat} POST хүсэлт илгээх & JSON хэлбэрээр \texttt{answer} болон \texttt{sources} буцаана \\ \hline
   Өгөгдлийн багц & Seed JSON, generated JSONL, ingestion log шалгах & 2020 бичлэг Qdrant collection-д орох боломжтой байна \\ \hline
   Build quality & Type-check, build, LaTeX build ажиллуулах & Compile алдаа багасна \\ \hline
@@ -86,7 +86,7 @@
 Зураг \ref{fig:ch4-course-detail}-д эхний хичээл идэвхтэй, дараагийн зарим хичээл түгжээтэй төлөвтэй харагдаж байна. Энэ нь үнэгүй танилцах хэсэг болон төлбөртэй хандалтыг ялгах шаардлагыг UI түвшинд харуулж байгаа бөгөөд цаашид Supabase худалдан авалтын бичлэг болон RLS бодлогоор өгөгдлийн сангийн түвшинд баталгаажих ёстой.
 
 \section{Чатботын туршилт}
-Чатботын фронтенд нь \texttt{/chat} зам дээр байрлаж, хэрэглэгчийн асуултыг \texttt{/api/ai-chat} руу илгээдэг. API зам нь зурвас шалгах, Монгол кирилл болон латин бичлэгийг normalization хийх, Ollama \texttt{bge-m3} embedding үүсгэх, Qdrant collection-оос top 5 chunk хайх, grounded prompt бүрдүүлэх, Ollama \texttt{qwen3:8b} загвараар хариу үүсгэх гэсэн дарааллаар ажиллана. Туршилтад \textit{``kick bolon 808 hoorondoo murulduud bn yaj zasah ve?''} гэсэн beginner production асуулт ашигласан.
+Чатботын фронтенд нь тусдаа \texttt{/chat} хуудас бус, бүх хуудсанд харагдах хөвдөг товчоор нээгдэх drawer хэлбэртэй болсон. Хэрэглэгчийн асуултыг \texttt{/api/ai-chat} руу илгээж, API зам нь зурвас шалгах, Монгол кирилл болон латин бичлэгийг normalization хийх, Ollama \texttt{bge-m3} embedding үүсгэх, Qdrant collection-оос top 5 chunk хайх, grounded prompt бүрдүүлэх, Ollama \texttt{qwen3:8b} загвараар хариу үүсгэх гэсэн дарааллаар ажиллана. Туршилтад \textit{``kick bolon 808 hoorondoo murulduud bn yaj zasah ve?''} гэсэн beginner production асуулт ашигласан.
 
 \begin{figure}[htbp]
   \centering
@@ -150,7 +150,7 @@
 Одоогийн туршилт нь дипломын MVP түвшний баталгаажуулалт юм. Production орчинд дараах хязгаарлалтыг заавал сайжруулах шаардлагатай.
 \begin{itemize}
   \item курсийн өгөгдөл static seed болон Supabase table хоёрт зэрэг байрлаж байгаа тул нэг үндсэн эх сурвалжтай болгох;
-  \item төлбөрийн урсгал simulation түвшинд байгаа тул бодит gateway, webhook, receipt validation нэмэх;
+  \item төлбөрийн урсгал банкны шилжүүлэг болон админы баталгаажуулалтаар ажиллаж байгаа тул дараагийн шатанд автомат gateway, webhook, receipt validation нэмэх;
   \item RAG retrieval нь semantic search болсон боловч ranking evaluation, hybrid search, regression test нэмэх;
   \item generated өгөгдөл их тул албан болон багшийн баталгаажуулсан citation-safe эх сурвалж нэмэх;
   \item automated end-to-end test, security policy test, load test нэмэх;
@@ -160,4 +160,4 @@
 \section{Бүлгийн дүгнэлт}
 Дөрөвдүгээр бүлгээр платформын гол ажиллагааг локал орчинд шалгаж, нүүр хуудас, курсийн каталог, хичээлийн дэлгэрэнгүй, Studio mentor чатботын хариу, Qdrant RAG өгөгдлийн багцын үр дүнг баримтжууллаа. Туршилтаас харахад платформ нь FL Studio болон хөгжим боловсруулалт суралцагчдад зориулсан сургалтын үндсэн урсгалыг харуулж чадаж байна: хэрэглэгч курс сонгох, хичээл үзэх, төлбөртэй хандалтын ялгаа харах, RAG туслахаас эх сурвалжтай зөвлөгөө авах боломжтой.
 
-Үр дүнгийн хувьд фронтенд MVP, Supabase schema, локал Ollama/Qdrant RAG, \texttt{/api/ai-chat} API, өгөгдөл үүсгэх болон ingestion script, studio-style UI refresh бүрдсэн. Хяналтын самбар нь тусдаа studio-console layout болж, зүүн navigation, төв сургалтын workspace, баруун профайл/ахиц/ментор rail гэсэн бүтэцтэй болсон. Харин production түвшинд хүргэхийн тулд өгөгдлийн багцын эх сурвалжийн чанар, retrieval evaluation, payment integration, automated testing болон admin CRUD-г дараагийн хөгжүүлэлтийн гол чиглэл болгох шаардлагатай.
+Үр дүнгийн хувьд фронтенд MVP, Supabase schema, локал Ollama/Qdrant RAG, \texttt{/api/ai-chat} API, өгөгдөл үүсгэх болон ingestion script, studio-style UI refresh бүрдсэн. Хяналтын самбар нь тусдаа studio-console layout болж, зүүн navigation, төв сургалтын workspace, баруун профайл/ахиц/ментор rail гэсэн бүтэцтэй болсон. Нэмэлтээр Khan Bank шилжүүлгийн төлбөрийн хүсэлт, админ approval/refund, Supabase purchase persistence, course progress persistence, browser-based mix analysis, course edit/delete болон lesson reorder урсгалууд хэрэгжсэн. Харин production түвшинд бүрэн хүргэхийн тулд өгөгдлийн багцын эх сурвалжийн чанар, retrieval evaluation, автомат payment gateway/webhook, илүү гүн audio AI шинжилгээ болон automated end-to-end/security test-ийг дараагийн хөгжүүлэлтийн гол чиглэл болгох шаардлагатай.

@@ -29,8 +29,23 @@ export default function LessonPlayer({
   const handleComplete = async () => {
     if (!user || completed) return;
     setCompleted(true);
-    await markLessonComplete(user.id, currentLesson.id);
-    await updateCourseProgress(user.id, course.id);
+    await markLessonComplete(
+      user.id,
+      course.id,
+      currentLesson.id,
+      completedLessonIds,
+      course.curriculum.length,
+    );
+    await updateCourseProgress(user.id, course.id, {
+      lastLessonId: currentLesson.id,
+      progressPercent: Math.round(
+        ((completedLessonIds.includes(currentLesson.id)
+          ? completedLessonIds.length
+          : completedLessonIds.length + 1) /
+          Math.max(course.curriculum.length, 1)) *
+          100,
+      ),
+    });
   };
 
   const isLocked = !currentLesson.free && !canWatch(course.id, course.price);

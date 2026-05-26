@@ -84,9 +84,9 @@
   \texttt{/courses} & Курсийн каталог & Хайлт, ангилал, түвшин, үнэ шүүх, эрэмбэлэх, курсийн карт \\ \hline
   \texttt{/courses/[slug]} & Курсийн дэлгэрэнгүй & Хичээлийн тоглуулагч, түгжээтэй хичээл, үнэгүй танилцах хэсэг, сорил, холбоотой курс \\ \hline
   \texttt{/dashboard} & Хяналтын самбар & Studio-console layout, хэрэглэгчийн профайл, курс, аудио файл, mix шинжилгээ, ментор холбоос \\ \hline
-  \texttt{/checkout} & Төлбөрийн урсгал & Курс худалдан авах туршилтын урсгал, хандалтын эрх шинэчлэх \\ \hline
-  \texttt{/chat} & Studio mentor чат & Чатын UI, эх сурвалжийн жижиг жагсаалт, \texttt{/api/ai-chat} хүсэлт \\ \hline
-  \texttt{/admin} & Админ хэсэг & Курс, хичээл, хэрэглэгч, мэдлэгийн сан удирдах эхний интерфейс \\ \hline
+  \texttt{/checkout} & Төлбөрийн урсгал & Khan Bank дансны шилжүүлгийн хүсэлт үүсгэж, \texttt{payments} хүснэгтэд pending төлөвөөр хадгалах \\ \hline
+  Хөвдөг чат товч & Studio mentor чат & Бүх хуудсанд байрлах drawer UI, эх сурвалжийн жижиг жагсаалт, \texttt{/api/ai-chat} хүсэлт \\ \hline
+  \texttt{/admin} & Админ хэсэг & Курс, хичээл, хэрэглэгч, мэдлэгийн сан, төлбөрийн баталгаажуулалт, lesson reorder удирдах интерфейс \\ \hline
 \end{longtable}
 
 Компонентын түвшинд \texttt{CourseCard}, \texttt{LessonPlayer}, \texttt{VideoPlayer}, \texttt{ChatDrawer}, \texttt{DashboardLayout} зэрэг дахин ашиглагдах нэгжүүд бий. Hook түвшинд \texttt{useAuth} нэвтрэлтийн төлөвийг, \texttt{usePurchases} төлбөртэй хичээл үзэх эрхийг, \texttt{useReveal} танилцуулгын төлөвийг удирдана.
@@ -108,11 +108,11 @@ Supabase нь PostgreSQL өгөгдлийн сан, authentication, API боло
   \textbf{Хүснэгт} & \textbf{Үндсэн өгөгдөл} & \textbf{Үүрэг} \\ \hline
   \texttt{profiles} & нэр, зураг, товч танилцуулга, \texttt{is\_admin} & Auth хэрэглэгчийн нэмэлт мэдээлэл ба админы эрх \\ \hline
   \texttt{courses}, \texttt{lessons} & Курсийн мета өгөгдөл, хичээлийн мета өгөгдөл & Каталог, сургалтын хөтөлбөр, хичээлийн тоглуулагч \\ \hline
-  \texttt{purchased\_courses} & хэрэглэгчийн дугаар, курсийн дугаар & Төлбөртэй хандалт шалгах \\ \hline
+  \texttt{purchased\_courses} & хэрэглэгчийн дугаар, курсийн дугаар & Админ баталгаажуулсан төлбөрийн дараах курсийн эрхийг хадгалах \\ \hline
   \texttt{completed\_lessons}, \texttt{course\_progress} & Дуусгасан хичээл, ахицын хувь & Хяналтын самбар болон суралцах явц \\ \hline
   \texttt{knowledge\_base} & асуулт, хариулт, эх сурвалж, embedding & RAG мэдлэгийн сан ба ирээдүйн вектор хайлт \\ \hline
   \texttt{chat\_messages} & хэрэглэгчийн зурвас, AI хариу, эх сурвалж & Чатын түүх болон чанарын үнэлгээ \\ \hline
-  \texttt{payments} & дүн, валют, төлөв & Төлбөрийн түүх ба ирээдүйн webhook \\ \hline
+  \texttt{payments} & дүн, валют, төлөв, шилжүүлгийн утга, баталгаажсан/буцаагдсан огноо & Банкны шилжүүлгийн хүсэлт, админ approval/refund урсгал \\ \hline
   \texttt{audio\_files}, \texttt{mixing\_analysis} & оруулсан файлын мета өгөгдөл, шинжилгээний үр дүн & Ирээдүйн аудио feedback модуль \\ \hline
 \end{longtable}
 
@@ -203,15 +203,15 @@ Schema-д foreign key, unique constraint, RLS policy зэрэг хамгаала
   \label{tab:ch3-security-scale}\\
   \hline
   \textbf{Чиглэл} & \textbf{Одоогийн шийдэл} & \textbf{Дараагийн алхам} \\ \hline
-  Төлбөртэй хандалт & Худалдан авалтын төлөв, түгжээтэй хичээлийн UI, \texttt{purchased\_courses} & Төлбөрийн webhook, баримтын баталгаажуулалт \\ \hline
+  Төлбөртэй хандалт & Khan Bank шилжүүлгийн хүсэлт, админ approve/refund, \texttt{payments}, \texttt{purchased\_courses} & Автомат gateway, webhook, баримтын баталгаажуулалт \\ \hline
   Хэрэглэгчийн өгөгдөл & Эзэмшигчид суурилсан RLS policy & Policy test, audit log \\ \hline
   Админ хяналт & \texttt{is\_admin}, админ шалгах SQL function & CRUD validation, role management \\ \hline
   RAG хайлт & Qdrant vector search ба \texttt{bge-m3} embedding & Hybrid retrieval, human-reviewed source expansion \cite{supabase_vectors,pgvector_github} \\ \hline
   Хариу үүсгэх загвар & Локал Ollama \texttt{qwen3:8b} & Timeout, response cache, чанарын regression test \\ \hline
-  Аудио шинжилгээ & Schema түвшний бэлтгэл & Файл оруулах дамжлага, source separation, mix feedback \\ \hline
+  Аудио шинжилгээ & Browser дээр audio decode хийж peak, loudness, dynamic range, balance оноо тооцоод \texttt{mixing\_analysis}-д хадгалах & Source separation, илүү нарийн спектрийн feedback \\ \hline
 \end{longtable}
 
 \section{Бүлгийн дүгнэлт}
 Гуравдугаар бүлгээр платформын архитектур ба хэрэгжилтийг нэгтгэн тайлбарлав. Платформ нь курсийн каталог, хичээлийн тоглуулагч, төлбөртэй хандалт, сорил, хяналтын самбар, админ хэсэг, AI чатбот гэсэн хэрэглэгчийн үндсэн урсгалтай бөгөөд Next.js, React, TypeScript, Supabase PostgreSQL, RAG өгөгдлийн багцын дамжлага дээр тулгуурласан. Use case, activity, layered, ER, AI sequence, deployment диаграмуудаар системийн үндсэн холбоо, өгөгдлийн бүтэц, AI туслахын хүсэлтийн урсгал, локал тохиргоог харууллаа.
 
-AI туслахын хувьд \texttt{/api/ai-chat} зам нь query normalization, Ollama \texttt{bge-m3} embedding, Qdrant vector search, grounded prompt, Ollama \texttt{qwen3:8b} answer generation гэсэн дамжлагатайгаар хэрэгжсэн. Энэ нь дипломын MVP-д төлбөртэй API-гүй ажиллах бүтэц боловч production түвшинд хүргэхийн тулд citation-safe өгөгдлийн бичлэг нэмэх, retrieval evaluation хийх, payment integration болон admin CRUD-г бүрэн болгох шаардлагатай.
+AI туслахын хувьд \texttt{/api/ai-chat} зам нь query normalization, Ollama \texttt{bge-m3} embedding, Qdrant vector search, grounded prompt, Ollama \texttt{qwen3:8b} answer generation гэсэн дамжлагатайгаар хэрэгжсэн. Мөн төлбөрийн урсгал нь банкны шилжүүлгийн pending хүсэлт, админы баталгаажуулалт, \texttt{purchased\_courses}-д эрх үүсгэх байдлаар Supabase-д хадгалагддаг болсон. Ахицын мэдээлэл \texttt{completed\_lessons} болон \texttt{course\_progress} хүснэгтэд хадгалагдаж, mix шинжилгээ browser дээр тооцоологдон \texttt{mixing\_analysis}-д бүртгэгдэнэ. Цаашид citation-safe өгөгдлийн бичлэг, retrieval evaluation, автомат payment gateway/webhook болон илүү нарийн audio AI шинжилгээг нэмэх шаардлагатай.

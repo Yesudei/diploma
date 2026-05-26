@@ -64,6 +64,9 @@ type PaymentRow = {
   currency: string | null;
   status: string | null;
   payment_method: string | null;
+  payment_reference: string | null;
+  approved_at: string | null;
+  refunded_at: string | null;
   created_at: string | null;
 };
 
@@ -181,6 +184,7 @@ export default function AdminPage() {
   const [courseLevel, setCourseLevel] = useState('beginner');
   const [courseSlug, setCourseSlug] = useState('');
   const [courseTeacherName, setCourseTeacherName] = useState('');
+  const [coursePrice, setCoursePrice] = useState(0);
   const [lessons, setLessons] = useState<LessonForm[]>([]);
   const [savingCourse, setSavingCourse] = useState(false);
   const allCourses = useMemo(() => mergeCourses(courses, dbCourses), [dbCourses]);
@@ -299,7 +303,9 @@ export default function AdminPage() {
             .limit(30),
           supabase
             .from('payments')
-            .select('id, user_id, course_id, amount, currency, status, payment_method, created_at')
+            .select(
+              'id, user_id, course_id, amount, currency, status, payment_method, payment_reference, approved_at, refunded_at, created_at'
+            )
             .order('created_at', { ascending: false })
             .limit(30),
         ]);
@@ -434,6 +440,153 @@ export default function AdminPage() {
     await loadAdminData();
   };
 
+  const handleApprovePayment = async (payment: PaymentRow) => {
+    if (!payment.course_id) {
+      toast.error('Payment has no course id.');
+      return;
+    }
+
+    const { error: paymentError } = await supabase
+      .from('payments')
+      .update({
+        status: 'paid',
+        approved_at: new Date().toISOString(),
+      })
+      .eq('id', payment.id);
+
+    if (paymentError) {
+      toast.error(paymentError.message);
+      return;
+    }
+
+    const { error: purchaseError } = await supabase.from('purchased_courses').upsert(
+      {
+        user_id: payment.user_id,
+        course_id: payment.course_id,
+      },
+      { onConflict: 'user_id,course_id' },
+    );
+
+    if (purchaseError) {
+      toast.error(purchaseError.message);
+      return;
+    }
+
+    toast.success('Payment approved and course unlocked.');
+    await loadAdminData();
+  };
+
+  const handleRefundPayment = async (payment: PaymentRow) => {
+    if (!payment.course_id) return;
+
+    const { error: paymentError } = await supabase
+      .from('payments')
+      .update({
+        status: 'refunded',
+        refunded_at: new Date().toISOString(),
+      })
+      .eq('id', payment.id);
+
+    if (paymentError) {
+      toast.error(paymentError.message);
+      return;
+    }
+
+    const { error: purchaseError } = await supabase
+      .from('purchased_courses')
+      .delete()
+      .eq('user_id', payment.user_id)
+      .eq('course_id', payment.course_id);
+
+    if (purchaseError) {
+      toast.error(purchaseError.message);
+      return;
+    }
+
+    toast.success('Payment refunded and course access removed.');
+    await loadAdminData();
+  };
+
+  const handleDeleteCourse = async (course: Course) => {
+    if (!course.id.startsWith('db-')) {
+      toast.error('Static seed courses are edited in code, not Supabase.');
+      return;
+    }
+
+    const confirmed = window.confirm(`Delete "${course.title}" and all lessons?`);
+    if (!confirmed) return;
+
+    const { error } = await supabase.from('courses').delete().eq('course_id', course.id);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success('Course deleted.');
+    await loadAdminData();
+  };
+
+  const handleQuickEditCourse = async (course: Course) => {
+    if (!course.id.startsWith('db-')) {
+      toast.error('Static seed courses are edited in code, not Supabase.');
+      return;
+    }
+
+    const nextTitle = window.prompt('Course title', course.title)?.trim();
+    if (!nextTitle) return;
+
+    const nextPriceRaw = window.prompt('Course price in MNT', String(course.price))?.trim();
+    if (nextPriceRaw === undefined) return;
+    const nextPrice = Number(nextPriceRaw);
+    if (!Number.isFinite(nextPrice) || nextPrice < 0) {
+      toast.error('Invalid price.');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('courses')
+      .update({ title: nextTitle, price: Math.round(nextPrice) })
+      .eq('course_id', course.id);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success('Course updated.');
+    await loadAdminData();
+  };
+
+  const handleMoveLesson = async (course: Course, lessonIndex: number, direction: -1 | 1) => {
+    if (!course.id.startsWith('db-')) {
+      toast.error('Static seed lessons are edited in code, not Supabase.');
+      return;
+    }
+
+    const current = course.curriculum[lessonIndex];
+    const swap = course.curriculum[lessonIndex + direction];
+    if (!current || !swap) return;
+
+    const { error: firstError } = await supabase
+      .from('lessons')
+      .update({ sort_order: lessonIndex + direction })
+      .eq('lesson_id', current.id);
+
+    const { error: secondError } = await supabase
+      .from('lessons')
+      .update({ sort_order: lessonIndex })
+      .eq('lesson_id', swap.id);
+
+    const error = firstError || secondError;
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    await loadAdminData();
+  };
+
   const addLesson = () => {
     setLessons((prev) => [
       ...prev,
@@ -482,7 +635,7 @@ export default function AdminPage() {
         level: courseLevel,
         slug,
         teacher_name: teacherName || 'melodex',
-        price: 0,
+        price: Math.round(coursePrice),
       });
 
       if (courseError) {
@@ -525,6 +678,7 @@ export default function AdminPage() {
       setCourseDescription('');
       setCourseSlug('');
       setCourseTeacherName('');
+      setCoursePrice(0);
       setLessons([]);
       await loadAdminData();
       setActiveTab('courses');
@@ -794,12 +948,28 @@ export default function AdminPage() {
                         <h2 className="mt-2 font-display text-xl font-bold">{course.title}</h2>
                         <p className="mt-2 text-sm leading-6 text-[#9d9587]">{course.description}</p>
                       </div>
-                      <Link
-                        href={`/courses/${course.slug}`}
-                        className="shrink-0 rounded-lg bg-[rgba(201,168,76,0.12)] px-3 py-2 text-xs font-semibold text-[#E8C96D] transition hover:bg-[rgba(201,168,76,0.2)]"
-                      >
-                        View
-                      </Link>
+                      <div className="flex shrink-0 flex-col gap-2">
+                        <Link
+                          href={`/courses/${course.slug}`}
+                          className="rounded-lg bg-[rgba(201,168,76,0.12)] px-3 py-2 text-xs font-semibold text-[#E8C96D] transition hover:bg-[rgba(201,168,76,0.2)]"
+                        >
+                          View
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => void handleQuickEditCourse(course)}
+                          className="rounded-lg border border-[rgba(245,240,232,0.12)] px-3 py-2 text-xs text-[#c8bea8]"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleDeleteCourse(course)}
+                          className="rounded-lg border border-red-400/30 px-3 py-2 text-xs text-red-300"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2 text-xs text-[#a9a091]">
                       <span className="rounded-full bg-[#0A0A0F] px-2.5 py-1">
@@ -811,21 +981,39 @@ export default function AdminPage() {
                       <span className="rounded-full bg-[#0A0A0F] px-2.5 py-1">{course.duration}</span>
                     </div>
                     <div className="mt-4 space-y-2">
-                      {course.curriculum.map((lesson) => (
+                      {course.curriculum.map((lesson, lessonIndex) => (
                         <div
                           key={lesson.id}
                           className="flex items-center justify-between gap-3 rounded-lg border border-[rgba(245,240,232,0.06)] bg-[#0A0A0F] px-3 py-2 text-sm"
                         >
                           <span className="min-w-0 truncate">{lesson.title}</span>
-                          <span
-                            className={`shrink-0 rounded-full px-2 py-1 text-xs ${
-                              lesson.youtubeId
-                                ? 'bg-[rgba(201,168,76,0.12)] text-[#E8C96D]'
-                                : 'bg-[rgba(245,240,232,0.06)] text-[#8f8779]'
-                            }`}
-                          >
-                            {lesson.youtubeId ? lesson.youtubeId : 'No video'}
-                          </span>
+                          <div className="flex shrink-0 items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => void handleMoveLesson(course, lessonIndex, -1)}
+                              disabled={lessonIndex === 0}
+                              className="rounded border border-white/10 px-2 py-1 text-xs disabled:opacity-30"
+                            >
+                              Up
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void handleMoveLesson(course, lessonIndex, 1)}
+                              disabled={lessonIndex === course.curriculum.length - 1}
+                              className="rounded border border-white/10 px-2 py-1 text-xs disabled:opacity-30"
+                            >
+                              Down
+                            </button>
+                            <span
+                              className={`rounded-full px-2 py-1 text-xs ${
+                                lesson.youtubeId
+                                  ? 'bg-[rgba(201,168,76,0.12)] text-[#E8C96D]'
+                                  : 'bg-[rgba(245,240,232,0.06)] text-[#8f8779]'
+                              }`}
+                            >
+                              {lesson.youtubeId ? lesson.youtubeId : 'No video'}
+                            </span>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -875,6 +1063,17 @@ export default function AdminPage() {
                         value={courseTeacherName}
                         onChange={(e) => setCourseTeacherName(e.target.value)}
                         placeholder="Teacher name"
+                        className="w-full rounded-lg border border-[rgba(245,240,232,0.12)] bg-[#0A0A0F] px-3 py-2 text-sm outline-none focus:border-[rgba(201,168,76,0.35)]"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs text-[#8f8779]">Price (MNT)</label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={coursePrice}
+                        onChange={(e) => setCoursePrice(Number(e.target.value))}
+                        placeholder="0"
                         className="w-full rounded-lg border border-[rgba(245,240,232,0.12)] bg-[#0A0A0F] px-3 py-2 text-sm outline-none focus:border-[rgba(201,168,76,0.35)]"
                       />
                     </div>
@@ -1140,6 +1339,27 @@ export default function AdminPage() {
                         </span>
                       </div>
                       <p className="mt-2 text-xs text-[#7A7570]">{formatDate(payment.created_at)}</p>
+                      {payment.payment_reference && (
+                        <p className="mt-1 text-xs text-[#E8C96D]">{payment.payment_reference}</p>
+                      )}
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void handleApprovePayment(payment)}
+                          disabled={payment.status === 'paid' || payment.status === 'completed'}
+                          className="rounded-lg bg-[rgba(125,211,168,0.14)] px-3 py-1.5 text-xs font-semibold text-[#7DD3A8] disabled:opacity-40"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleRefundPayment(payment)}
+                          disabled={payment.status === 'refunded'}
+                          className="rounded-lg bg-red-400/10 px-3 py-1.5 text-xs font-semibold text-red-300 disabled:opacity-40"
+                        >
+                          Refund
+                        </button>
+                      </div>
                     </article>
                   ))}
                 </div>

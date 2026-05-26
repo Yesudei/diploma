@@ -82,12 +82,12 @@ When `RAG_API_KEY` is set, direct API calls need:
 Authorization: Bearer your-local-key
 ```
 
-The `/chat` page asks for the key once and stores it in that browser's local storage.
+The floating chat drawer asks for the key once and stores it in that browser's local storage.
 
-From another device, open:
+From another device, open the website:
 
 ```text
-http://YOUR_HOME_PC_IP:3000/chat
+http://YOUR_HOME_PC_IP:3000
 ```
 
 On the same Wi-Fi/LAN, `YOUR_HOME_PC_IP` is the home PC LAN IP. For school use, install Tailscale on the home PC and the MacBook, log in to the same account, then use the home PC's Tailscale IP instead. Keep Ollama and Qdrant on localhost; only expose the website/API port.

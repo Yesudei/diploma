@@ -51,6 +51,7 @@ export interface AudioFile {
   uploaded_at: string;
   updated_at: string;
   url?: string;
+  storage_path?: string;
 }
 
 export interface AudioUploadRequest {

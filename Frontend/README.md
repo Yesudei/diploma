@@ -48,7 +48,6 @@ Frontend/
 │   │   │   ├── login/page.tsx        # Login page
 │   │   │   └── register/page.tsx     # Registration page
 │   │   ├── dashboard/page.tsx        # Main dashboard
-│   │   ├── chat/page.tsx             # AI chatbot interface
 │   │   ├── marketplace/page.tsx      # Marketplace browser
 │   │   └── profile/page.tsx          # User profile
 │   │
@@ -127,10 +126,10 @@ Frontend/
 - File description & visibility toggle
 - Upload progress indicator
 
-### 5. **AI Chatbot** (`/chat`)
-- Real-time chat interface
-- Message history display
-- Protected user-only access
+### 5. **AI Chatbot** (floating drawer)
+- Available from the chat icon on every page
+- Uses the local Ollama + Qdrant RAG route at `/api/ai-chat`
+- Message history is kept in the open drawer session
 - Toast notifications for errors
 
 ### 6. **Marketplace** (`/marketplace`)
@@ -165,14 +164,14 @@ OPENAI_COMPATIBLE_BASE_URL=https://openrouter.ai/api/v1
 OPENAI_COMPATIBLE_API_KEY=your-provider-key
 ```
 
-### Gemini RAG Chatbot
+### Ollama RAG Chatbot
 
-The chatbot is available at `/chat`.
+The chatbot is available from the floating chat icon on every page.
 
 Server route:
 
 ```text
-src/app/api/chat/route.ts
+src/app/api/ai-chat/route.ts
 ```
 
 It reads the cleaned RAG dataset from:

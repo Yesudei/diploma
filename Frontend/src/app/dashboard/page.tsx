@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import {
   listUserAnalysisResults,
   listUserAudioFiles,
+  analyzeUserAudioFile,
   uploadUserAudioFile,
 } from '@/lib/dashboard-audio';
 import type { AudioFile, MixingAnalysisResult } from '@/types';
@@ -209,9 +210,15 @@ export default function DashboardPage() {
 
     setIsAnalyzing(true);
     try {
-      toast.info(
-        'Cloud mix analysis одоогоор холбогдоогүй байна. Demo-д зориулж upload болон file sync нь Supabase дээр ажиллаж байгаа.'
-      );
+      const audioFile = audioFiles.find((file) => file.id === selectedAnalysisFileId);
+      if (!audioFile || !user?.id) {
+        toast.error('Шинжилгээ хийх файл олдсонгүй.');
+        return;
+      }
+
+      const result = await analyzeUserAudioFile(user.id, audioFile);
+      setAnalysisResults((current) => [result, ...current]);
+      toast.success('Mix шинжилгээ хадгалагдлаа.');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Шинжилгээ амжилтгүй боллоо';
       toast.error(message);
@@ -283,12 +290,6 @@ export default function DashboardPage() {
               >
                 Курсууд <span>↗</span>
               </Link>
-              <Link
-                href="/chat"
-                className="studio-ghost-button flex items-center justify-between rounded-2xl px-3 py-2 text-sm"
-              >
-                Studio mentor <span>↗</span>
-              </Link>
             </div>
           </div>
 
@@ -314,12 +315,6 @@ export default function DashboardPage() {
                 <span className="h-2 w-2 rounded-full bg-[#7DD3A8]" />
                 Курс, beat, mix хайх...
               </div>
-              <Link
-                href="/chat"
-                className="studio-button inline-flex h-12 items-center justify-center rounded-full px-5 text-sm font-black"
-              >
-                Ментор
-              </Link>
             </div>
           </div>
 
@@ -527,9 +522,8 @@ export default function DashboardPage() {
                   </button>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-[#8f8779]">
-                  Cloud demo дээр audio upload болон file history нь Supabase-р sync хийгдэнэ. Mix
-                  analysis engine-г тусад нь холбох хүртэл энэ хэсэг өмнөх тайлангуудыг л
-                  харуулна.
+                  Файлыг browser дээр decode хийж peak, loudness, dynamic range болон balance оноог тооцоод
+                  Supabase mix analysis хүснэгтэд хадгална.
                 </p>
               </div>
 
@@ -611,12 +605,6 @@ export default function DashboardPage() {
             <p className="mt-2 text-sm leading-6 text-[#b8ad93]">
               Kick, 808, melody, EQ, arrangement гээд сурах явцдаа шууд асуугаарай.
             </p>
-            <Link
-              href="/chat"
-              className="studio-button mt-4 inline-flex w-full justify-center rounded-full px-4 py-3 text-sm font-black"
-            >
-              Studio mentor нээх
-            </Link>
           </div>
         </aside>
       </section>

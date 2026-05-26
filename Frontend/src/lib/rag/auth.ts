@@ -21,3 +21,15 @@ export function isRagRequestAuthorized(headers: Headers) {
 
   return getRequestApiKey(headers) === configuredKey;
 }
+
+export function isTrustedTailnetOrLocalRequest(headers: Headers) {
+  const host = (headers.get('host') || headers.get('x-forwarded-host') || '').toLowerCase();
+  const hostname = host.split(':')[0];
+
+  return (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '::1' ||
+    /^100\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname)
+  );
+}

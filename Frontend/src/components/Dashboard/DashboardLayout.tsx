@@ -28,7 +28,6 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
     { href: '/dashboard', label: 'Самбар' },
     { href: '/dashboard/audio', label: 'Миний аудио' },
     { href: '/dashboard/analysis', label: 'Шинжилгээ' },
-    { href: '/chat', label: 'AI чат' },
     { href: '/marketplace', label: 'Маркетплейс' },
     { href: '/profile', label: 'Профайл' },
   ];

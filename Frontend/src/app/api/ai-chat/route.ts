@@ -3,7 +3,7 @@ import { embedText, generateChatAnswer } from '@/lib/rag/ollama';
 import { buildGroundedUserPrompt, hasEnoughContext, INSUFFICIENT_CONTEXT_ANSWER, musicTeacherSystemPrompt } from '@/lib/rag/prompt';
 import { searchSimilarDocuments } from '@/lib/rag/qdrant';
 import { normalizeMongolianQuery } from '@/lib/rag/normalize';
-import { isRagRequestAuthorized } from '@/lib/rag/auth';
+import { isRagRequestAuthorized, isTrustedTailnetOrLocalRequest } from '@/lib/rag/auth';
 import type { AiChatRequest, ChatHistoryMessage } from '@/lib/rag/types';
 
 export const runtime = 'nodejs';
@@ -23,6 +23,14 @@ export async function OPTIONS() {
 function getTopK() {
   const parsed = Number.parseInt(process.env.RAG_TOP_K ?? '5', 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 5;
+}
+
+function getRagProxyUrl() {
+  return process.env.RAG_PROXY_URL?.trim().replace(/\/$/, '') || '';
+}
+
+function getRagProxyApiKey() {
+  return process.env.RAG_PROXY_API_KEY?.trim() || '';
 }
 
 function validHistory(history: unknown): ChatHistoryMessage[] {
@@ -46,9 +54,34 @@ function errorMessage(error: unknown) {
   return error.message;
 }
 
+async function proxyToHomeRag(body: AiChatRequest) {
+  const proxyUrl = getRagProxyUrl();
+  const proxyApiKey = getRagProxyApiKey();
+
+  if (!proxyUrl) return null;
+
+  const response = await fetch(`${proxyUrl}/api/ai-chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(proxyApiKey ? { 'x-rag-api-key': proxyApiKey } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json().catch(() => null);
+
+  return NextResponse.json(data ?? { error: 'Home RAG gateway returned an empty response.' }, {
+    status: response.status,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
-    if (!isRagRequestAuthorized(request.headers)) {
+    if (!isRagRequestAuthorized(request.headers) && !isTrustedTailnetOrLocalRequest(request.headers)) {
       return NextResponse.json({ error: 'Invalid or missing RAG API key.' }, { status: 401 });
     }
 
@@ -61,6 +94,15 @@ export async function POST(request: NextRequest) {
 
     if (message.length > 2000) {
       return NextResponse.json({ error: 'message must be 2000 characters or fewer.' }, { status: 400 });
+    }
+
+    const proxiedResponse = await proxyToHomeRag({
+      message,
+      history: validHistory(body.history),
+    });
+
+    if (proxiedResponse) {
+      return proxiedResponse;
     }
 
     const normalizedQuery = normalizeMongolianQuery(message);
