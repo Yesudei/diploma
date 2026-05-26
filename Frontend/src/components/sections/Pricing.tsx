@@ -1,7 +1,30 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import SectionLabel from '@/components/ui/SectionLabel';
 import PricingCard from '@/components/cards/PricingCard';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Pricing() {
+  const router = useRouter();
+  const { user } = useAuth();
+
+  const handleFree = () => {
+    if (user) {
+      router.push('/courses');
+    } else {
+      router.push('/auth/login?redirect=/courses');
+    }
+  };
+
+  const handlePro = () => {
+    if (user) {
+      router.push('/checkout?plan=pro');
+    } else {
+      router.push('/auth/login?redirect=/checkout?plan=pro');
+    }
+  };
+
   return (
     <section className="py-24 px-[60px] bg-[#111118]">
       <div className="max-w-[1000px] mx-auto">
@@ -27,6 +50,7 @@ export default function Pricing() {
               'Багштай холбоо',
             ]}
             buttonLabel="Үнэгүй эхлэх"
+            onButtonClick={handleFree}
           />
           <PricingCard
             title="Pro"
@@ -42,6 +66,7 @@ export default function Pricing() {
             ]}
             highlighted
             buttonLabel="Pro эхлэх →"
+            onButtonClick={handlePro}
           />
         </div>
       </div>

@@ -102,6 +102,30 @@ export async function createBankTransferPayment(userId: string, courseId: string
   };
 }
 
+export async function createProSubscriptionPayment(userId: string, amount: number) {
+  const paymentReference = buildBankTransferReference('pro-monthly', userId);
+  const { data, error } = await supabase
+    .from('payments')
+    .insert({
+      user_id: userId,
+      course_id: 'pro-monthly',
+      amount,
+      currency: 'MNT',
+      status: 'pending',
+      payment_method: 'bank_transfer',
+      payment_reference: paymentReference,
+    })
+    .select('id, payment_reference')
+    .single();
+
+  if (error) throw error;
+  return {
+    paymentId: data.id as string,
+    paymentReference: (data.payment_reference as string | null) || paymentReference,
+    bankAccount: BANK_TRANSFER_ACCOUNT,
+  };
+}
+
 export async function confirmPayment(paymentId: string) {
   return { success: true, paymentId };
 }

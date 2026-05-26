@@ -9,6 +9,7 @@ interface PricingCardProps {
   features: string[];
   highlighted?: boolean;
   buttonLabel: string;
+  onButtonClick?: () => void;
 }
 
 export default function PricingCard({
@@ -19,6 +20,7 @@ export default function PricingCard({
   features,
   highlighted,
   buttonLabel,
+  onButtonClick,
 }: PricingCardProps) {
   return (
     <div
@@ -66,7 +68,7 @@ export default function PricingCard({
         ))}
       </ul>
 
-      <Button variant={highlighted ? 'primary' : 'outline'} size="md" className="w-full">
+      <Button variant={highlighted ? 'primary' : 'outline'} size="md" className="w-full" onClick={onButtonClick}>
         {buttonLabel}
       </Button>
     </div>

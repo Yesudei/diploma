@@ -7,10 +7,17 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { courses } from '@/lib/data';
 import { BANK_TRANSFER_ACCOUNT } from '@/lib/bank-payment';
-import { createBankTransferPayment } from '@/lib/database';
+import { createBankTransferPayment, createProSubscriptionPayment } from '@/lib/database';
 import { useAuth } from '@/hooks/useAuth';
 
 const Nav = dynamic(() => import('@/components/layout/Nav'), { ssr: false });
+
+const PRO_PLAN = {
+  id: 'pro-monthly',
+  title: 'Pro төлөвлөгөө',
+  description: 'Бүх хичээлд хандах, .FLP файл авах, багштай 24/7 холбоо, гэрчилгээ',
+  price: 15000,
+};
 
 const formatPrice = (price: number): string => `₮${price.toLocaleString()}`;
 
@@ -35,7 +42,10 @@ function CheckoutPageContent() {
   const [processing, setProcessing] = useState(false);
   const [submittedReference, setSubmittedReference] = useState('');
 
+  const isPlan = searchParams.get('plan') === 'pro';
+
   const course = useMemo(() => {
+    if (isPlan) return null;
     const courseId = searchParams.get('courseId');
     const slug = searchParams.get('slug');
 
@@ -44,23 +54,28 @@ function CheckoutPageContent() {
       courses.find((item) => item.slug === slug) ||
       null
     );
-  }, [searchParams]);
+  }, [searchParams, isPlan]);
+
+  const checkoutItem = isPlan
+    ? { title: PRO_PLAN.title, description: PRO_PLAN.description, price: PRO_PLAN.price }
+    : course
+      ? { title: course.title, description: course.description, price: course.price }
+      : null;
 
   const freeLessons = course?.curriculum.filter((lesson) => lesson.free).length ?? 0;
   const paidLessons = (course?.curriculum.length ?? 0) - freeLessons;
 
   const handleConfirmPayment = async () => {
-    if (!course) return;
+    if (!checkoutItem) return;
 
     if (!user) {
       toast.error('Төлбөр бүртгүүлэхийн тулд нэвтэрнэ үү.');
-      router.push(
-        `/auth/login?redirect=/checkout?courseId=${encodeURIComponent(course.id)}&slug=${encodeURIComponent(course.slug)}`,
-      );
+      const currentUrl = isPlan ? '/checkout?plan=pro' : `/checkout?courseId=${encodeURIComponent(course!.id)}&slug=${encodeURIComponent(course!.slug)}`;
+      router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`);
       return;
     }
 
-    if (course.price === 0) {
+    if (!isPlan && course && course.price === 0) {
       router.push(`/courses/${course.slug}`);
       return;
     }
@@ -68,7 +83,12 @@ function CheckoutPageContent() {
     setProcessing(true);
 
     try {
-      const payment = await createBankTransferPayment(user.id, course.id, course.price);
+      let payment;
+      if (isPlan) {
+        payment = await createProSubscriptionPayment(user.id, PRO_PLAN.price);
+      } else {
+        payment = await createBankTransferPayment(user.id, course!.id, course!.price);
+      }
       setSubmittedReference(payment.paymentReference);
       toast.success('Төлбөрийн хүсэлт бүртгэгдлээ. Шилжүүлгээ хийгээд админ баталгаажуулна.');
     } catch (error) {
@@ -84,13 +104,13 @@ function CheckoutPageContent() {
       <Nav />
       <main className="min-h-screen bg-[#0A0A0F] pb-14 pt-28 sm:pt-32">
         <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-8 lg:px-14">
-          {!course ? (
+          {!checkoutItem ? (
             <section className="rounded-2xl border border-[rgba(245,240,232,0.12)] bg-[#111118] p-8 text-center">
               <h1 className="font-display text-3xl font-bold text-[#F5F0E8]">
                 Төлбөрийн мэдээлэл олдсонгүй
               </h1>
               <p className="mt-3 text-sm text-[#8e8778]">
-                Курс сонгоод дахин оролдоно уу.
+                Курс эсвэл төлөвлөгөө сонгоод дахин оролдоно уу.
               </p>
               <Link
                 href="/courses"
@@ -109,8 +129,8 @@ function CheckoutPageContent() {
                   Төлбөр хийх
                 </h1>
                 <p className="mt-2 text-sm text-[#9f9279]">
-                  Одоогоор банкны шилжүүлгээр төлбөр авч, админ баталгаажуулсны дараа курс
-                  нээгдэнэ.
+                  Одоогоор банкны шилжүүлгээр төлбөр авч, админ баталгаажуулсны дараа
+                  {isPlan ? ' Pro төлөвлөгөө идэвхжинэ.' : ' курс нээгдэнэ.'}
                 </p>
 
                 <div className="mt-6 rounded-xl border border-[rgba(245,240,232,0.12)] bg-[#0f1118] p-4 text-sm text-[#c8bda3]">
@@ -155,7 +175,7 @@ function CheckoutPageContent() {
                     ? 'Хүсэлт бүртгэгдсэн'
                     : processing
                       ? 'Бүртгэж байна...'
-                      : `${formatPrice(course.price)} төлбөрийн хүсэлт илгээх`}
+                      : `${formatPrice(checkoutItem.price)} төлбөрийн хүсэлт илгээх`}
                 </button>
 
                 {submittedReference && (
@@ -167,41 +187,62 @@ function CheckoutPageContent() {
 
               <aside className="h-fit rounded-2xl border border-[rgba(245,240,232,0.1)] bg-[#111118] p-5 sm:p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a69262]">
-                  Захиалгын мэдээлэл
+                  {isPlan ? 'Төлөвлөгөөний мэдээлэл' : 'Захиалгын мэдээлэл'}
                 </p>
                 <h2 className="mt-2 font-display text-2xl font-bold text-[#F5F0E8]">
-                  {course.title}
+                  {checkoutItem.title}
                 </h2>
-                <p className="mt-3 text-sm leading-6 text-[#9f9279]">{course.description}</p>
+                <p className="mt-3 text-sm leading-6 text-[#9f9279]">{checkoutItem.description}</p>
 
-                <div className="mt-5 space-y-2 rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0f1118] p-4 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#8e8778]">Нийт хичээл</span>
-                    <span className="font-semibold text-[#F5F0E8]">{course.curriculum.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#8e8778]">Үнэгүй үзэлт</span>
-                    <span className="font-semibold text-[#F5F0E8]">{freeLessons}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#8e8778]">Төлбөртэй хичээл</span>
-                    <span className="font-semibold text-[#F5F0E8]">{paidLessons}</span>
-                  </div>
-                  <div className="mt-3 border-t border-[rgba(245,240,232,0.08)] pt-3">
+                {isPlan ? (
+                  <div className="mt-5 space-y-2 rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0f1118] p-4 text-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-[#8e8778]">Нийт төлбөр</span>
-                      <span className="font-display text-2xl text-[#C9A84C]">
-                        {formatPrice(course.price)}
-                      </span>
+                      <span className="text-[#8e8778]">Төлөвлөгөө</span>
+                      <span className="font-semibold text-[#F5F0E8]">Pro (сарын)</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#8e8778]">Хандалт</span>
+                      <span className="font-semibold text-[#F5F0E8]">Бүх хичээл</span>
+                    </div>
+                    <div className="mt-3 border-t border-[rgba(245,240,232,0.08)] pt-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#8e8778]">Сарын төлбөр</span>
+                        <span className="font-display text-2xl text-[#C9A84C]">
+                          {formatPrice(PRO_PLAN.price)}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : course && (
+                  <div className="mt-5 space-y-2 rounded-xl border border-[rgba(245,240,232,0.1)] bg-[#0f1118] p-4 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#8e8778]">Нийт хичээл</span>
+                      <span className="font-semibold text-[#F5F0E8]">{course.curriculum.length}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#8e8778]">Үнэгүй үзэлт</span>
+                      <span className="font-semibold text-[#F5F0E8]">{freeLessons}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#8e8778]">Төлбөртэй хичээл</span>
+                      <span className="font-semibold text-[#F5F0E8]">{paidLessons}</span>
+                    </div>
+                    <div className="mt-3 border-t border-[rgba(245,240,232,0.08)] pt-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#8e8778]">Нийт төлбөр</span>
+                        <span className="font-display text-2xl text-[#C9A84C]">
+                          {formatPrice(course.price)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <Link
-                  href={`/courses/${course.slug}`}
+                  href={isPlan ? '/plans' : course ? `/courses/${course.slug}` : '/courses'}
                   className="mt-5 inline-flex text-xs text-[#8e8778] transition-colors hover:text-[#C9A84C]"
                 >
-                  ← Курс руу буцах
+                  ← {isPlan ? 'Төлөвлөгөө рүү буцах' : 'Курс руу буцах'}
                 </Link>
               </aside>
             </section>
