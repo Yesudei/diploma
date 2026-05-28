@@ -69,7 +69,8 @@ export default function MusicAiChat({ variant = 'page', onClose }: MusicAiChatPr
     try {
       const storedApiKey =
         apiKey.trim() ||
-        (typeof window !== 'undefined' ? window.localStorage.getItem('music-rag-api-key') ?? '' : '');
+        (typeof window !== 'undefined' ? window.localStorage.getItem('music-rag-api-key') ?? '' : '') ||
+        (process.env.NEXT_PUBLIC_RAG_API_KEY ?? '');
       const response = await fetch('/api/ai-chat', {
         method: 'POST',
         headers: {

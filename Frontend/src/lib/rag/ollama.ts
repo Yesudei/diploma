@@ -57,16 +57,17 @@ export async function generateChatAnswer(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: getEnv('OLLAMA_CHAT_MODEL', 'qwen3:8b'),
+      model: getEnv('OLLAMA_CHAT_MODEL', 'qwen3:4b'),
       stream: false,
+      think: false,
       messages: [
         { role: 'system', content: systemPrompt },
         ...recentHistory,
         { role: 'user', content: userPrompt },
       ],
       options: {
-        temperature: 0.25,
-        num_predict: 800,
+        temperature: 0.3,
+        num_predict: 1200,
       },
     }),
   });
@@ -75,7 +76,7 @@ export async function generateChatAnswer(
 
   if (!response.ok) {
     throw new Error(
-      `Ollama chat failed. Check Ollama is running and qwen3:8b is pulled. ${data?.error ?? ''}`.trim(),
+      `Ollama chat failed. Check Ollama is running and qwen3:4b is pulled. ${data?.error ?? ''}`.trim(),
     );
   }
 

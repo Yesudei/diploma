@@ -20,15 +20,8 @@ export const musicTeacherSystemPrompt = `
 
 export function buildGroundedUserPrompt(question: string, results: RagSearchResult[]) {
   const context = results
-    .map(({ document, score }, index) =>
-      [
-        `[${index + 1}] ${document.title}`,
-        `Category: ${document.category}`,
-        `Level: ${document.level}`,
-        `Score: ${score.toFixed(3)}`,
-        `Content: ${document.content}`,
-        `Tags: ${document.tags.join(', ')}`,
-      ].join('\n'),
+    .map(({ document }, index) =>
+      [`[${index + 1}] ${document.title} (${document.category})`, document.content].join('\n'),
     )
     .join('\n\n');
 
@@ -44,5 +37,5 @@ ${question}
 }
 
 export function hasEnoughContext(results: RagSearchResult[]) {
-  return results.length > 0 && results[0].score >= 0.2;
+  return results.length > 0 && results[0].score >= 0.38;
 }
